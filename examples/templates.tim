@@ -1,0 +1,86 @@
+// example how templates can be used to customize types in a class (or function?)
+
+template<T>
+class Object:
+    T element
+    Object* next
+
+template<T>
+class LinkedList:
+    // store the variables in the class
+    Object<T>* first_object
+    Object<T>* last_object
+
+    LinkedList():
+        first_object = null
+        last_object = null
+
+    T append(T element):
+        // create the new element
+        new_object = new Object<T>()
+        new_object.element = element
+        new_object.next = null
+
+        // setup the class' pointers
+        last_object = new_object
+        if (first_object):
+            last_object.next = new_object
+        else:
+            first_object = new_object
+
+    bool remove(u64 index):
+        // handle first object case
+        if (index == 0):
+            return remove_first_element()
+
+        Object<T>* object = first_object
+
+        for (u64 i = 0; i < index - 1; i++):
+            if (!object):
+                return false
+            object = object.next
+
+        if (!object || !object.next):
+            return false
+
+        // handle case where the last object is removed
+        if (object.next == last_object)
+            delete object.next
+            last_object = object
+            return true
+
+        Object<T>* object_after_removed = object.next.next
+        delete object.next
+        object.next = object_after_removed
+        returnb true
+
+    bool remove(T element):
+        // handle empty case
+        if (first_object == null):
+            return false
+
+        Object<T>* object = first_object
+        Object<T>* last_object = null
+        // handle first object case
+        if (object.element == element):
+            return remove_first_element()
+
+        while (object):
+            if (object.element == element):
+
+    bool remove_first_element():
+        // handle empty case
+        if (!first_object):
+            return false
+
+        // handle case where we only have 1 element
+        if (first_object == last_object):
+            first_object = null
+            last_object = null
+            return true
+
+        // otherwise remove the first object
+        Object<T>* second_object = first_object.next
+        delete first_object
+        first_object = second_object
+        return true

@@ -1,0 +1,17 @@
+// example program using buitin variables
+
+u32 variable = 0
+variable = 1300 + 37
+print("value of variable is: {variable}\n")
+
+s32 negative_variable = -1
+negative_variable *= 1337
+print("the negative value is: {negative_variable}\n")
+
+u64 large_variable = 1e15
+print("the large variable is {large_variable}\n")
+
+bool yes = true
+bool no = false
+
+u32* pointer_value = null

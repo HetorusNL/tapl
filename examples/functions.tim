@@ -1,0 +1,31 @@
+// examples how functions are implemented
+
+void function_name():
+    // indentation in TAPL is with 4 spaces, and functions use colons
+    u32 variable = 10
+    print("variable: {variable}\n")
+
+// functions have scopes, thus variables declared there don't live beyond the scope
+// print(variable)  // error
+
+u32 return_something():
+    // non-void functions must return the correct type
+    u32 variable = 10
+    return variable
+
+// functions can have a different amount of arguments, or of different types
+
+void function(u32 value):
+    return value
+
+void function(u32 val1, u32 val2):
+    return val1 + val2
+
+void function(s32 val1, s32 val1):
+    return val1 + val2
+
+// however, when only types are different, the types should be known when calling the function
+
+u32 value = function(10)
+// value = function(10, 10)  // ERROR, can be either u32 or s32
+value = function(value, value)  // no error, as value is u32
