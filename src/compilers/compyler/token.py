@@ -15,7 +15,6 @@ class Token(Enum):
     PAREN_OPEN = auto()
     PLUS = auto()
     SEMICOLON = auto()
-    STAR = auto()
 
     # single or double character tokens
     EQUAL = auto()
@@ -29,6 +28,8 @@ class Token(Enum):
     SLASH = auto()
     SLASH_SLASH = auto()
     SLASH_STAR = auto()
+    STAR = auto()
+    STAR_SLASH = auto()
 
     # literals
     IDENTIFIER = auto()
