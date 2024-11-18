@@ -4,21 +4,31 @@ from .token import Token
 
 
 class Tokenizer:
+    INDENT_SPACES: int = 4
+
     def __init__(self, file: Path):
         print(f"tokenizing file: '{file}'")
         # for this compiler files will be small enough to load entirely into a string in memory
         with open(file) as f:
             self._file_characters: str = "".join(f.readlines())
         self._file_size: int = len(self._file_characters)
+
         # some variables to store the state of the tokenizer
         self._current_index: int = 0
         self._line: int = 1
+        # indent and dedent related variables
         self._at_start_of_line: bool = True
+        self._current_indent: int = 0  # current number of INDENT_SPACES indentations
+        # the resulting tokens from the tokenizer
         self._tokens: list[Token] = []
 
     def tokenize(self) -> list[Token]:
         # infinite loop until we reach the end of file
         while True:
+            # process indent/dedent from spaces at start of line
+            if self._at_start_of_line:
+                self._add_indent_dedent()
+
             # switch-case for the next character
             match char := self._next():
                 # match all single-character tokens
@@ -30,6 +40,8 @@ class Tokenizer:
                     self._add_token(Token.BRACKET_CLOSE)
                 case "[":
                     self._add_token(Token.BRACKET_OPEN)
+                case ":":
+                    self._add_token(Token.COLON)
                 case ",":
                     self._add_token(Token.COMMA)
                 case ".":
@@ -99,8 +111,11 @@ class Tokenizer:
                     pass
                 case "\t":
                     print("error: dammit, we use spaces not tabs!")
+                    self._add_token(Token.ERROR)
                 case _:
                     print(f"unknown character '{char}', skipped...")
+            # after \n we're at start of line, we can expect indent/dedent here
+            self._at_start_of_line = char == "\n"
         return self._tokens
 
     def _next(self) -> str | None:
@@ -165,6 +180,7 @@ class Tokenizer:
         # also handle the empty file case
         if char is None:
             print(f"unterminated string '\"{string}'!")
+            self._add_token(Token.ERROR)
             return
         print(f"parsed string '{string}'")
         self._add_token(Token.STRING)
@@ -179,6 +195,8 @@ class Tokenizer:
                 self._add_token(Token.FALSE)
             case "for":
                 self._add_token(Token.FOR)
+            case "if":
+                self._add_token(Token.IF)
             case "null":
                 self._add_token(Token.NULL)
             case "return":
@@ -214,3 +232,25 @@ class Tokenizer:
         # otherwise we have found an identifier
         print(f"parsed identifier '{identifier}'")
         self._add_token(Token.IDENTIFIER)
+
+    def _add_indent_dedent(self) -> None:
+        spaces: int = 0
+        while self._consume(" "):
+            spaces += 1
+
+        if spaces % self.INDENT_SPACES != 0:
+            print(f"indentations must be a multiple of {self.INDENT_SPACES} spaces!")
+            self._add_token(Token.ERROR)
+
+        indent: int = spaces // self.INDENT_SPACES
+        if indent > self._current_indent:
+            # found one or more indentations
+            for _ in range(indent - self._current_indent):
+                self._add_token(Token.INDENT)
+        elif indent < self._current_indent:
+            # found one or more dedentations
+            for _ in range(self._current_indent - indent):
+                self._add_token(Token.DEDENT)
+
+        # store the current amount of indentations
+        self._current_indent = indent

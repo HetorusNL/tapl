@@ -1,4 +1,5 @@
-{}[],.-()+;
-= == > >= < <= ! != / // /* * */
-identifier 1337 "str"
-class else false for null return super this true while
+if (true):
+    // indentation
+// dedentation
+1337
+  "illegal!"

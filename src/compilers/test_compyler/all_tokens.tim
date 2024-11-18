@@ -1,4 +1,4 @@
-{}[],.-()+;
-= == > >= < <= ! != / // /* * */
-identifier 1337 "str"
-class else false for null return super this true while
+{}[]:,.-()+;
+    = == > >= < <= ! != / // /* * */
+        identifier 1337 "str"
+class else false for if null return super this true while
