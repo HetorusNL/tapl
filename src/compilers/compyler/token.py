@@ -48,5 +48,10 @@ class Token(Enum):
     TRUE = auto()
     WHILE = auto()
 
+    # special tokens
+    INDENT = auto()
+    DEDENT = auto()
+    ERROR = auto()
+
     # end of file/input token
     EOF = auto()

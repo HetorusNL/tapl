@@ -11,7 +11,7 @@
     "editor.formatOnSave": true,
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "strict",
     "xml.format.maxLineWidth": 150
   },
   "extensions": {
@@ -23,4 +23,4 @@
       "pkief.material-icon-theme"
     ]
   }
-} 
+}

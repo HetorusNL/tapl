@@ -5,14 +5,15 @@ from .token import Token
 
 class Tokenizer:
     def __init__(self, file: Path):
-        print(f"file: '{file}'")
+        print(f"tokenizing file: '{file}'")
         # for this compiler files will be small enough to load entirely into a string in memory
         with open(file) as f:
             self._file_characters: str = "".join(f.readlines())
-        self._file_size = len(self._file_characters)
+        self._file_size: int = len(self._file_characters)
         # some variables to store the state of the tokenizer
         self._current_index: int = 0
-        self._line = 1
+        self._line: int = 1
+        self._at_start_of_line: bool = True
         self._tokens: list[Token] = []
 
     def tokenize(self) -> list[Token]:
@@ -106,17 +107,17 @@ class Tokenizer:
         """consume and return the next character in the file"""
         return self._get_char(consume=True)
 
-    def _consume(self, character: str) -> bool:
+    def _consume(self, char: str) -> bool:
         """check if the next character matches, consumes when matching"""
         # check that the next character matches the one providing
-        match = self._get_char(consume=False) == character
+        match = self._get_char(consume=False) == char
         # if it's a match, consume it by incrementing the idex
         if match:
             self._current_index += 1
         # return whether it was a match
         return match
 
-    def _get_char(self, consume) -> str | None:
+    def _get_char(self, consume: bool) -> str | None:
         """utility function to combine _next and _consume"""
         # make sure to check the file size
         if self._current_index == self._file_size:
@@ -158,13 +159,13 @@ class Tokenizer:
             if char == '"':
                 self._current_index += 1
                 break
-            # also handle the empty file case
-            if char is None:
-                print("unterminated string!")
-                return
             # append to the string and consume the character
             string += char
             self._current_index += 1
+        # also handle the empty file case
+        if char is None:
+            print(f"unterminated string '\"{string}'!")
+            return
         print(f"parsed string '{string}'")
         self._add_token(Token.STRING)
 
