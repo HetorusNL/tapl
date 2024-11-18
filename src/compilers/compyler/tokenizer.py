@@ -82,11 +82,12 @@ class Tokenizer:
                     break
                 # match numbers and strings
                 case digit if self._isdigit(char):
+                    # first match a digit, as identifiers can't start with a digit
                     self._add_number(digit)
                 case '"':
                     self._add_string()
-                case alpha if self._isalpha(char):
-                    self._add_identifier(alpha)
+                case identifier_char if self._is_identifier_char(char):
+                    self._add_identifier(identifier_char)
                 # match whitespaces
                 case " ":
                     pass
@@ -130,7 +131,10 @@ class Tokenizer:
         return "0" <= char <= "9"
 
     def _isalpha(self, char: str) -> bool:
-        return "a" <= char <= "z" or "A" <= char <= "Z" or char == "_"
+        return "a" <= char <= "z" or "A" <= char <= "Z"
+
+    def _is_identifier_char(self, char: str) -> bool:
+        return self._isdigit(char) or self._isalpha(char) or char == "_"
 
     def _add_token(self, token: Token) -> None:
         self._tokens.append(token)
@@ -164,8 +168,48 @@ class Tokenizer:
         print(f"parsed string '{string}'")
         self._add_token(Token.STRING)
 
+    def _add_keyword(self, identifier: str) -> bool:
+        match identifier:
+            case "class":
+                self._add_token(Token.CLASS)
+            case "else":
+                self._add_token(Token.ELSE)
+            case "false":
+                self._add_token(Token.FALSE)
+            case "for":
+                self._add_token(Token.FOR)
+            case "null":
+                self._add_token(Token.NULL)
+            case "return":
+                self._add_token(Token.RETURN)
+            case "super":
+                self._add_token(Token.SUPER)
+            case "this":
+                self._add_token(Token.THIS)
+            case "true":
+                self._add_token(Token.TRUE)
+            case "while":
+                self._add_token(Token.WHILE)
+            case _:
+                # in de default case we haven't found a keyword
+                return False
+        # if we matched anything but the default case, we found a keyword
+        return True
+
     def _add_identifier(self, first_alpha: str) -> None:
-        string = first_alpha
-        # TODO parse the identifier
-        # TODO match keywords
-        print(f"parsed identifier '{string}")
+        identifier = first_alpha
+        while char := self._get_char(consume=False):
+            # while we get identifier characters, consume them and continue
+            if self._is_identifier_char(char):
+                identifier += char
+                self._current_index += 1
+                continue
+            break
+
+        # match keywords, and return if the identifier is a keyword
+        if self._add_keyword(identifier):
+            return
+
+        # otherwise we have found an identifier
+        print(f"parsed identifier '{identifier}'")
+        self._add_token(Token.IDENTIFIER)

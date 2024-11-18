@@ -42,7 +42,6 @@ class Token(Enum):
     FALSE = auto()
     FOR = auto()
     NULL = auto()
-    OR = auto()
     RETURN = auto()
     SUPER = auto()
     THIS = auto()
