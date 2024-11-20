@@ -2,7 +2,7 @@ from enum import Enum
 from enum import auto
 
 
-class Token(Enum):
+class TokenType(Enum):
     # single character tokens
     BRACE_CLOSE = auto()
     BRACE_OPEN = auto()

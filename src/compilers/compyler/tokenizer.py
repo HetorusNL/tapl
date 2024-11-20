@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from .token import Token
+from .token_type import TokenType
+from .tokens import IdentifierToken
+from .tokens import NumberToken
+from .tokens import StringToken
+from .tokens import Token
 
 
 class Tokenizer:
@@ -33,65 +37,68 @@ class Tokenizer:
             match char := self._next():
                 # match all single-character tokens
                 case "}":
-                    self._add_token(Token.BRACE_CLOSE)
+                    self._add_token(TokenType.BRACE_CLOSE)
                 case "{":
-                    self._add_token(Token.BRACE_OPEN)
+                    self._add_token(TokenType.BRACE_OPEN)
                 case "]":
-                    self._add_token(Token.BRACKET_CLOSE)
+                    self._add_token(TokenType.BRACKET_CLOSE)
                 case "[":
-                    self._add_token(Token.BRACKET_OPEN)
+                    self._add_token(TokenType.BRACKET_OPEN)
                 case ":":
-                    self._add_token(Token.COLON)
+                    self._add_token(TokenType.COLON)
                 case ",":
-                    self._add_token(Token.COMMA)
+                    self._add_token(TokenType.COMMA)
                 case ".":
-                    self._add_token(Token.DOT)
+                    self._add_token(TokenType.DOT)
                 case "-":
-                    self._add_token(Token.MINUS)
+                    self._add_token(TokenType.MINUS)
                 case ")":
-                    self._add_token(Token.PAREN_CLOSE)
+                    self._add_token(TokenType.PAREN_CLOSE)
                 case "(":
-                    self._add_token(Token.PAREN_OPEN)
+                    self._add_token(TokenType.PAREN_OPEN)
                 case "+":
-                    self._add_token(Token.PLUS)
+                    self._add_token(TokenType.PLUS)
                 case ";":
-                    self._add_token(Token.SEMICOLON)
+                    self._add_token(TokenType.SEMICOLON)
                 # match all single- or double-character tokens
                 case "=":
                     if self._consume("="):
-                        self._add_token(Token.EQUAL_EQUAL)
+                        self._add_token(TokenType.EQUAL_EQUAL)
                     else:
-                        self._add_token(Token.EQUAL)
+                        self._add_token(TokenType.EQUAL)
                 case ">":
                     if self._consume("="):
-                        self._add_token(Token.GREATER_EQUAL)
+                        self._add_token(TokenType.GREATER_EQUAL)
                     else:
-                        self._add_token(Token.GREATER)
+                        self._add_token(TokenType.GREATER)
                 case "<":
                     if self._consume("="):
-                        self._add_token(Token.LESS_EQUAL)
+                        self._add_token(TokenType.LESS_EQUAL)
                     else:
-                        self._add_token(Token.LESS)
+                        self._add_token(TokenType.LESS)
                 case "!":
                     if self._consume("="):
-                        self._add_token(Token.NOT_EQUAL)
+                        self._add_token(TokenType.NOT_EQUAL)
                     else:
-                        self._add_token(Token.NOT)
+                        self._add_token(TokenType.NOT)
                 case "/":
                     if self._consume("/"):
-                        self._add_token(Token.SLASH_SLASH)
+                        # TODO: refactor to comment TokenType
+                        self._add_token(TokenType.SLASH_SLASH)
                     elif self._consume("*"):
-                        self._add_token(Token.SLASH_STAR)
+                        # TODO: refactor to comment TokenType
+                        self._add_token(TokenType.SLASH_STAR)
                     else:
-                        self._add_token(Token.SLASH)
+                        self._add_token(TokenType.SLASH)
                 case "*":
                     if self._consume("/"):
-                        self._add_token(Token.STAR_SLASH)
+                        # TODO: can be removed when comment TokenType is implemented
+                        self._add_token(TokenType.STAR_SLASH)
                     else:
-                        self._add_token(Token.STAR)
+                        self._add_token(TokenType.STAR)
                 # match special EOF case, we parsed the whole file
                 case None:
-                    self._add_token(Token.EOF)
+                    self._add_token(TokenType.EOF)
                     break
                 # match numbers and strings
                 case digit if self._isdigit(char):
@@ -111,7 +118,7 @@ class Tokenizer:
                     pass
                 case "\t":
                     print("error: dammit, we use spaces not tabs!")
-                    self._add_token(Token.ERROR)
+                    self._add_token(TokenType.ERROR)
                 case _:
                     print(f"unknown character '{char}', skipped...")
             # after \n we're at start of line, we can expect indent/dedent here
@@ -125,7 +132,7 @@ class Tokenizer:
     def _consume(self, char: str) -> bool:
         """check if the next character matches, consumes when matching"""
         # check that the next character matches the one providing
-        match = self._get_char(consume=False) == char
+        match: bool = self._get_char(consume=False) == char
         # if it's a match, consume it by incrementing the idex
         if match:
             self._current_index += 1
@@ -152,23 +159,37 @@ class Tokenizer:
     def _is_identifier_char(self, char: str) -> bool:
         return self._isdigit(char) or self._isalpha(char) or char == "_"
 
-    def _add_token(self, token: Token) -> None:
+    def _add_identifier_token(self, value: str) -> None:
+        identifier_token: IdentifierToken = IdentifierToken(self._line, value)
+        self._tokens.append(identifier_token)
+
+    def _add_number_token(self, value: int) -> None:
+        number_token: NumberToken = NumberToken(self._line, value)
+        self._tokens.append(number_token)
+
+    def _add_string_token(self, value: str) -> None:
+        string_token: StringToken = StringToken(self._line, value)
+        self._tokens.append(string_token)
+
+    def _add_token(self, token_type: TokenType) -> None:
+        token: Token = Token(token_type, self._line)
         self._tokens.append(token)
 
     def _add_number(self, first_char: str) -> None:
-        number_str = first_char
+        # TODO: add 0b and 0x parsing
+        # TODO: add distinction between int and float/double
+        number_str: str = first_char
         while char := self._get_char(consume=False):
             # while we get digits, consume them and continue
-            if "0" <= char <= "9":
+            if self._isdigit(char):
                 number_str += char
                 self._current_index += 1
                 continue
             break
-        print(f"parsed number '{int(number_str)}'")
-        self._add_token(Token.NUMBER)
+        self._add_number_token(int(number_str))
 
     def _add_string(self) -> None:
-        string = ""
+        string: str = ""
         while char := self._get_char(consume=False):
             # wait until we get a closing quote
             if char == '"':
@@ -180,35 +201,34 @@ class Tokenizer:
         # also handle the empty file case
         if char is None:
             print(f"unterminated string '\"{string}'!")
-            self._add_token(Token.ERROR)
+            self._add_token(TokenType.ERROR)
             return
-        print(f"parsed string '{string}'")
-        self._add_token(Token.STRING)
+        self._add_string_token(string)
 
     def _add_keyword(self, identifier: str) -> bool:
         match identifier:
             case "class":
-                self._add_token(Token.CLASS)
+                self._add_token(TokenType.CLASS)
             case "else":
-                self._add_token(Token.ELSE)
+                self._add_token(TokenType.ELSE)
             case "false":
-                self._add_token(Token.FALSE)
+                self._add_token(TokenType.FALSE)
             case "for":
-                self._add_token(Token.FOR)
+                self._add_token(TokenType.FOR)
             case "if":
-                self._add_token(Token.IF)
+                self._add_token(TokenType.IF)
             case "null":
-                self._add_token(Token.NULL)
+                self._add_token(TokenType.NULL)
             case "return":
-                self._add_token(Token.RETURN)
+                self._add_token(TokenType.RETURN)
             case "super":
-                self._add_token(Token.SUPER)
+                self._add_token(TokenType.SUPER)
             case "this":
-                self._add_token(Token.THIS)
+                self._add_token(TokenType.THIS)
             case "true":
-                self._add_token(Token.TRUE)
+                self._add_token(TokenType.TRUE)
             case "while":
-                self._add_token(Token.WHILE)
+                self._add_token(TokenType.WHILE)
             case _:
                 # in de default case we haven't found a keyword
                 return False
@@ -231,7 +251,7 @@ class Tokenizer:
 
         # otherwise we have found an identifier
         print(f"parsed identifier '{identifier}'")
-        self._add_token(Token.IDENTIFIER)
+        self._add_identifier_token(identifier)
 
     def _add_indent_dedent(self) -> None:
         spaces: int = 0
@@ -240,17 +260,17 @@ class Tokenizer:
 
         if spaces % self.INDENT_SPACES != 0:
             print(f"indentations must be a multiple of {self.INDENT_SPACES} spaces!")
-            self._add_token(Token.ERROR)
+            self._add_token(TokenType.ERROR)
 
         indent: int = spaces // self.INDENT_SPACES
         if indent > self._current_indent:
             # found one or more indentations
             for _ in range(indent - self._current_indent):
-                self._add_token(Token.INDENT)
+                self._add_token(TokenType.INDENT)
         elif indent < self._current_indent:
             # found one or more dedentations
             for _ in range(self._current_indent - indent):
-                self._add_token(Token.DEDENT)
+                self._add_token(TokenType.DEDENT)
 
         # store the current amount of indentations
-        self._current_indent = indent
+        self._current_indent: int = indent
