@@ -1,8 +1,8 @@
 from pathlib import Path
 import unittest
 
-from compyler.token_type import TokenType
 from compyler.tokenizer import Tokenizer
+from compyler.tokens.token_type import TokenType
 from compyler.tokens import Token
 
 

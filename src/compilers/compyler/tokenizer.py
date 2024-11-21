@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .token_type import TokenType
+from .tokens.token_type import TokenType
 from .tokens import IdentifierToken
 from .tokens import NumberToken
 from .tokens import StringToken
@@ -250,7 +250,6 @@ class Tokenizer:
             return
 
         # otherwise we have found an identifier
-        print(f"parsed identifier '{identifier}'")
         self._add_identifier_token(identifier)
 
     def _add_indent_dedent(self) -> None:
