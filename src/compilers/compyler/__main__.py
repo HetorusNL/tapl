@@ -1,5 +1,6 @@
 import argparse
 
+from .ast import AST
 from .tokenizer import Tokenizer
 
 
@@ -8,7 +9,10 @@ def main():
     parser.add_argument("file")
     parsed_args = parser.parse_args()
     print(f"calling the compiler with file '{parsed_args.file}'")
-    print(Tokenizer(parsed_args.file).tokenize())
+    tokens = Tokenizer(parsed_args.file).tokenize()
+    print(tokens)
+    ast = AST(tokens).generate()
+    print(ast)
 
 
 if __name__ == "__main__":
