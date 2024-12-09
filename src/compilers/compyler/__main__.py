@@ -1,6 +1,6 @@
 import argparse
 
-from .ast import AST
+from .ast_generator import AstGenerator
 from .tokenizer import Tokenizer
 
 
@@ -11,7 +11,7 @@ def main():
     print(f"calling the compiler with file '{parsed_args.file}'")
     tokens = Tokenizer(parsed_args.file).tokenize()
     print(tokens)
-    ast = AST(tokens).generate()
+    ast = AstGenerator(tokens).generate()
     print(ast)
 
 
