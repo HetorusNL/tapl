@@ -13,14 +13,14 @@ class TestTokenizer(unittest.TestCase):
     def test_tokenize_example(self):
         # make sure to pass a resolved path to the tokenizer
         this_folder: Path = Path(__file__).parent.resolve()
-        example_file: Path = this_folder / "example.tim"
+        example_file: Path = this_folder / "tokenizer" / "example.tim"
         tokens: list[Token] = Tokenizer(example_file).tokenize()
         print(tokens)
 
     def test_all_tokens(self):
         # make sure to pass a resolved path to the tokenizer
         this_folder: Path = Path(__file__).parent.resolve()
-        example_file: Path = this_folder / "all_tokens.tim"
+        example_file: Path = this_folder / "tokenizer" / "all_tokens.tim"
         tokens: list[Token] = Tokenizer(example_file).tokenize()
         token_types: list[TokenType] = [token.token_type for token in tokens]
         all_token_types = [
