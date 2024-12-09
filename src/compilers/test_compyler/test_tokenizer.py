@@ -46,10 +46,7 @@ class TestTokenizer(unittest.TestCase):
             TokenType.NOT,
             TokenType.NOT_EQUAL,
             TokenType.SLASH,
-            TokenType.SLASH_SLASH,
-            TokenType.SLASH_STAR,
             TokenType.STAR,
-            TokenType.STAR_SLASH,
             TokenType.INDENT,
             TokenType.IDENTIFIER,
             TokenType.NUMBER,
@@ -67,6 +64,10 @@ class TestTokenizer(unittest.TestCase):
             TokenType.THIS,
             TokenType.TRUE,
             TokenType.WHILE,
+            TokenType.INLINE_COMMENT,
+            TokenType.STRING,
+            TokenType.BLOCK_COMMENT,
+            TokenType.NUMBER,
             TokenType.EOF,
         ]
         self.assertEqual(token_types, all_token_types)

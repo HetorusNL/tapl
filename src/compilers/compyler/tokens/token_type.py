@@ -27,15 +27,14 @@ class TokenType(Enum):
     NOT = auto()
     NOT_EQUAL = auto()
     SLASH = auto()
-    SLASH_SLASH = auto()
-    SLASH_STAR = auto()
     STAR = auto()
-    STAR_SLASH = auto()
 
     # literals
     IDENTIFIER = auto()
     NUMBER = auto()
     STRING = auto()
+    INLINE_COMMENT = auto()
+    BLOCK_COMMENT = auto()
 
     # keywords
     CLASS = auto()

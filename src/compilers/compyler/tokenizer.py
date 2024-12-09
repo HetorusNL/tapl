@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from .tokens.token_type import TokenType
+from .tokens import CommentToken
 from .tokens import IdentifierToken
 from .tokens import NumberToken
 from .tokens import StringToken
@@ -11,7 +12,7 @@ class Tokenizer:
     INDENT_SPACES: int = 4
 
     def __init__(self, file: Path):
-        print(f"tokenizing file: '{file}'")
+        print(f'tokenizing file: "{file}"')
         # for this compiler files will be small enough to load entirely into a string in memory
         with open(file) as f:
             self._file_characters: str = "".join(f.readlines())
@@ -83,19 +84,13 @@ class Tokenizer:
                         self._add_token(TokenType.NOT)
                 case "/":
                     if self._consume("/"):
-                        # TODO: refactor to comment TokenType
-                        self._add_token(TokenType.SLASH_SLASH)
+                        self._add_inline_comment()
                     elif self._consume("*"):
-                        # TODO: refactor to comment TokenType
-                        self._add_token(TokenType.SLASH_STAR)
+                        self._add_block_comment()
                     else:
                         self._add_token(TokenType.SLASH)
                 case "*":
-                    if self._consume("/"):
-                        # TODO: can be removed when comment TokenType is implemented
-                        self._add_token(TokenType.STAR_SLASH)
-                    else:
-                        self._add_token(TokenType.STAR)
+                    self._add_token(TokenType.STAR)
                 # match special EOF case, we parsed the whole file
                 case None:
                     self._add_token(TokenType.EOF)
@@ -171,6 +166,10 @@ class Tokenizer:
         string_token: StringToken = StringToken(self._line, value)
         self._tokens.append(string_token)
 
+    def _add_comment_token(self, token_type: TokenType, value: str) -> None:
+        comment_token: CommentToken = CommentToken(token_type, self._line, value)
+        self._tokens.append(comment_token)
+
     def _add_token(self, token_type: TokenType) -> None:
         token: Token = Token(token_type, self._line)
         self._tokens.append(token)
@@ -200,7 +199,7 @@ class Tokenizer:
             self._current_index += 1
         # also handle the empty file case
         if char is None:
-            print(f"unterminated string '\"{string}'!")
+            print(f'unterminated string "{string}"!')
             self._add_token(TokenType.ERROR)
             return
         self._add_string_token(string)
@@ -234,6 +233,36 @@ class Tokenizer:
                 return False
         # if we matched anything but the default case, we found a keyword
         return True
+
+    def _add_inline_comment(self) -> None:
+        comment_text = "//"
+        while char := self._next():
+            # while we get comment characters, consume them and continue
+            if char == "\n":
+                # restore the '\n', so the tokenizer can process it
+                self._current_index -= 1
+                break
+            else:
+                # add the character to the comment
+                comment_text += char
+        self._add_comment_token(TokenType.INLINE_COMMENT, comment_text)
+
+    def _add_block_comment(self) -> None:
+        comment_text = "/*"
+        while char := self._next():
+            # if we get an ending "*/", add the block comment token
+            if char == "*" and self._consume("/"):
+                comment_text += "*/"
+                break
+            else:
+                # add the character to the comment
+                comment_text += char
+        else:
+            # unterminated block comment
+            print(f'unterminated block comment "{comment_text}"!')
+            self._add_token(TokenType.ERROR)
+            return
+        self._add_comment_token(TokenType.BLOCK_COMMENT, comment_text)
 
     def _add_identifier(self, first_alpha: str) -> None:
         identifier = first_alpha

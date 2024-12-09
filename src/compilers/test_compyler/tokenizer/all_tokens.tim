@@ -1,4 +1,9 @@
 {}[]:,.-()+;
-    = == > >= < <= ! != / // /* * */
+    = == > >= < <= ! != / *
         identifier 1337 "str"
 class else false for if null return super this true while
+// 1 inline comment
+"string after the comment"
+/* 1 block comment here
+which is multi-line */
+1337
