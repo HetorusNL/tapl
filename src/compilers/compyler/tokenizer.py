@@ -145,8 +145,14 @@ class Tokenizer:
             self._current_index += 1
         return character
 
+    def _isbinary(self, char: str) -> bool:
+        return "0" <= char <= "1"
+
     def _isdigit(self, char: str) -> bool:
         return "0" <= char <= "9"
+
+    def _ishex(self, char: str) -> bool:
+        return self._isdigit(char) or "a" <= char.lower() <= "f"
 
     def _isalpha(self, char: str) -> bool:
         return "a" <= char <= "z" or "A" <= char <= "Z"
@@ -175,8 +181,55 @@ class Tokenizer:
         self._tokens.append(token)
 
     def _add_number(self, first_char: str) -> None:
-        # TODO: add 0b and 0x parsing
         # TODO: add distinction between int and float/double
+        # TODO: add e numbers, e.g. 1e3, for int and float/double
+        # check for binary or hexadecimal numbers
+        if first_char == "0":
+            match char := self._get_char(consume=False):
+                case "b":
+                    # parse a binary number
+                    binary_str: str = "0b"
+                    self._current_index += 1
+                    while char := self._get_char(consume=False):
+                        if self._isbinary(char):
+                            binary_str += char
+                            self._current_index += 1
+                            continue
+                        break
+                    if len(binary_str) == 2:
+                        print(f'invalid binary value "{binary_str}"!')
+                        self._add_token(TokenType.ERROR)
+                    else:
+                        self._add_number_token(int(binary_str, 2))
+                    return
+                case "x":
+                    # parse a hexadecimal number
+                    hexadecimal_str: str = "0x"
+                    self._current_index += 1
+                    while char := self._get_char(consume=False):
+                        if self._ishex(char):
+                            hexadecimal_str += char
+                            self._current_index += 1
+                            continue
+                        break
+                    if len(hexadecimal_str) == 2:
+                        print(f'invalid hexadecimal value "{hexadecimal_str}"!')
+                        self._add_token(TokenType.ERROR)
+                    else:
+                        self._add_number_token(int(hexadecimal_str, 16))
+                    return
+                case None:
+                    # EOF, the file ends with number '0'
+                    self._add_number_token(0)
+                    return
+                case _ if self._isdigit(char):
+                    # ordinary number prefixed with a '0', parse below
+                    pass
+                case _:
+                    # the value '0'
+                    self._add_number_token(0)
+                    return
+
         number_str: str = first_char
         while char := self._get_char(consume=False):
             # while we get digits, consume them and continue

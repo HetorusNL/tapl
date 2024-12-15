@@ -3,3 +3,16 @@ if (true):
 // dedentation
 1337
   "illegal!"
+
+// test the number parsing here
+0b  // illegal binary, no character
+0b2  // illegal binary, illegal character
+0x  // illegal hex, no character
+0xg  // illegal hex, illegal character
+0b1010  // correct binary
+0xfF  // correct hex
+0123  // value with leading zero
+0  // value '0'
+0a  // '0' with other characters afterward
+1337  // normal number without leading zero
+0
