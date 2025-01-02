@@ -35,6 +35,9 @@ poetry run ptw
 - start on the code generator
 - add statements to the ast_generator
 - start on adding typing support
+- add language server
+  - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
+  - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
 
 ## FAQ
 

@@ -25,4 +25,7 @@ class BinaryExpression(Expression):
         self._right: Expression = right
 
     def __str__(self) -> str:
+        return f"({self.left} {self.token.token_type.value} {self.right})"
+
+    def __repr__(self) -> str:
         return f"<BinaryExpression {self.left} {self.token.token_type} {self.right}>"

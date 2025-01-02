@@ -23,7 +23,7 @@ class Token:
         self._line: int = line
 
     def __str__(self) -> str:
-        return f"<{self.token_type}: line {self.line}>"
+        return f"{self.token_type}"
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return f"<{self.token_type}: line {self.line}>"

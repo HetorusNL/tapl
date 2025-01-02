@@ -52,5 +52,5 @@ class TestAstGenerator(unittest.TestCase):
                 ),
             ),
         ]
-        print(ast)
+        print(*ast, sep="\n")
         self.assertEqual(str(ast), str(ast_result))

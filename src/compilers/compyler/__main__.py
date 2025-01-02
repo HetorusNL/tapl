@@ -12,7 +12,7 @@ def main():
     tokens = Tokenizer(parsed_args.file).tokenize()
     print(tokens)
     ast = AstGenerator(tokens).generate()
-    print(ast)
+    print(*ast, sep="\n")
 
 
 if __name__ == "__main__":

@@ -17,4 +17,7 @@ class CommentToken(Token):
         self._value = value
 
     def __str__(self) -> str:
+        return f"{self.value}"
+
+    def __repr__(self) -> str:
         return f'<{self.token_type}: line {self.line} "{self.value}">'
