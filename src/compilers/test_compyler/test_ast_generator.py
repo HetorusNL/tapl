@@ -41,16 +41,20 @@ class TestAstGenerator(unittest.TestCase):
             ),
             BinaryExpression(
                 BinaryExpression(
-                    Expression(NumberToken(2, 1)),
-                    Token(TokenType.STAR, 2),
-                    Expression(NumberToken(2, 2)),
+                    BinaryExpression(
+                        Expression(NumberToken(2, 1)),
+                        Token(TokenType.STAR, 2),
+                        Expression(NumberToken(2, 2)),
+                    ),
+                    Token(TokenType.PLUS, 2),
+                    BinaryExpression(
+                        Expression(NumberToken(2, 3)),
+                        Token(TokenType.SLASH, 2),
+                        Expression(NumberToken(2, 4)),
+                    ),
                 ),
                 Token(TokenType.PLUS, 2),
-                BinaryExpression(
-                    Expression(NumberToken(2, 3)),
-                    Token(TokenType.SLASH, 2),
-                    Expression(NumberToken(2, 4)),
-                ),
+                Expression(Token(TokenType.TRUE, 2)),
             ),
         ]
         print(*ast.expressions, sep="\n")
@@ -59,6 +63,6 @@ class TestAstGenerator(unittest.TestCase):
         # or simpler converting the individual expressions to str
         result = [
             "(((1100 + (150 * 2)) + 37) - 100)",
-            "((1 * 2) + (3 / 4))",
+            "(((1 * 2) + (3 / 4)) + TokenType.TRUE)",
         ]
         self.assertEqual([str(expression) for expression in ast.expressions], result)

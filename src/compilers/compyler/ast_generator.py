@@ -67,7 +67,7 @@ class AstGenerator:
         expression: Expression = self.primary()
 
         if token := self.match(TokenType.STAR, TokenType.SLASH):
-            # we found a star token, go up the precedence list to get another expression
+            # we found a star/slash token, go up the precedence list to get another expression
             right: Expression = self.primary()
             expression = BinaryExpression(expression, token, right)
 
