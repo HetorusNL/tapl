@@ -14,7 +14,7 @@ class Expression:
         self._token: Token = token
 
     def __str__(self) -> str:
-        return f"({self._token})"
+        return f"{self._token}"
 
     def __repr__(self) -> str:
         return f"<Expression {self._token}>"

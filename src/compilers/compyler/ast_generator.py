@@ -1,3 +1,4 @@
+from .ast import AST
 from .errors import AstError
 from .expressions import BinaryExpression
 from .expressions import Expression
@@ -11,7 +12,6 @@ class AstGenerator:
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0
-        self._expressions: list[Expression] = []
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -93,8 +93,9 @@ class AstGenerator:
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()}")
 
-    def generate(self) -> list[Expression]:
+    def generate(self) -> AST:
         """parses the token stream to a list of expressions, until EOF is reached"""
+        ast: AST = AST()
         while not self.is_at_end():
-            self._expressions.append(self.expression())
-        return self._expressions
+            ast.append(self.expression())
+        return ast

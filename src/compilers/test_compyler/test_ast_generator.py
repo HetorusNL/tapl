@@ -1,6 +1,7 @@
 from pathlib import Path
 import unittest
 
+from compyler.ast import AST
 from compyler.ast_generator import AstGenerator
 from compyler.expressions import BinaryExpression
 from compyler.expressions import Expression
@@ -19,7 +20,7 @@ class TestAstGenerator(unittest.TestCase):
         this_folder: Path = Path(__file__).parent.resolve()
         example_file: Path = this_folder / "ast_generator" / "example.tim"
         tokens: list[Token] = Tokenizer(example_file).tokenize()
-        ast: list[Expression] = AstGenerator(tokens).generate()
+        ast: AST = AstGenerator(tokens).generate()
         ast_result = [
             BinaryExpression(
                 BinaryExpression(
@@ -52,5 +53,12 @@ class TestAstGenerator(unittest.TestCase):
                 ),
             ),
         ]
-        print(*ast, sep="\n")
-        self.assertEqual(str(ast), str(ast_result))
+        print(*ast.expressions, sep="\n")
+        self.assertEqual(str(ast.expressions), str(ast_result))
+
+        # or simpler converting the individual expressions to str
+        result = [
+            "(((1100 + (150 * 2)) + 37) - 100)",
+            "((1 * 2) + (3 / 4))",
+        ]
+        self.assertEqual([str(expression) for expression in ast.expressions], result)
