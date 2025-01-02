@@ -37,59 +37,59 @@ class Tokenizer:
             # switch-case for the next character
             match char := self._next():
                 # match all single-character tokens
-                case "}":
+                case TokenType.BRACE_CLOSE.value:
                     self._add_token(TokenType.BRACE_CLOSE)
-                case "{":
+                case TokenType.BRACE_OPEN.value:
                     self._add_token(TokenType.BRACE_OPEN)
-                case "]":
+                case TokenType.BRACKET_CLOSE.value:
                     self._add_token(TokenType.BRACKET_CLOSE)
-                case "[":
+                case TokenType.BRACKET_OPEN.value:
                     self._add_token(TokenType.BRACKET_OPEN)
-                case ":":
+                case TokenType.COLON.value:
                     self._add_token(TokenType.COLON)
-                case ",":
+                case TokenType.COMMA.value:
                     self._add_token(TokenType.COMMA)
-                case ".":
+                case TokenType.DOT.value:
                     self._add_token(TokenType.DOT)
-                case "-":
+                case TokenType.MINUS.value:
                     self._add_token(TokenType.MINUS)
-                case ")":
+                case TokenType.PAREN_CLOSE.value:
                     self._add_token(TokenType.PAREN_CLOSE)
-                case "(":
+                case TokenType.PAREN_OPEN.value:
                     self._add_token(TokenType.PAREN_OPEN)
-                case "+":
+                case TokenType.PLUS.value:
                     self._add_token(TokenType.PLUS)
-                case ";":
+                case TokenType.SEMICOLON.value:
                     self._add_token(TokenType.SEMICOLON)
                 # match all single- or double-character tokens
-                case "=":
-                    if self._consume("="):
+                case TokenType.EQUAL.value:
+                    if self._consume(TokenType.EQUAL.value):
                         self._add_token(TokenType.EQUAL_EQUAL)
                     else:
                         self._add_token(TokenType.EQUAL)
-                case ">":
-                    if self._consume("="):
+                case TokenType.GREATER.value:
+                    if self._consume(TokenType.EQUAL.value):
                         self._add_token(TokenType.GREATER_EQUAL)
                     else:
                         self._add_token(TokenType.GREATER)
-                case "<":
-                    if self._consume("="):
+                case TokenType.LESS.value:
+                    if self._consume(TokenType.EQUAL.value):
                         self._add_token(TokenType.LESS_EQUAL)
                     else:
                         self._add_token(TokenType.LESS)
-                case "!":
-                    if self._consume("="):
+                case TokenType.NOT.value:
+                    if self._consume(TokenType.EQUAL.value):
                         self._add_token(TokenType.NOT_EQUAL)
                     else:
                         self._add_token(TokenType.NOT)
-                case "/":
-                    if self._consume("/"):
+                case TokenType.SLASH.value:
+                    if self._consume(TokenType.SLASH.value):
                         self._add_inline_comment()
-                    elif self._consume("*"):
+                    elif self._consume(TokenType.STAR.value):
                         self._add_block_comment()
                     else:
                         self._add_token(TokenType.SLASH)
-                case "*":
+                case TokenType.STAR.value:
                     self._add_token(TokenType.STAR)
                 # match special EOF case, we parsed the whole file
                 case None:
@@ -259,27 +259,27 @@ class Tokenizer:
 
     def _add_keyword(self, identifier: str) -> bool:
         match identifier:
-            case "class":
+            case TokenType.CLASS.value:
                 self._add_token(TokenType.CLASS)
-            case "else":
+            case TokenType.ELSE.value:
                 self._add_token(TokenType.ELSE)
-            case "false":
+            case TokenType.FALSE.value:
                 self._add_token(TokenType.FALSE)
-            case "for":
+            case TokenType.FOR.value:
                 self._add_token(TokenType.FOR)
-            case "if":
+            case TokenType.IF.value:
                 self._add_token(TokenType.IF)
-            case "null":
+            case TokenType.NULL.value:
                 self._add_token(TokenType.NULL)
-            case "return":
+            case TokenType.RETURN.value:
                 self._add_token(TokenType.RETURN)
-            case "super":
+            case TokenType.SUPER.value:
                 self._add_token(TokenType.SUPER)
-            case "this":
+            case TokenType.THIS.value:
                 self._add_token(TokenType.THIS)
-            case "true":
+            case TokenType.TRUE.value:
                 self._add_token(TokenType.TRUE)
-            case "while":
+            case TokenType.WHILE.value:
                 self._add_token(TokenType.WHILE)
             case _:
                 # in de default case we haven't found a keyword
