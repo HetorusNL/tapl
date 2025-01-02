@@ -16,6 +16,48 @@ class TestTokenizer(unittest.TestCase):
         example_file: Path = this_folder / "tokenizer" / "example.tim"
         tokens: list[Token] = Tokenizer(example_file).tokenize()
         print(tokens)
+        token_types: list[TokenType] = [token.token_type for token in tokens]
+        all_token_types = [
+            TokenType.IF,
+            TokenType.PAREN_OPEN,
+            TokenType.TRUE,
+            TokenType.PAREN_CLOSE,
+            TokenType.COLON,
+            TokenType.INDENT,
+            TokenType.INLINE_COMMENT,
+            TokenType.DEDENT,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.ERROR,
+            TokenType.STRING,
+            TokenType.INLINE_COMMENT,
+            TokenType.ERROR,
+            TokenType.INLINE_COMMENT,
+            TokenType.ERROR,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.ERROR,
+            TokenType.INLINE_COMMENT,
+            TokenType.ERROR,
+            TokenType.IDENTIFIER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.IDENTIFIER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.INLINE_COMMENT,
+            TokenType.NUMBER,
+            TokenType.EOF,
+        ]
+        self.assertEqual(token_types, all_token_types)
 
     def test_all_tokens(self):
         # make sure to pass a resolved path to the tokenizer

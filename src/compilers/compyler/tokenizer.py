@@ -180,55 +180,57 @@ class Tokenizer:
         token: Token = Token(token_type, self._line)
         self._tokens.append(token)
 
+    def _add_binary_number(self) -> None:
+        """parse a binary number starting with 0b, or an error token if invalid"""
+        binary_str: str = "0b"
+        self._current_index += 1
+        while char := self._get_char(consume=False):
+            if self._isbinary(char):
+                binary_str += char
+                self._current_index += 1
+                continue
+            break
+        if len(binary_str) == 2:
+            print(f'invalid binary value "{binary_str}"!')
+            self._add_token(TokenType.ERROR)
+        else:
+            self._add_number_token(int(binary_str, 2))
+
+    def _add_hexadecimal_number(self) -> None:
+        """parse a hexadecimal number starting with 0x, or an error token if invalid"""
+        hexadecimal_str: str = "0x"
+        self._current_index += 1
+        while char := self._get_char(consume=False):
+            if self._ishex(char):
+                hexadecimal_str += char
+                self._current_index += 1
+                continue
+            break
+        if len(hexadecimal_str) == 2:
+            print(f'invalid hexadecimal value "{hexadecimal_str}"!')
+            self._add_token(TokenType.ERROR)
+        else:
+            self._add_number_token(int(hexadecimal_str, 16))
+
     def _add_number(self, first_char: str) -> None:
         # TODO: add distinction between int and float/double
         # TODO: add e numbers, e.g. 1e3, for int and float/double
-        # check for binary or hexadecimal numbers
+        # differentiate between binary, hexadecimal, 0-prefixed and normal numbers
         if first_char == "0":
             match char := self._get_char(consume=False):
                 case "b":
-                    # parse a binary number
-                    binary_str: str = "0b"
-                    self._current_index += 1
-                    while char := self._get_char(consume=False):
-                        if self._isbinary(char):
-                            binary_str += char
-                            self._current_index += 1
-                            continue
-                        break
-                    if len(binary_str) == 2:
-                        print(f'invalid binary value "{binary_str}"!')
-                        self._add_token(TokenType.ERROR)
-                    else:
-                        self._add_number_token(int(binary_str, 2))
-                    return
+                    return self._add_binary_number()
                 case "x":
-                    # parse a hexadecimal number
-                    hexadecimal_str: str = "0x"
-                    self._current_index += 1
-                    while char := self._get_char(consume=False):
-                        if self._ishex(char):
-                            hexadecimal_str += char
-                            self._current_index += 1
-                            continue
-                        break
-                    if len(hexadecimal_str) == 2:
-                        print(f'invalid hexadecimal value "{hexadecimal_str}"!')
-                        self._add_token(TokenType.ERROR)
-                    else:
-                        self._add_number_token(int(hexadecimal_str, 16))
-                    return
+                    return self._add_hexadecimal_number()
                 case None:
                     # EOF, the file ends with number '0'
-                    self._add_number_token(0)
-                    return
+                    return self._add_number_token(0)
                 case _ if self._isdigit(char):
                     # ordinary number prefixed with a '0', parse below
                     pass
                 case _:
                     # the value '0'
-                    self._add_number_token(0)
-                    return
+                    return self._add_number_token(0)
 
         number_str: str = first_char
         while char := self._get_char(consume=False):
