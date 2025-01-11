@@ -27,12 +27,9 @@ poetry run ptw
 ## TODO
 
 - fix open TODOs in `tokenizer.py`
-  - add 0b / 0x / e number parsing
+  - add 0o / e number parsing
   - make distinction between int and float/double numbers
-- change `__str__` and `__repr__` implementation so it can be used for unittests
-  - e.g. convert `1 + 2 * 3` to `((1) + ((2) * (3)))` or something
 - add additional expression stuff to the ast_generator
-- start on the code generator
 - add statements to the ast_generator
 - start on adding typing support
 - add language server

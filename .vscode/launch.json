@@ -1,0 +1,24 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Compyler with AST generator example",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.compilers.compyler",
+      "console": "integratedTerminal",
+      "args": ["src/compilers/test_compyler/ast_generator/example.tim"]
+    },
+    {
+      "name": "Python Debugger: Compyler with Arguments",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.compilers.compyler",
+      "console": "integratedTerminal",
+      "args": ["${command:pickArgs}"]
+    }
+  ]
+}

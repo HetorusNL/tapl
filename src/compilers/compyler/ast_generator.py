@@ -2,6 +2,8 @@ from .ast import AST
 from .errors import AstError
 from .expressions import BinaryExpression
 from .expressions import Expression
+from .expressions import UnaryExpression
+from .expressions.expression_type import ExpressionType
 from .tokens import Token
 from .tokens.token_type import TokenType
 
@@ -43,6 +45,13 @@ class AstGenerator:
             return self.consume()
         return None
 
+    def expect(self, token_type: TokenType, message: str = "") -> None:
+        """expects the next token to be of token_type, raises AstError otherwise"""
+        if not self.match(token_type):
+            if not message:
+                message = f"expected {token_type} but found {self.current()}"
+            raise AstError(message)
+
     def expression(self) -> Expression:
         """returns an expression, starts parsing at the lowest precedence level"""
         expression: Expression = self.additive()
@@ -66,7 +75,7 @@ class AstGenerator:
         # go up the precedence list to get the left hand side expression
         expression: Expression = self.primary()
 
-        if token := self.match(TokenType.STAR, TokenType.SLASH):
+        while token := self.match(TokenType.STAR, TokenType.SLASH):
             # we found a star/slash token, go up the precedence list to get another expression
             right: Expression = self.primary()
             expression = BinaryExpression(expression, token, right)
@@ -89,6 +98,13 @@ class AstGenerator:
             return Expression(token)
         if token := self.match(TokenType.STRING):
             return Expression(token)
+
+        # match statements between parenthesis
+        if token := self.match(TokenType.PAREN_OPEN):
+            expression: Expression = self.expression()
+            message = f"expected closing parenthesis, but found {self.current()}"
+            self.expect(TokenType.PAREN_CLOSE, message)
+            return UnaryExpression(ExpressionType.GROUPING, expression)
 
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()}")
