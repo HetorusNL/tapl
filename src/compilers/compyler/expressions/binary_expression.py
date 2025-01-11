@@ -1,8 +1,9 @@
 from .expression import Expression
+from .token_expression import TokenExpression
 from ..tokens import Token
 
 
-class BinaryExpression(Expression):
+class BinaryExpression(TokenExpression):
     def __init__(self, left: Expression, token: Token, right: Expression):
         super().__init__(token)
         self._left: Expression = left

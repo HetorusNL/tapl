@@ -3,6 +3,7 @@ from .errors import AstError
 from .expressions import BinaryExpression
 from .expressions import Expression
 from .expressions import UnaryExpression
+from .expressions import TokenExpression
 from .expressions.expression_type import ExpressionType
 from .tokens import Token
 from .tokens.token_type import TokenType
@@ -87,17 +88,17 @@ class AstGenerator:
         """returns a primary expression: primary keywords or number/string"""
         # match the primary keywords
         if token := self.match(TokenType.FALSE):
-            return Expression(token)
+            return TokenExpression(token)
         if token := self.match(TokenType.NULL):
-            return Expression(token)
+            return TokenExpression(token)
         if token := self.match(TokenType.TRUE):
-            return Expression(token)
+            return TokenExpression(token)
 
         # match literal numbers and strings
         if token := self.match(TokenType.NUMBER):
-            return Expression(token)
+            return TokenExpression(token)
         if token := self.match(TokenType.STRING):
-            return Expression(token)
+            return TokenExpression(token)
 
         # match statements between parenthesis
         if token := self.match(TokenType.PAREN_OPEN):
