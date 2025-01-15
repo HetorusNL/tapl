@@ -100,12 +100,17 @@ class AstGenerator:
         if token := self.match(TokenType.STRING):
             return TokenExpression(token)
 
-        # match statements between parenthesis
+        # match expressions between parenthesis
         if token := self.match(TokenType.PAREN_OPEN):
             expression: Expression = self.expression()
             message = f"expected closing parenthesis, but found {self.current()}"
             self.expect(TokenType.PAREN_CLOSE, message)
             return UnaryExpression(ExpressionType.GROUPING, expression)
+
+        # match boolean not expression
+        if token := self.match(TokenType.NOT):
+            expression: Expression = self.primary()
+            return UnaryExpression(ExpressionType.NOT, expression)
 
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()}")

@@ -27,6 +27,8 @@ class UnaryExpression(Expression):
         match self.expression_type:
             case ExpressionType.GROUPING:
                 return f"({self.expression.c_code()})"
+            case ExpressionType.NOT:
+                return f"(!({self.expression.c_code()}))"
             # case _ as default:
             #     assert False, f"{self.expjression_type} not in UnaryExpression!"
 
