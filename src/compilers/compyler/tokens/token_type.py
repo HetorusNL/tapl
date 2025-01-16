@@ -52,6 +52,7 @@ class TokenType(Enum):
     INDENT = "<INDENT>"
     DEDENT = "<DEDENT"
     ERROR = "<ERROR>"
+    NEWLINE = "<NEWLINE>"
 
     # end of file/input token
     EOF = "<EOF>"

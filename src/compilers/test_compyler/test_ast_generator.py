@@ -4,7 +4,9 @@ import unittest
 from compyler.ast import AST
 from compyler.ast_generator import AstGenerator
 from compyler.expressions import BinaryExpression
-from compyler.expressions import Expression
+from compyler.expressions import TokenExpression
+from compyler.expressions import UnaryExpression
+from compyler.expressions.expression_type import ExpressionType
 from compyler.tokenizer import Tokenizer
 from compyler.tokens import Token
 from compyler.tokens import NumberToken
@@ -25,36 +27,39 @@ class TestAstGenerator(unittest.TestCase):
             BinaryExpression(
                 BinaryExpression(
                     BinaryExpression(
-                        Expression(NumberToken(1, 1100)),
+                        TokenExpression(NumberToken(1, 1100)),
                         Token(TokenType.PLUS, 1),
                         BinaryExpression(
-                            Expression(NumberToken(1, 150)),
+                            TokenExpression(NumberToken(1, 150)),
                             Token(TokenType.STAR, 1),
-                            Expression(NumberToken(1, 2)),
+                            TokenExpression(NumberToken(1, 2)),
                         ),
                     ),
                     Token(TokenType.PLUS, 1),
-                    Expression(NumberToken(1, 37)),
+                    TokenExpression(NumberToken(1, 37)),
                 ),
                 Token(TokenType.MINUS, 1),
-                Expression(NumberToken(1, 100)),
+                TokenExpression(NumberToken(1, 100)),
             ),
             BinaryExpression(
                 BinaryExpression(
-                    BinaryExpression(
-                        Expression(NumberToken(2, 1)),
-                        Token(TokenType.STAR, 2),
-                        Expression(NumberToken(2, 2)),
-                    ),
-                    Token(TokenType.PLUS, 2),
-                    BinaryExpression(
-                        Expression(NumberToken(2, 3)),
-                        Token(TokenType.SLASH, 2),
-                        Expression(NumberToken(2, 4)),
-                    ),
+                    TokenExpression(NumberToken(2, 1)),
+                    Token(TokenType.STAR, 2),
+                    TokenExpression(NumberToken(2, 2)),
                 ),
                 Token(TokenType.PLUS, 2),
-                Expression(Token(TokenType.TRUE, 2)),
+                BinaryExpression(
+                    TokenExpression(NumberToken(2, 3)),
+                    Token(TokenType.SLASH, 2),
+                    UnaryExpression(
+                        ExpressionType.GROUPING,
+                        BinaryExpression(
+                            TokenExpression(NumberToken(2, 4)),
+                            Token(TokenType.PLUS, 2),
+                            TokenExpression(Token(TokenType.TRUE, 2)),
+                        ),
+                    ),
+                ),
             ),
         ]
         print(*ast.expressions, sep="\n")
@@ -63,6 +68,8 @@ class TestAstGenerator(unittest.TestCase):
         # or simpler converting the individual expressions to str
         result = [
             "(((1100 + (150 * 2)) + 37) - 100)",
-            "(((1 * 2) + (3 / 4)) + TokenType.TRUE)",
+            "((1 * 2) + (3 / ((4 + true))))",
         ]
-        self.assertEqual([str(expression) for expression in ast.expressions], result)
+        self.assertEqual(
+            [expression.c_code() for expression in ast.expressions], result
+        )

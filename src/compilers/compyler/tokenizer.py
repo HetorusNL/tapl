@@ -107,6 +107,7 @@ class Tokenizer:
                 case " ":
                     pass
                 case "\n":
+                    self._add_token(TokenType.NEWLINE)
                     self._line += 1
                 case "\r":
                     # why use carriage return..
@@ -312,6 +313,8 @@ class Tokenizer:
             else:
                 # add the character to the comment
                 comment_text += char
+                # increment line number here
+                self._line += 1
         else:
             # unterminated block comment
             print(f'unterminated block comment "{comment_text}"!')

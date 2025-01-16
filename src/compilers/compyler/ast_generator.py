@@ -120,4 +120,5 @@ class AstGenerator:
         ast: AST = AST()
         while not self.is_at_end():
             ast.append(self.expression())
+            self.match(TokenType.NEWLINE)
         return ast
