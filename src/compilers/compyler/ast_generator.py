@@ -5,6 +5,8 @@ from .expressions import Expression
 from .expressions import UnaryExpression
 from .expressions import TokenExpression
 from .expressions.expression_type import ExpressionType
+from .statements import ExpressionStatement
+from .statements import Statement
 from .tokens import Token
 from .tokens.token_type import TokenType
 
@@ -52,6 +54,15 @@ class AstGenerator:
             if not message:
                 message = f"expected {token_type} but found {self.current()}"
             raise AstError(message)
+
+    def statement(self) -> Statement:
+        """returns a statement"""
+        # for now, return a statement as an expression with a trailing newline
+        expression: Expression = self.expression()
+        if not self.match(TokenType.NEWLINE, TokenType.EOF):
+            msg = "expected a newline or End-Of-File after expression"
+            raise AstError(f"{msg}, found {self.current()}")
+        return ExpressionStatement(expression)
 
     def expression(self) -> Expression:
         """returns an expression, starts parsing at the lowest precedence level"""
@@ -116,9 +127,8 @@ class AstGenerator:
         raise AstError(f"expected an expression, found {self.current()}")
 
     def generate(self) -> AST:
-        """parses the token stream to a list of expressions, until EOF is reached"""
+        """parses the token stream to a list of statements, until EOF is reached"""
         ast: AST = AST()
         while not self.is_at_end():
-            ast.append(self.expression())
-            self.match(TokenType.NEWLINE)
+            ast.append(self.statement())
         return ast

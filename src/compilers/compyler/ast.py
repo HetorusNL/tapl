@@ -1,11 +1,10 @@
-from .expressions import Expression
+from .statements import Statement
 
 
 class AST:
     def __init__(self):
-        # for now the AST consists of a list of expressions
-        # TODO: later this will become a list of statements
-        self.expressions: list[Expression] = []
+        # the AST consists of a list of statements
+        self.statements: list[Statement] = []
 
-    def append(self, expression: Expression) -> None:
-        self.expressions.append(expression)
+    def append(self, statement: Statement) -> None:
+        self.statements.append(statement)

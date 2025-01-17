@@ -25,7 +25,7 @@ def tokenize(file: Path) -> list[Token]:
 
 def generate_ast(tokens: list[Token]) -> AST:
     ast: AST = AstGenerator(tokens).generate()
-    print(*ast.expressions, sep="\n")
+    print(*ast.statements, sep="\n")
     return ast
 
 

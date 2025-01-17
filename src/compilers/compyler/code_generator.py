@@ -15,11 +15,11 @@ class CodeGenerator:
             '    printf("hello world!\\n");\n',
         ]
 
-        # compile the expressions in the AST to code
-        for index, expression in enumerate(self._ast.expressions):
-            expression_code: str = expression.c_code()
+        # compile the statements in the AST to code
+        for index, statement in enumerate(self._ast.statements):
+            statement_code: str = statement.c_code()
             c_code.append(
-                f'    printf("expression {index+1}: %d\\n", {expression_code});\n'
+                f'    printf("statement {index+1}: %d\\n", {statement_code});\n'
             )
 
         # add the ending lines of code
