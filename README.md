@@ -32,6 +32,8 @@ poetry run ptw
 - add additional expression stuff to the ast_generator
 - add statements to the ast_generator
 - start on adding typing support
+  - add type resolver that resolves class declarations (and more?) for types
+  - add second type pass that 'attaches' types to variable (declarations)
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang

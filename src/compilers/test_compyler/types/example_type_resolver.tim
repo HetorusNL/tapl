@@ -1,0 +1,8 @@
+class ClassName:
+    "something"
+
+class OtherClass:
+    "something else"
+
+// make sure we don't crash if we end with class
+class

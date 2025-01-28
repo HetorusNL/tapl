@@ -28,6 +28,7 @@ class Tokenizer:
         self._tokens: list[Token] = []
 
     def tokenize(self) -> list[Token]:
+        """tokenize the file and return a list of tokens"""
         # infinite loop until we reach the end of file
         while True:
             # process indent/dedent from spaces at start of line
