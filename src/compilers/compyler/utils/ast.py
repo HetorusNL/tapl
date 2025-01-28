@@ -1,4 +1,4 @@
-from .statements import Statement
+from ..statements import Statement
 
 
 class AST:

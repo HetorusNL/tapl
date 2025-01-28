@@ -1,4 +1,3 @@
-from .ast import AST
 from .errors import AstError
 from .expressions import BinaryExpression
 from .expressions import Expression
@@ -9,6 +8,7 @@ from .statements import ExpressionStatement
 from .statements import Statement
 from .tokens import Token
 from .tokens.token_type import TokenType
+from .utils import AST
 
 
 class AstGenerator:

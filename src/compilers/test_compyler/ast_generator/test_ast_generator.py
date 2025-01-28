@@ -1,7 +1,6 @@
 from pathlib import Path
 import unittest
 
-from compyler.ast import AST
 from compyler.ast_generator import AstGenerator
 from compyler.expressions import BinaryExpression
 from compyler.expressions import TokenExpression
@@ -13,6 +12,7 @@ from compyler.tokenizer import Tokenizer
 from compyler.tokens import Token
 from compyler.tokens import NumberToken
 from compyler.tokens.token_type import TokenType
+from compyler.utils import AST
 
 
 class TestAstGenerator(unittest.TestCase):

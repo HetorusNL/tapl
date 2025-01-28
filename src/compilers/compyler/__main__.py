@@ -2,11 +2,11 @@ import argparse
 from os import system
 from pathlib import Path
 
-from .ast import AST
 from .ast_generator import AstGenerator
 from .code_generator import CodeGenerator
 from .tokenizer import Tokenizer
 from .tokens import Token
+from .utils import AST
 
 
 def argument_parser() -> Path:

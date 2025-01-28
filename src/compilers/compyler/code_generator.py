@@ -1,4 +1,4 @@
-from .ast import AST
+from .utils import AST
 
 
 class CodeGenerator:
