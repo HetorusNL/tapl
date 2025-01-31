@@ -1,3 +1,6 @@
+# don't report this, as the unittests access private members
+# pyright: reportPrivateUsage=false
+
 import unittest
 
 from compyler.types import Type
@@ -9,27 +12,27 @@ class TestTypes(unittest.TestCase):
         types: Types = Types()
 
         # test that the keyword and sugar objects point to same type
-        self.assertEqual(types._types["u1"], types._types["bool"])  # type: ignore
+        self.assertEqual(types._types["u1"], types._types["bool"])
 
         # test that other types are different
-        self.assertNotEqual(types._types["u1"], types._types["u8"])  # type:ignore
+        self.assertNotEqual(types._types["u1"], types._types["u8"])
 
     def test_add_existing_type(self):
         # test that adding existing type doesn't add it
         types: Types = Types()
         # extract the first keyword
-        types_keys = types._types.keys()  # type:ignore
+        types_keys = types._types.keys()
         keyword: str = list(types_keys)[0]
-        num_keys_before: int = len(types._types.keys())  # type:ignore
+        num_keys_before: int = len(types._types.keys())
         types.add(keyword)
-        num_keys_after: int = len(types._types.keys())  # type:ignore
+        num_keys_after: int = len(types._types.keys())
         self.assertEqual(num_keys_before, num_keys_after)
 
     def test_add_new_type(self):
         # test that a new type is added, and points to the same type
         types: Types = Types()
         types.add("non_existing_type_1337")
-        self.assertTrue(types._types.get("non_existing_type_1337"))  # type:ignore
+        self.assertTrue(types._types.get("non_existing_type_1337"))
 
     def test_get_nonexisting_type(self):
         # test that None is returned when a type doesn't exist
