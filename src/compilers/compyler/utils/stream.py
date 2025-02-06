@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+#
+# This file is part of compyler, a TAPL compiler.
+
 from collections.abc import Iterator
 
 
@@ -13,7 +19,8 @@ class Stream[T]:
     there is an iterator over the objects in the stream.
     the object after the last returned iterator object can be requested.
     objects in the iterator can be replaced with other objects.
-    while the iterator is running, objects can be added or replaced."""
+    while the iterator is running, objects can be added or replaced.
+    """
 
     def __init__(self):
         self._objects: list[T] = []
@@ -32,7 +39,8 @@ class Stream[T]:
     def iter(self) -> Iterator[T]:
         """returns an iterator over the stream.
 
-        note that the internal state of the iterators from this function are shared!"""
+        note that the internal state of the iterators from this function are shared!
+        """
         self._index = 0
         while self._index < len(self._objects):
             self._index += 1
@@ -41,14 +49,16 @@ class Stream[T]:
     def iter_next(self) -> T:
         """returns the object after the last object returned by the iterator,
         initially the index is set to 0, so the first object is returned.
-        raises a StreamError if there is no next object"""
+        raises a StreamError if there is no next object
+        """
         if self._index < len(self._objects):
             return self._objects[self._index]
         raise StreamError("outside of stream's objects!")
 
     def replace(self, count: int, replacement: T) -> None:
         """replaces [count] objects with [replacement].
-        starting from the element last returned by the call to next"""
+        starting from the element last returned by the call to next
+        """
         # negative count values are not possible
         if count < 0:
             raise StreamError("can't replace negative amount of objects!")

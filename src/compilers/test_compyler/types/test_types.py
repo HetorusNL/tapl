@@ -1,4 +1,10 @@
-# don't report this, as the unittests access private members
+#!/usr/bin/env python
+#
+# Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+#
+# This file is part of compyler, a TAPL compiler.
+#
+# don't report this, as the unittests access private members:
 # pyright: reportPrivateUsage=false
 
 import unittest

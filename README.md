@@ -7,7 +7,7 @@ Repository with the compiler/examples/documentation of TAPL (Tim's Awesome Progr
 Two compilers are created:
 
 - compyler: the bootstrapping compiler, written in python
-- compiler: the compiler written in TAPL, compiled using compyler
+- tapl/taplc/compiler: the compiler/REPL written in TAPL, compiled using compyler
 
 ## Usage
 
@@ -18,10 +18,22 @@ poetry install
 ```
 
 Currently working on the tokenizer and AST generator of the compyler TAPL compiler.
-Run the following command to watch the tokenizer and AST generator using the unittests and `example.tim` files in the test directory, and see the output of the tokenizing and AST generation step:
+Run the following command to watch the tokenizer and AST generator using the unittests and the example `.tim` files in the test directory, and see the output of the tokenizing and AST generation step:
 
 ```bash
 poetry run ptw
+```
+
+Run the following command to compile and run the example with the currently implemented functionality:
+
+```bash
+poetry run python -m src.compilers.compyler examples/current_functionality.tim
+```
+
+Run the following command to compile and execute any tim file:
+
+```bash
+poery run python -m src.compilers.compyler /path/to/file.tim
 ```
 
 ## TODO
@@ -42,4 +54,4 @@ poetry run ptw
 
 ## License
 
-MIT License, Copyright (c) 2024 Tim Klein Nijenhuis <tim@hetorus.nl>
+MIT License, Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>

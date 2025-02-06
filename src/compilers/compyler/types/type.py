@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+#
+# This file is part of compyler, a TAPL compiler.
+
+
 class Type:
     def __init__(self, keyword: str, *syntactic_sugar: str):
         self._keyword: str = keyword

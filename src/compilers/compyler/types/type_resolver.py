@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+#
+# This file is part of compyler, a TAPL compiler.
+
 from ..tokens import IdentifierToken
 from ..tokens import Token
 from ..tokens.token_type import TokenType
@@ -12,7 +18,8 @@ class TypeResolver:
 
     def resolve(self) -> Types:
         """resolve all types in the provided token stream.
-        returns the builtin types and the resolved types from the tokens stream"""
+        returns the builtin types and the resolved types from the tokens stream
+        """
         types: Types = Types()
 
         # loop through the tokens to find class declarations and extract the types

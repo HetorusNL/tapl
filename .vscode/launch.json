@@ -5,12 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python Debugger: Compyler with AST generator example",
+      "name": "Python Debugger: Compyler with current functionality example",
       "type": "debugpy",
       "request": "launch",
       "module": "src.compilers.compyler",
       "console": "integratedTerminal",
-      "args": ["src/compilers/test_compyler/ast_generator/example.tim"]
+      "args": ["examples/current_functionality.tim"]
     },
     {
       "name": "Python Debugger: Compyler with Arguments",
