@@ -5,6 +5,7 @@ from compyler.tokenizer import Tokenizer
 from compyler.tokens import Token
 from compyler.types import TypeResolver
 from compyler.types import Types
+from compyler.utils import Stream
 
 
 class TestTypeResolver(unittest.TestCase):
@@ -13,7 +14,7 @@ class TestTypeResolver(unittest.TestCase):
         this_folder: Path = Path(__file__).parent.resolve()
         example_file: Path = this_folder / "example_type_resolver.tim"
         tokenizer: Tokenizer = Tokenizer(example_file)
-        tokens: list[Token] = tokenizer.tokenize()
+        tokens: Stream[Token] = tokenizer.tokenize()
 
         # run the TypeResolver to get the types from the class-lines
         type_resolver: TypeResolver = TypeResolver(tokens)

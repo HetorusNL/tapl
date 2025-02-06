@@ -13,6 +13,7 @@ from compyler.tokens import Token
 from compyler.tokens import NumberToken
 from compyler.tokens.token_type import TokenType
 from compyler.utils import AST
+from compyler.utils import Stream
 
 
 class TestAstGenerator(unittest.TestCase):
@@ -23,8 +24,9 @@ class TestAstGenerator(unittest.TestCase):
         # make sure to pass a resolved path to the tokenizer and ast generator
         this_folder: Path = Path(__file__).parent.resolve()
         example_file: Path = this_folder / "example_statements.tim"
-        tokens: list[Token] = Tokenizer(example_file).tokenize()
+        tokens: Stream[Token] = Tokenizer(example_file).tokenize()
         ast: AST = AstGenerator(tokens).generate()
+        ast_statements: list[Statement] = ast.statements.objects
         ast_result: list[Statement] = [
             ExpressionStatement(
                 BinaryExpression(
@@ -68,12 +70,12 @@ class TestAstGenerator(unittest.TestCase):
                 ),
             ),
         ]
-        print(*ast.statements, sep="\n")
-        self.assertEqual(str(ast.statements), str(ast_result))
+        print(*ast_statements, sep="\n")
+        self.assertEqual(str(ast_statements), str(ast_result))
 
         # or simpler converting the individual statements to str
         result = [
             "(((1100 + (150 * 2)) + 37) - 100)",
             "((1 * 2) + (3 / ((4 + true))))",
         ]
-        self.assertEqual([statement.c_code() for statement in ast.statements], result)
+        self.assertEqual([statement.c_code() for statement in ast_statements], result)

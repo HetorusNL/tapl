@@ -11,12 +11,18 @@ class Stream[T]:
 
     objects can be appended to the stream.
     there is an iterator over the objects in the stream.
+    the object after the last returned iterator object can be requested.
     objects in the iterator can be replaced with other objects.
     while the iterator is running, objects can be added or replaced."""
 
     def __init__(self):
         self._objects: list[T] = []
         self._index: int = 0
+
+    @property
+    def objects(self) -> list[T]:
+        """returns the internal objects list"""
+        return self._objects
 
     def add(self, *objs: T) -> "Stream[T]":
         """extend the stream with the objects provided"""
@@ -31,6 +37,14 @@ class Stream[T]:
         while self._index < len(self._objects):
             self._index += 1
             yield self._objects[self._index - 1]
+
+    def iter_next(self) -> T:
+        """returns the object after the last object returned by the iterator,
+        initially the index is set to 0, so the first object is returned.
+        raises a StreamError if there is no next object"""
+        if self._index < len(self._objects):
+            return self._objects[self._index]
+        raise StreamError("outside of stream's objects!")
 
     def replace(self, count: int, replacement: T) -> None:
         """replaces [count] objects with [replacement].
@@ -59,3 +73,7 @@ class Stream[T]:
             del self._objects[self._index - 1 : self._index - 1 + count]
         # and add replacement
         self._objects.insert(self._index - 1, replacement)
+
+    def __len__(self) -> int:
+        """returns the length of the objects currently in the stream"""
+        return len(self._objects)

@@ -4,6 +4,7 @@ import unittest
 from compyler.tokenizer import Tokenizer
 from compyler.tokens.token_type import TokenType
 from compyler.tokens import Token
+from compyler.utils import Stream
 
 
 class TestTokenizer(unittest.TestCase):
@@ -14,7 +15,8 @@ class TestTokenizer(unittest.TestCase):
         # make sure to pass a resolved path to the tokenizer
         this_folder: Path = Path(__file__).parent.resolve()
         example_file: Path = this_folder / "example.tim"
-        tokens: list[Token] = Tokenizer(example_file).tokenize()
+        token_stream: Stream[Token] = Tokenizer(example_file).tokenize()
+        tokens: list[Token] = token_stream.objects
         print(tokens)
         token_types: list[TokenType] = [token.token_type for token in tokens]
         all_token_types = [
@@ -81,7 +83,8 @@ class TestTokenizer(unittest.TestCase):
         # make sure to pass a resolved path to the tokenizer
         this_folder: Path = Path(__file__).parent.resolve()
         example_file: Path = this_folder / "all_tokens.tim"
-        tokens: list[Token] = Tokenizer(example_file).tokenize()
+        token_stream: Stream[Token] = Tokenizer(example_file).tokenize()
+        tokens: list[Token] = token_stream.objects
         token_types: list[TokenType] = [token.token_type for token in tokens]
         all_token_types = [
             TokenType.BRACE_OPEN,

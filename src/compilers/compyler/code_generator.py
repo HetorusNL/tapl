@@ -16,7 +16,7 @@ class CodeGenerator:
         ]
 
         # compile the statements in the AST to code
-        for index, statement in enumerate(self._ast.statements):
+        for index, statement in enumerate(self._ast.statements.objects):
             statement_code: str = statement.c_code()
             c_code.append(
                 f'    printf("statement {index+1}: %d\\n", {statement_code});\n'

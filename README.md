@@ -34,7 +34,6 @@ poetry run ptw
 - start on adding typing support
   - add type resolver that resolves class declarations (and more?) for types
   - add second type pass that 'attaches' types to variable (declarations)
-- refactor `list[Token]` to a token stream
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang

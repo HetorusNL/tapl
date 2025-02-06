@@ -9,11 +9,13 @@ from .statements import Statement
 from .tokens import Token
 from .tokens.token_type import TokenType
 from .utils import AST
+from .utils import Stream
 
 
 class AstGenerator:
-    def __init__(self, tokens: list[Token]):
-        self._tokens = tokens
+    def __init__(self, token_stream: Stream[Token]):
+        self._token_stream: Stream[Token] = token_stream
+        self._tokens: list[Token] = token_stream.objects
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0

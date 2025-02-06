@@ -1,10 +1,11 @@
 from ..statements import Statement
+from .stream import Stream
 
 
 class AST:
     def __init__(self):
-        # the AST consists of a list of statements
-        self.statements: list[Statement] = []
+        # the AST consists of a statements stream
+        self.statements: Stream[Statement] = Stream()
 
-    def append(self, statement: Statement) -> None:
-        self.statements.append(statement)
+    def append(self, *statements: Statement) -> None:
+        self.statements.add(*statements)

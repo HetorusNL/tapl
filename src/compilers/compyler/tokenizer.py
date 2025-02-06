@@ -6,6 +6,7 @@ from .tokens import IdentifierToken
 from .tokens import NumberToken
 from .tokens import StringToken
 from .tokens import Token
+from .utils import Stream
 
 
 class Tokenizer:
@@ -25,10 +26,10 @@ class Tokenizer:
         self._at_start_of_line: bool = True
         self._current_indent: int = 0  # current number of INDENT_SPACES indentations
         # the resulting tokens from the tokenizer
-        self._tokens: list[Token] = []
+        self._tokens: Stream[Token] = Stream()
 
-    def tokenize(self) -> list[Token]:
-        """tokenize the file and return a list of tokens"""
+    def tokenize(self) -> Stream[Token]:
+        """tokenize the file and return a token stream"""
         # infinite loop until we reach the end of file
         while True:
             # process indent/dedent from spaces at start of line
@@ -164,23 +165,23 @@ class Tokenizer:
 
     def _add_identifier_token(self, value: str) -> None:
         identifier_token: IdentifierToken = IdentifierToken(self._line, value)
-        self._tokens.append(identifier_token)
+        self._tokens.add(identifier_token)
 
     def _add_number_token(self, value: int) -> None:
         number_token: NumberToken = NumberToken(self._line, value)
-        self._tokens.append(number_token)
+        self._tokens.add(number_token)
 
     def _add_string_token(self, value: str) -> None:
         string_token: StringToken = StringToken(self._line, value)
-        self._tokens.append(string_token)
+        self._tokens.add(string_token)
 
     def _add_comment_token(self, token_type: TokenType, value: str) -> None:
         comment_token: CommentToken = CommentToken(token_type, self._line, value)
-        self._tokens.append(comment_token)
+        self._tokens.add(comment_token)
 
     def _add_token(self, token_type: TokenType) -> None:
         token: Token = Token(token_type, self._line)
-        self._tokens.append(token)
+        self._tokens.add(token)
 
     def _add_binary_number(self) -> None:
         """parse a binary number starting with 0b, or an error token if invalid"""

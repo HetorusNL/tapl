@@ -7,6 +7,7 @@ from .code_generator import CodeGenerator
 from .tokenizer import Tokenizer
 from .tokens import Token
 from .utils import AST
+from .utils import Stream
 
 
 def argument_parser() -> Path:
@@ -16,16 +17,16 @@ def argument_parser() -> Path:
     return parsed_args.file
 
 
-def tokenize(file: Path) -> list[Token]:
+def tokenize(file: Path) -> Stream[Token]:
     print(f"calling the compiler with file '{file}'")
-    tokens: list[Token] = Tokenizer(file).tokenize()
-    print(tokens)
+    tokens: Stream[Token] = Tokenizer(file).tokenize()
+    print(tokens.objects)
     return tokens
 
 
-def generate_ast(tokens: list[Token]) -> AST:
+def generate_ast(tokens: Stream[Token]) -> AST:
     ast: AST = AstGenerator(tokens).generate()
-    print(*ast.statements, sep="\n")
+    print(*ast.statements.objects, sep="\n")
     return ast
 
 
@@ -69,7 +70,7 @@ def main():
     file: Path = argument_parser()
 
     # tokenize the provided file
-    tokens: list[Token] = tokenize(file)
+    tokens: Stream[Token] = tokenize(file)
 
     # generate an AST from the tokens
     ast: AST = generate_ast(tokens)
