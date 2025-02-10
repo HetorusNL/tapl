@@ -7,7 +7,7 @@
 import unittest
 from typing import Any
 
-from compyler.types import Type
+from compyler.types.type import Type
 
 
 class TestType(unittest.TestCase):

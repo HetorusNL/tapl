@@ -4,11 +4,11 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from ..tokens import IdentifierToken
-from ..tokens import Token
+from ..tokens.identifier_token import IdentifierToken
+from ..tokens.token import Token
 from ..tokens.token_type import TokenType
 from .types import Types
-from ..utils import Stream
+from ..utils.stream import Stream
 from ..utils.stream import StreamError
 
 

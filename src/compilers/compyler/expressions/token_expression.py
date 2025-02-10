@@ -5,9 +5,9 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .expression import Expression
-from ..tokens import NumberToken
-from ..tokens import StringToken
-from ..tokens import Token
+from ..tokens.number_token import NumberToken
+from ..tokens.string_token import StringToken
+from ..tokens.token import Token
 from ..tokens.token_type import TokenType
 
 

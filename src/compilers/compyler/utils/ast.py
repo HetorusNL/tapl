@@ -4,7 +4,7 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from ..statements import Statement
+from ..statements.statement import Statement
 from .stream import Stream
 
 

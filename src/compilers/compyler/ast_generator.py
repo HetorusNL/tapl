@@ -4,18 +4,18 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from .errors import AstError
-from .expressions import BinaryExpression
-from .expressions import Expression
-from .expressions import UnaryExpression
-from .expressions import TokenExpression
+from .errors.ast_error import AstError
+from .expressions.binary_expression import BinaryExpression
+from .expressions.expression import Expression
+from .expressions.unary_expression import UnaryExpression
+from .expressions.token_expression import TokenExpression
 from .expressions.expression_type import ExpressionType
-from .statements import ExpressionStatement
-from .statements import Statement
-from .tokens import Token
+from .statements.expression_statement import ExpressionStatement
+from .statements.statement import Statement
+from .tokens.token import Token
 from .tokens.token_type import TokenType
-from .utils import AST
-from .utils import Stream
+from .utils.ast import AST
+from .utils.stream import Stream
 
 
 class AstGenerator:

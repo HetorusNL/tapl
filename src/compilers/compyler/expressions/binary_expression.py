@@ -6,7 +6,7 @@
 
 from .expression import Expression
 from .token_expression import TokenExpression
-from ..tokens import Token
+from ..tokens.token import Token
 
 
 class BinaryExpression(TokenExpression):

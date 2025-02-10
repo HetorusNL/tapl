@@ -8,10 +8,10 @@ from pathlib import Path
 import unittest
 
 from compyler.tokenizer import Tokenizer
-from compyler.tokens import Token
-from compyler.types import TypeResolver
-from compyler.types import Types
-from compyler.utils import Stream
+from compyler.tokens.token import Token
+from compyler.types.type_resolver import TypeResolver
+from compyler.types.types import Types
+from compyler.utils.stream import Stream
 
 
 class TestTypeResolver(unittest.TestCase):

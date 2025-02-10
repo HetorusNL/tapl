@@ -9,7 +9,7 @@
 
 import unittest
 
-from compyler.utils import Stream
+from compyler.utils.stream import Stream
 from compyler.utils.stream import StreamError
 
 

@@ -4,7 +4,7 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from .utils import AST
+from .utils.ast import AST
 
 
 class CodeGenerator:

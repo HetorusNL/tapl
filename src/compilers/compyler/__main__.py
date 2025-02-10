@@ -11,9 +11,9 @@ from pathlib import Path
 from .ast_generator import AstGenerator
 from .code_generator import CodeGenerator
 from .tokenizer import Tokenizer
-from .tokens import Token
-from .utils import AST
-from .utils import Stream
+from .tokens.token import Token
+from .utils.ast import AST
+from .utils.stream import Stream
 
 
 def argument_parser() -> Path:

@@ -4,7 +4,7 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from ..expressions import Expression
+from ..expressions.expression import Expression
 from .statement import Statement
 
 

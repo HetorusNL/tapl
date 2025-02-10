@@ -8,18 +8,18 @@ from pathlib import Path
 import unittest
 
 from compyler.ast_generator import AstGenerator
-from compyler.expressions import BinaryExpression
-from compyler.expressions import TokenExpression
-from compyler.expressions import UnaryExpression
+from compyler.expressions.binary_expression import BinaryExpression
+from compyler.expressions.token_expression import TokenExpression
+from compyler.expressions.unary_expression import UnaryExpression
 from compyler.expressions.expression_type import ExpressionType
-from compyler.statements import ExpressionStatement
-from compyler.statements import Statement
+from compyler.statements.expression_statement import ExpressionStatement
+from compyler.statements.statement import Statement
 from compyler.tokenizer import Tokenizer
-from compyler.tokens import Token
-from compyler.tokens import NumberToken
+from compyler.tokens.token import Token
+from compyler.tokens.number_token import NumberToken
 from compyler.tokens.token_type import TokenType
-from compyler.utils import AST
-from compyler.utils import Stream
+from compyler.utils.ast import AST
+from compyler.utils.stream import Stream
 
 
 class TestAstGenerator(unittest.TestCase):

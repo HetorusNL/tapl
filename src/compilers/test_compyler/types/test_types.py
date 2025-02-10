@@ -9,8 +9,8 @@
 
 import unittest
 
-from compyler.types import Type
-from compyler.types import Types
+from compyler.types.type import Type
+from compyler.types.types import Types
 
 
 class TestTypes(unittest.TestCase):

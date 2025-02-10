@@ -7,12 +7,12 @@
 from pathlib import Path
 
 from .tokens.token_type import TokenType
-from .tokens import CommentToken
-from .tokens import IdentifierToken
-from .tokens import NumberToken
-from .tokens import StringToken
-from .tokens import Token
-from .utils import Stream
+from .tokens.comment_token import CommentToken
+from .tokens.identifier_token import IdentifierToken
+from .tokens.number_token import NumberToken
+from .tokens.string_token import StringToken
+from .tokens.token import Token
+from .utils.stream import Stream
 
 
 class Tokenizer:

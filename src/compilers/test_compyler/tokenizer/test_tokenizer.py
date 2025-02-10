@@ -9,8 +9,8 @@ import unittest
 
 from compyler.tokenizer import Tokenizer
 from compyler.tokens.token_type import TokenType
-from compyler.tokens import Token
-from compyler.utils import Stream
+from compyler.tokens.token import Token
+from compyler.utils.stream import Stream
 
 
 class TestTokenizer(unittest.TestCase):
