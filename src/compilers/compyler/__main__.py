@@ -12,6 +12,9 @@ from .ast_generator import AstGenerator
 from .code_generator import CodeGenerator
 from .tokenizer import Tokenizer
 from .tokens.token import Token
+from .types.type_applier import TypeApplier
+from .types.type_resolver import TypeResolver
+from .types.types import Types
 from .utils.ast import AST
 from .utils.stream import Stream
 
@@ -27,6 +30,17 @@ def tokenize(file: Path) -> Stream[Token]:
     print(f"calling the compiler with file '{file}'")
     tokens: Stream[Token] = Tokenizer(file).tokenize()
     print(tokens.objects)
+    return tokens
+
+
+def typing_passes(tokens: Stream[Token]):
+    # resolve the types in the file
+    type_resolver: TypeResolver = TypeResolver(tokens)
+    types: Types = type_resolver.resolve()
+    # apply the types to the tokens in the stream
+    type_applier: TypeApplier = TypeApplier(types)
+    type_applier.apply(tokens)
+    # return the processed tokens
     return tokens
 
 
@@ -77,6 +91,9 @@ def main():
 
     # tokenize the provided file
     tokens: Stream[Token] = tokenize(file)
+
+    # apply the two typing passes to the token stream
+    tokens = typing_passes(tokens)
 
     # generate an AST from the tokens
     ast: AST = generate_ast(tokens)

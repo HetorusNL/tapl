@@ -1,0 +1,11 @@
+class ClassName:
+    "something"
+
+class OtherClass:
+    "something else"
+
+u8 byte = 100
+string s = "test string"
+bool flag = true
+ClassName instance = ClassName()
+OtherClass other_instance = OtherClass()
