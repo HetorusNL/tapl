@@ -11,7 +11,7 @@ from .statement import Statement
 class ExpressionStatement(Statement):
     def __init__(self, expression: Expression):
         super().__init__()
-        self._expression = expression
+        self._expression: Expression = expression
 
     @property
     def expression(self) -> Expression:
@@ -22,7 +22,9 @@ class ExpressionStatement(Statement):
         self._expression = expression
 
     def c_code(self) -> str:
-        return self.expression.c_code()
+        expression_code: str = self.expression.c_code()
+
+        return f"{expression_code};"
 
     def __str__(self) -> str:
         return self.expression.__str__()

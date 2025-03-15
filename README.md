@@ -43,12 +43,17 @@ poery run python -m src.compilers.compyler /path/to/file.tim
   - make distinction between int and float/double numbers
 - add additional expression stuff to the ast_generator
 - add statements to the ast_generator
-- start on adding typing support
-  - add type resolver that resolves class declarations (and more?) for types
-  - add second type pass that 'attaches' types to variable (declarations)
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
+
+## Ideas
+
+- add public/private to classes, functions
+- make everything private by default (classes, functions, members)
+- implicit "python modules' class imports", example:
+  - `modules/some_module.tim`: `class SomeModule: // blabla`
+  - `file.tim`: `from module import SomeModule`
 
 ## FAQ
 

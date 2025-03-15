@@ -10,9 +10,14 @@ from .expressions.expression import Expression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.token_expression import TokenExpression
 from .expressions.expression_type import ExpressionType
+from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
+from .statements.identifier_statement import IdentifierStatement
 from .statements.statement import Statement
+from .statements.var_decl_statemtnt import VarDeclStatement
+from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
+from .tokens.var_decl_token import VarDeclToken
 from .tokens.token_type import TokenType
 from .utils.ast import AST
 from .utils.stream import Stream
@@ -63,13 +68,55 @@ class AstGenerator:
                 message = f"expected {token_type} but found {self.current()}"
             raise AstError(message)
 
-    def statement(self) -> Statement:
-        """returns a statement"""
-        # for now, return a statement as an expression with a trailing newline
-        expression: Expression = self.expression()
+    def expect_newline(self, type_: str = "statement") -> None:
         if not self.match(TokenType.NEWLINE, TokenType.EOF):
-            msg = "expected a newline or End-Of-File after expression"
+            msg = f"expected a newline or End-Of-File after {type_}"
             raise AstError(f"{msg}, found {self.current()}")
+
+    def statement(self) -> Statement:
+        """returns a statement of some kind"""
+        # check if we have a variable declaration token, and convert this to a statement
+        if var_decl_token := self.match(TokenType.VAR_DECL):
+            # make sure the type is correct to please the type analyzer
+            assert type(var_decl_token) is VarDeclToken
+
+            # check if there is an initial value, fall back to None
+            initial_value: Expression | None = None
+            if self.match(TokenType.EQUAL):
+                initial_value = self.expression()
+
+            # statements should end with a newline
+            self.expect_newline()
+
+            return VarDeclStatement(var_decl_token, initial_value)
+
+        # check if we have an identifier token
+        if identifier := self.match(TokenType.IDENTIFIER):
+            # make sure the type is correct to please the type analyzer
+            assert type(identifier) is IdentifierToken
+
+            # check if there is an assignment
+            value: Expression | None = None
+            if self.match(TokenType.EQUAL):
+                value = self.expression()
+
+            # statements should end with a newline
+            self.expect_newline()
+
+            # return either an empty statement or an assignment
+            if value:
+                return AssignmentStatement(identifier, value)
+            else:
+                return IdentifierStatement(identifier)
+
+        # TODO:
+        # statements starting with a keyword
+        # temp print statement
+
+        # fall back to a bare expression statement
+        expression: Expression = self.expression()
+        self.expect_newline("expression")
+
         return ExpressionStatement(expression)
 
     def expression(self) -> Expression:

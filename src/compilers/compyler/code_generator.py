@@ -24,6 +24,8 @@ class CodeGenerator:
         # compile the statements in the AST to code
         for index, statement in enumerate(self._ast.statements.objects):
             statement_code: str = statement.c_code()
+            # TODO: fixme: for now remove the trailing ';' for print statements
+            statement_code = statement_code[:-1]
             c_code.append(
                 f'    printf("statement {index+1}: %d\\n", {statement_code});\n'
             )
