@@ -33,6 +33,8 @@ class Tokenizer:
         self._current_indent: int = 0  # current number of INDENT_SPACES indentations
         # the resulting tokens from the tokenizer
         self._tokens: Stream[Token] = Stream()
+        # the discarded tokens from the tokenizer (comments, additional newlines, etc)
+        self._discarded_tokens: Stream[Token] = Stream()
 
     def tokenize(self) -> Stream[Token]:
         """tokenize the file and return a token stream"""
@@ -115,7 +117,7 @@ class Tokenizer:
                 case " ":
                     pass
                 case "\n":
-                    self._add_token(TokenType.NEWLINE)
+                    self._add_newline()
                     self._line += 1
                 case "\r":
                     # why use carriage return..
@@ -183,11 +185,20 @@ class Tokenizer:
 
     def _add_comment_token(self, token_type: TokenType, value: str) -> None:
         comment_token: CommentToken = CommentToken(token_type, self._line, value)
-        self._tokens.add(comment_token)
+        self._discarded_tokens.add(comment_token)
 
     def _add_token(self, token_type: TokenType) -> None:
         token: Token = Token(token_type, self._line)
         self._tokens.add(token)
+
+    def _add_newline(self) -> None:
+        newline_token: Token = Token(TokenType.NEWLINE, self._line)
+        # if the previous token was also a newline, add it to the discarded tokens stream
+        last_token: Token | None = self._tokens.last()
+        if not last_token or last_token.token_type == TokenType.NEWLINE:
+            self._discarded_tokens.add(newline_token)
+        else:
+            self._tokens.add(newline_token)
 
     def _add_binary_number(self) -> None:
         """parse a binary number starting with 0b, or an error token if invalid"""

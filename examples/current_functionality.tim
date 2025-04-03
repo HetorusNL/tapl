@@ -1,6 +1,9 @@
+// print functionality
 print(1100 + 150 * 2 + 37 - 100)
 print(1 * 2 + 3 / (4 + true))
 print(1 + 1 - 1)
+
+// variables and printing of variables
 u16 bla
 print(bla)
 u16 bla2 = 1337

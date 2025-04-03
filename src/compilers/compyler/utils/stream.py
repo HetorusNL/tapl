@@ -36,6 +36,11 @@ class Stream[T]:
         self._objects.extend(objs)
         return self
 
+    def last(self) -> T | None:
+        if self._objects:
+            return self._objects[-1]
+        return None
+
     def iter(self) -> Iterator[T]:
         """returns an iterator over the stream.
 

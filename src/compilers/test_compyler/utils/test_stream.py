@@ -164,3 +164,21 @@ class TestStream(unittest.TestCase):
         # add 2 objects, then the length should be 2
         self.stream.add(1, 2)
         self.assertEqual(len(self.stream), 2)
+
+    def test_last(self):
+        # initially the last should be None
+        self.assertIsNone(self.stream.last())
+
+        # adding objects should update the last function
+        self.stream.add(1, 2)
+        self.assertEqual(self.stream.last(), 2)
+        self.stream.add(0)
+        self.assertEqual(self.stream.last(), 0)
+
+    def test_trueness(self):
+        # empty stream should be False
+        self.assertFalse(self.stream)
+
+        # after adding objects, it should be True
+        self.stream.add(0)
+        self.assertTrue(self.stream)
