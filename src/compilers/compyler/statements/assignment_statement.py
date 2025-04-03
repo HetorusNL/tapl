@@ -36,3 +36,15 @@ class AssignmentStatement(Statement):
         value: str = self.value.c_code()
 
         return f"{identifier} = {value};"
+
+    def __str__(self) -> str:
+        identifier: str = self.identifier_token.value
+        value: str = self.value.__str__()
+
+        return f"{identifier} = {value}"
+
+    def __repr__(self) -> str:
+        identifier: str = self.identifier_token.value
+        value: str = self.value.__repr__()
+
+        return f"<AssignmantStatement {identifier} = {value}>"

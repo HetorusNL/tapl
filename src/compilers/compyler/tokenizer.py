@@ -282,6 +282,8 @@ class Tokenizer:
                 self._add_token(TokenType.IF)
             case TokenType.NULL.value:
                 self._add_token(TokenType.NULL)
+            case TokenType.PRINT.value:
+                self._add_token(TokenType.PRINT)
             case TokenType.RETURN.value:
                 self._add_token(TokenType.RETURN)
             case TokenType.SUPER.value:

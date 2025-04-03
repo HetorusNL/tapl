@@ -48,6 +48,7 @@ class TokenType(Enum):
     FOR = "for"
     IF = "if"
     NULL = "null"
+    PRINT = "print"
     RETURN = "return"
     SUPER = "super"
     THIS = "this"

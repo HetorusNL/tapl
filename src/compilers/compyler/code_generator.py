@@ -15,20 +15,21 @@ class CodeGenerator:
         # add the initial lines of code
         c_code: list[str] = [
             "#include <stdbool.h>\n",
+            "#include <stdint.h>\n",
             "#include <stdio.h>\n",
+            "\n",
+            "// TODO: move these to a separate file\n",
+            # TODO: extract these types from the Types builtin types
+            "typedef uint16_t u16;\n",
             "\n",
             "int main(int argc, char** argv) {\n",
             '    printf("hello world!\\n");\n',
         ]
 
         # compile the statements in the AST to code
-        for index, statement in enumerate(self._ast.statements.objects):
+        for statement in self._ast.statements.objects:
             statement_code: str = statement.c_code()
-            # TODO: fixme: for now remove the trailing ';' for print statements
-            statement_code = statement_code[:-1]
-            c_code.append(
-                f'    printf("statement {index+1}: %d\\n", {statement_code});\n'
-            )
+            c_code.append(f"    {statement_code}\n")
 
         # add the ending lines of code
         c_code.append("}\n")

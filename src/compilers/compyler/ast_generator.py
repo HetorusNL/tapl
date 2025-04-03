@@ -13,6 +13,7 @@ from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.identifier_statement import IdentifierStatement
+from .statements.print_statement import PrintStatement
 from .statements.statement import Statement
 from .statements.var_decl_statemtnt import VarDeclStatement
 from .tokens.identifier_token import IdentifierToken
@@ -109,9 +110,18 @@ class AstGenerator:
             else:
                 return IdentifierStatement(identifier)
 
+        # temporary(!) print statement, printing an expression
+        # TODO: replace this temporary statement with a builtin function :)
+        if self.match(TokenType.PRINT):
+            value = self.expression()
+
+            # statements should end with a newline
+            self.expect_newline()
+
+            return PrintStatement(value)
+
         # TODO:
         # statements starting with a keyword
-        # temp print statement
 
         # fall back to a bare expression statement
         expression: Expression = self.expression()

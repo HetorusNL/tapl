@@ -25,3 +25,13 @@ class IdentifierStatement(Statement):
         identifier: str = self.identifier_token.value
 
         return f"{identifier};"
+
+    def __str__(self) -> str:
+        identifier: str = self.identifier_token.value
+
+        return f"{identifier}"
+
+    def __repr__(self) -> str:
+        identifier: str = self.identifier_token.value
+
+        return f"<IdentifierStatement {identifier}>"
