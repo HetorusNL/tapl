@@ -188,6 +188,10 @@ class AstGenerator:
             expression: Expression = self.primary()
             return UnaryExpression(ExpressionType.NOT, expression)
 
+        # match an identifier
+        if token := self.match(TokenType.IDENTIFIER):
+            return TokenExpression(token)
+
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()}")
 

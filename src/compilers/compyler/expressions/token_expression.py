@@ -5,6 +5,7 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .expression import Expression
+from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
 from ..tokens.string_token import StringToken
 from ..tokens.token import Token
@@ -32,6 +33,9 @@ class TokenExpression(Expression):
                 return str(self._token.value)
             case TokenType.STRING:
                 assert isinstance(self._token, StringToken)
+                return self._token.value
+            case TokenType.IDENTIFIER:
+                assert isinstance(self._token, IdentifierToken)
                 return self._token.value
             # fall back to the string representation of the token type
             case _:
