@@ -46,5 +46,7 @@ class TestAstGenerator(unittest.TestCase):
             'printf("%d\\n", (1337));',
             "u16 var = 10;",
             'printf("%d\\n", (var));',
+            "u16 test_unary_minus = (-(1));",
+            'printf("%d\\n", (test_unary_minus));',
         ]
         self.assertEqual([statement.c_code() for statement in ast_statements], result)

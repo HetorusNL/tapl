@@ -3,3 +3,5 @@
 print(1337)
 u16 var = 10
 print(var)
+u16 test_unary_minus = -1
+print(test_unary_minus)

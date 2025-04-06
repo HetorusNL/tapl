@@ -35,8 +35,9 @@ class UnaryExpression(Expression):
                 return f"({self.expression.c_code()})"
             case ExpressionType.NOT:
                 return f"(!({self.expression.c_code()}))"
-            # case _ as default:
-            #     assert False, f"{self.expjression_type} not in UnaryExpression!"
+            case ExpressionType.MINUS:
+                return f"(-({self.expression.c_code()}))"
+        # assert False, f"{self.expression_type} not in UnaryExpression!"
 
     def __str__(self) -> str:
         return f"({self.expression})"

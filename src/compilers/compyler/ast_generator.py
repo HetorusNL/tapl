@@ -188,6 +188,11 @@ class AstGenerator:
             expression: Expression = self.primary()
             return UnaryExpression(ExpressionType.NOT, expression)
 
+        # match unary minus expression
+        if token := self.match(TokenType.MINUS):
+            expression: Expression = self.primary()
+            return UnaryExpression(ExpressionType.MINUS, expression)
+
         # match an identifier
         if token := self.match(TokenType.IDENTIFIER):
             return TokenExpression(token)

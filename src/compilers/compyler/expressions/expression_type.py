@@ -10,4 +10,5 @@ from enum import Enum
 
 class ExpressionType(Enum):
     GROUPING = auto()
+    MINUS = auto()
     NOT = auto()
