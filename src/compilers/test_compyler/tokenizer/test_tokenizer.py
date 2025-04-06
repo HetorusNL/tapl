@@ -78,9 +78,7 @@ class TestTokenizer(unittest.TestCase):
         # also test the discarded tokens
         discarded_tokens: list[Token] = tokenizer._discarded_tokens.objects
         print(discarded_tokens)
-        discarded_token_types: list[TokenType] = [
-            token.token_type for token in discarded_tokens
-        ]
+        discarded_token_types: list[TokenType] = [token.token_type for token in discarded_tokens]
         all_discarded_token_types = [
             TokenType.INLINE_COMMENT,
             TokenType.NEWLINE,
@@ -168,9 +166,7 @@ class TestTokenizer(unittest.TestCase):
         # also test the discarded tokens
         discarded_tokens: list[Token] = tokenizer._discarded_tokens.objects
         print(discarded_tokens)
-        discarded_token_types: list[TokenType] = [
-            token.token_type for token in discarded_tokens
-        ]
+        discarded_token_types: list[TokenType] = [token.token_type for token in discarded_tokens]
         all_discarded_token_types = [
             TokenType.INLINE_COMMENT,
             TokenType.NEWLINE,

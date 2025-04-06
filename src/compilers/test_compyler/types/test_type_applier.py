@@ -34,9 +34,7 @@ class TestTypeApplier(unittest.TestCase):
         tokens = type_applier.apply(tokens)
 
         # extract the variable VarDecl tokens and values
-        var_decl_tokens = [
-            token for token in tokens.objects if isinstance(token, VarDeclToken)
-        ]
+        var_decl_tokens = [token for token in tokens.objects if isinstance(token, VarDeclToken)]
         var_decl_values: list[str] = [token.name for token in var_decl_tokens]
 
         # check that all VarDecl tokens have been created

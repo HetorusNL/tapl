@@ -10,9 +10,7 @@ from .statement import Statement
 
 
 class VarDeclStatement(Statement):
-    def __init__(
-        self, var_decl_token: VarDeclToken, initial_value: Expression | None = None
-    ):
+    def __init__(self, var_decl_token: VarDeclToken, initial_value: Expression | None = None):
         super().__init__()
         self._var_decl_token: VarDeclToken = var_decl_token
         self._initial_value: Expression | None = initial_value
