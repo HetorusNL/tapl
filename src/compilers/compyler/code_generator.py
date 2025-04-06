@@ -4,23 +4,29 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from pathlib import Path
+
 from .utils.ast import AST
+from .types.types import Types
 
 
 class CodeGenerator:
-    def __init__(self, ast: AST):
-        self._ast = ast
+    def __init__(self, ast: AST, build_folder: Path, header_folder: Path):
+        self._ast: AST = ast
+        self._build_folder: Path = build_folder
+        self._header_folder: Path = header_folder
 
     def generate_c(self) -> list[str]:
+        # also generate the typedefs for all builtin basic types
+        Types().generate_c_header(self._header_folder)
+
         # add the initial lines of code
         c_code: list[str] = [
-            "#include <stdbool.h>\n",
-            "#include <stdint.h>\n",
+            "// include the needed system headers\n",
             "#include <stdio.h>\n",
             "\n",
-            "// TODO: move these to a separate file\n",
-            # TODO: extract these types from the Types builtin types
-            "typedef uint16_t u16;\n",
+            "// also include the needed TAPL headers\n",
+            "#include <tapl_headers/types.h>\n",
             "\n",
             "int main(int argc, char** argv) {\n",
             '    printf("hello world!\\n");\n',

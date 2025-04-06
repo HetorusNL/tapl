@@ -50,20 +50,26 @@ def generate_ast(tokens: Stream[Token]) -> AST:
     return ast
 
 
-def generate_code(ast: AST) -> list[str]:
-    c_code: list[str] = CodeGenerator(ast).generate_c()
+def create_build_folders() -> tuple[Path, Path]:
+    # get to the repo root folder, several levels up
+    repo_root: Path = Path(__file__).parents[3].resolve()
+    build_folder: Path = repo_root / "build" / "compyler"
+    header_folder: Path = build_folder / "tapl_headers"
+    # ensure the build and header folders exists
+    build_folder.mkdir(parents=True, exist_ok=True)
+    header_folder.mkdir(parents=True, exist_ok=True)
+    return build_folder, header_folder
+
+
+def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> list[str]:
+    c_code: list[str] = CodeGenerator(ast, build_folder, header_folder).generate_c()
     print("``` c")
     print(*c_code, sep="", end="")
     print("```")
     return c_code
 
 
-def write_file(c_code: list[str]) -> Path:
-    # get to the repo root folder, several levels up
-    repo_root: Path = Path(__file__).parents[3].resolve()
-    build_folder: Path = repo_root / "build" / "compyler"
-    # ensure the build folder exists
-    build_folder.mkdir(parents=True, exist_ok=True)
+def write_file(c_code: list[str], build_folder: Path) -> Path:
     # create the full filename of the c source file
     c_file: Path = build_folder / "main.c"
     # write all lines to the file
@@ -72,9 +78,10 @@ def write_file(c_code: list[str]) -> Path:
     return c_file
 
 
-def compile_c(c_file: Path) -> Path:
+def compile_c(c_file: Path, build_folder: Path) -> Path:
+    # directly call the gcc compiler, passing the build folder as additional include path
     executable: Path = c_file.parent / "main"
-    command: str = f"gcc -o {executable} {c_file}"
+    command: str = f"gcc -I{build_folder} -o {executable} {c_file}"
     print(command)
     system(command)
     return executable
@@ -98,14 +105,17 @@ def main():
     # generate an AST from the tokens
     ast: AST = generate_ast(tokens)
 
+    # formulate the path to output the c-code, and a subfolder for the headers
+    build_folder, header_folder = create_build_folders()
+
     # generate c-code from the AST
-    c_code: list[str] = generate_code(ast)
+    c_code: list[str] = generate_code(ast, build_folder, header_folder)
 
     # write the code to main.c in the build folder
-    c_file: Path = write_file(c_code)
+    c_file: Path = write_file(c_code, build_folder)
 
     # run the c compiler to compile the file
-    executable: Path = compile_c(c_file)
+    executable: Path = compile_c(c_file, build_folder)
 
     # run the executable
     run_executable(executable)

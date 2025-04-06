@@ -8,3 +8,29 @@ u16 bla
 print(bla)
 u16 bla2 = 1337
 print(bla2)
+
+// types test
+u1 u1 = 12345678
+u8 u8 = 12345678
+u16 u16 = 12345678
+u32 u32 = 12345678
+u64 u64 = 12345678
+s8 s8 = 12345678
+s16 s16 = 12345678
+s32 s32 = 12345678
+s64 s64 = 12345678
+f32 f32 = 12345678
+f64 f64 = 12345678
+
+// and print them
+print(u1)
+print(u8)
+print(u16)
+print(u32)
+print(u64)
+print(s8)
+print(s16)
+print(s32)
+print(s64)
+print(f32)
+print(f64)
