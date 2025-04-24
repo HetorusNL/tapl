@@ -131,7 +131,28 @@ class AstGenerator:
 
     def expression(self) -> Expression:
         """returns an expression, starts parsing at the lowest precedence level"""
+        expression: Expression = self.boolean()
+        return expression
+
+    def boolean(self) -> Expression:
+        """returns a boolean expression, or a higher precedence level expression"""
+        # go up the precedence list to get the left hand side expression
         expression: Expression = self.additive()
+
+        boolean_expression_tokens: tuple[TokenType, ...] = (
+            TokenType.EQUAL_EQUAL,
+            TokenType.GREATER,
+            TokenType.GREATER_EQUAL,
+            TokenType.LESS,
+            TokenType.LESS_EQUAL,
+            TokenType.NOT_EQUAL,
+        )
+        while token := self.match(*boolean_expression_tokens):
+            # we found a boolean expression token, go up the precedence list go get another expression
+            right: Expression = self.additive()
+            expression = BinaryExpression(expression, token, right)
+
+        # otherwise return the expression found at the beginning
         return expression
 
     def additive(self) -> Expression:
