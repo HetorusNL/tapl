@@ -43,6 +43,7 @@ poery run python -m src.compilers.compyler /path/to/file.tim
   - make distinction between int and float/double numbers
 - add additional expression stuff to the ast_generator
 - add statements to the ast_generator
+- add another typing (type propagation / type checking) pass
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang

@@ -40,15 +40,14 @@ class TestAstGenerator(unittest.TestCase):
         print(*ast_statements, sep="\n")
 
         # convert the individual statements to str to compare
-        result = [
-            "(((1100 + (150 * 2)) + 37) - 100);",
-            "((1 * 2) + (3 / ((4 + true))));",
-            'printf("%d\\n", (1337));',
-            "u16 var = 10;",
-            'printf("%d\\n", (var));',
-            "u16 test_unary_minus = (-(1));",
-            'printf("%d\\n", (test_unary_minus));',
-            'printf("%d\\n", ((1337 == 1337)));',
-            'printf("%d\\n", (((1337 + 1) != 1337)));',
-        ]
-        self.assertEqual([statement.c_code() for statement in ast_statements], result)
+        result_file: Path = this_folder / "result_example_statements.txt"
+        with open(result_file) as f:
+            result: list[str] = f.readlines()
+        # convert code lines to single lines and strip newlines
+        code_lines: list[str] = []
+        for statement in ast_statements:
+            code_lines.extend(line.strip() for line in statement.c_code().split("\n"))
+        # do the same for the result lines
+        result_lines: list[str] = [line.strip() for line in result]
+        # check that the lists are equal
+        self.assertEqual(code_lines, result_lines)

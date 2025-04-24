@@ -13,6 +13,7 @@ from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.identifier_statement import IdentifierStatement
+from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.statement import Statement
 from .statements.var_decl_statemtnt import VarDeclStatement
@@ -66,13 +67,48 @@ class AstGenerator:
         """expects the next token to be of token_type, raises AstError otherwise"""
         if not self.match(token_type):
             if not message:
-                message = f"expected {token_type} but found {self.current()}"
+                message = f"expected {token_type} but found {self.current()} at line {self.current().line}"
             raise AstError(message)
 
     def expect_newline(self, type_: str = "statement") -> None:
         if not self.match(TokenType.NEWLINE, TokenType.EOF):
             msg = f"expected a newline or End-Of-File after {type_}"
-            raise AstError(f"{msg}, found {self.current()}")
+            raise AstError(f"{msg}, found {self.current()} at line {self.current().line}")
+
+    def _statement_block(self) -> list[Statement]:
+        # capture all statements until we get a dedent
+        statements: list[Statement] = []
+        while not self.match(TokenType.DEDENT):
+            statement: Statement = self.statement()
+            statements.append(statement)
+        return statements
+
+    def if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
+        # early return if we don't have an if statement
+        if not self.match(TokenType.IF):
+            return None
+
+        # otherwise we have an (already consumed) if statement
+        # start parsing the if statement line itself
+        # first match an expression
+        expression: Expression = self.expression()
+        # then a colon
+        self.expect(TokenType.COLON)
+        # followed by a newline
+        self.expect_newline()
+        # and finally an indent token
+        self.expect(TokenType.INDENT)
+
+        # continue with the body of the statement
+        statements: list[Statement] = self._statement_block()
+
+        # if we already got an if statement, add it as else-if block
+        if if_statement:
+            if_statement.add_else_if_statement_block(expression, statements)
+            return if_statement
+
+        # otherwise return a new if statement
+        return IfStatement(expression, statements)
 
     def statement(self) -> Statement:
         """returns a statement of some kind"""
@@ -120,8 +156,39 @@ class AstGenerator:
 
             return PrintStatement(value)
 
+        # check for an if statement
+        if statement := self.if_statement():
+            # found and consumed an if statement
+            # return the if statement if we found an EOF
+            if self.match(TokenType.EOF):
+                return statement
+
+            # check for else-if and else blocks
+            while self.match(TokenType.ELSE):
+                # check for another if, an else-if block
+                if self.if_statement(statement):
+                    # found an else-if block, it has already been added, so loop back to search for more
+                    pass
+                else:
+                    # found a bare else, this is the final statement block
+                    # first expect a colon
+                    self.expect(TokenType.COLON)
+                    # followed by a newline
+                    self.expect_newline()
+                    # and finally an indent token
+                    self.expect(TokenType.INDENT)
+                    # now parse the statements
+                    statements: list[Statement] = self._statement_block()
+                    # add this block as the else statements to the if statement
+                    statement.else_statements = statements
+                    # nothing more in an if statement after an else, so break from the loop
+                    break
+
+            # no (more) else statements, return the finished if statement
+            return statement
+
         # TODO:
-        # statements starting with a keyword
+        # more statements starting with a keyword
 
         # fall back to a bare expression statement
         expression: Expression = self.expression()
@@ -200,7 +267,7 @@ class AstGenerator:
         # match expressions between parenthesis
         if token := self.match(TokenType.PAREN_OPEN):
             expression: Expression = self.expression()
-            message = f"expected closing parenthesis, but found {self.current()}"
+            message = f"expected closing parenthesis, but found {self.current()} at line {self.current().line}"
             self.expect(TokenType.PAREN_CLOSE, message)
             return UnaryExpression(ExpressionType.GROUPING, expression)
 
@@ -219,7 +286,7 @@ class AstGenerator:
             return TokenExpression(token)
 
         # otherwise we have an error, there must be an expression here
-        raise AstError(f"expected an expression, found {self.current()}")
+        raise AstError(f"expected an expression, found {self.current()} at line {self.current().line}")
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
