@@ -40,8 +40,10 @@ class Tokenizer:
         """tokenize the file and return a token stream"""
         # infinite loop until we reach the end of file
         while True:
-            # process indent/dedent from spaces at start of line
             if self._at_start_of_line:
+                # if there are any following empty lines, consume them
+                self._consume_empty_lines()
+                # process indent/dedent from spaces at start of line
                 self._add_indent_dedent()
 
             # switch-case for the next character
@@ -118,7 +120,6 @@ class Tokenizer:
                     pass
                 case "\n":
                     self._add_newline()
-                    self._line += 1
                 case "\r":
                     # why use carriage return..
                     pass
@@ -127,6 +128,7 @@ class Tokenizer:
                     self._add_token(TokenType.ERROR)
                 case _:
                     print(f"unknown character '{char}', skipped...")
+                    self._add_token(TokenType.ERROR)
             # after \n we're at start of line, we can expect indent/dedent here
             self._at_start_of_line = char == "\n"
         return self._tokens
@@ -145,15 +147,15 @@ class Tokenizer:
         # return whether it was a match
         return match
 
-    def _get_char(self, consume: bool) -> str | None:
+    def _get_char(self, consume: bool, offset: int = 0) -> str | None:
         """utility function to combine _next and _consume"""
         # make sure to check the file size
-        if self._current_index == self._file_size:
+        if self._current_index + offset >= self._file_size:
             return None
         # otherwise return the next character
-        character: str = self._file_characters[self._current_index]
+        character: str = self._file_characters[self._current_index + offset]
         if consume:
-            self._current_index += 1
+            self._current_index += 1 + offset
         return character
 
     def _isbinary(self, char: str) -> bool:
@@ -193,6 +195,7 @@ class Tokenizer:
 
     def _add_newline(self) -> None:
         newline_token: Token = Token(TokenType.NEWLINE, self._line)
+        self._line += 1
         # if the previous token was also a newline, add it to the discarded tokens stream
         last_token: Token | None = self._tokens.last()
         if not last_token or last_token.token_type == TokenType.NEWLINE:
@@ -359,6 +362,35 @@ class Tokenizer:
 
         # otherwise we have found an identifier
         self._add_identifier_token(identifier)
+
+    def _is_whitespace(self, char: str) -> bool:
+        return char in " \n\r\t"
+
+    def _consume_empty_lines(self) -> None:
+        # if we have a line with only whitespace characters and a newline, consume it
+        offset: int = 0
+        while char := self._get_char(False, offset=offset):
+            if not self._is_whitespace(char):
+                # not whitespace, so not an empty line
+                return
+
+            if char == "\n":
+                # found a newline, add newline to discarded tokens
+                self._add_newline()
+                # consume all characters including newline
+                self._get_char(True, offset=offset)
+                # reset the offset
+                offset = 0
+                continue
+
+            offset += 1
+
+        # found EOF (char is None), consume all whitespace characters until here
+        if offset == 0:
+            # special case, no characters before EOF
+            return
+        # otherwise consume all characters before EOF
+        self._get_char(True, offset - 1)
 
     def _add_indent_dedent(self) -> None:
         spaces: int = 0

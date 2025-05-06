@@ -76,10 +76,10 @@ class IfStatement(Statement):
             code: str = self.add_if_statement(code, else_expression, statements)
 
         # add the else block if it exists
-        if statements := self.else_statements:
+        if self.else_statements is not None:
             # add the else line
             code += f" else {{\n"
-            for statement in statements:
+            for statement in self.else_statements:
                 code += f"{statement.c_code()}\n"
             # end with the closing brace
             code += f"}}"

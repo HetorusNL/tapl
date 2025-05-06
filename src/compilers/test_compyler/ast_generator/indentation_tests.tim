@@ -1,0 +1,12 @@
+// parse an if-statement
+if 1337:
+
+    print(1337)
+        
+    
+
+else if 1:
+else:
+
+    
+if 1:// this is also allowed! :D

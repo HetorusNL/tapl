@@ -23,9 +23,15 @@ class TestAstGenerator(unittest.TestCase):
         print()
 
     def test_ast_generator_example_statements(self):
+        self._run_compilation_test("example_statements.tim", "result_example_statements.txt")
+
+    def test_ast_generator_indentation_tests(self):
+        self._run_compilation_test("indentation_tests.tim", "result_indentation_tests.txt")
+
+    def _run_compilation_test(self, tim_file: str, result_statements_file: str):
         # make sure to pass a resolved path to the tokenizer and ast generator
         this_folder: Path = Path(__file__).parent.resolve()
-        example_file: Path = this_folder / "example_statements.tim"
+        example_file: Path = this_folder / tim_file
         # tokenize the file to a stream
         tokens: Stream[Token] = Tokenizer(example_file).tokenize()
         # resolve the types in the file
@@ -40,7 +46,7 @@ class TestAstGenerator(unittest.TestCase):
         print(*ast_statements, sep="\n")
 
         # convert the individual statements to str to compare
-        result_file: Path = this_folder / "result_example_statements.txt"
+        result_file: Path = this_folder / result_statements_file
         with open(result_file) as f:
             result: list[str] = f.readlines()
         # convert code lines to single lines and strip newlines

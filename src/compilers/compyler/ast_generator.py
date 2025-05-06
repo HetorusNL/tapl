@@ -75,7 +75,21 @@ class AstGenerator:
             msg = f"expected a newline or End-Of-File after {type_}"
             raise AstError(f"{msg}, found {self.current()} at line {self.current().line}")
 
+    def _has_indent(self) -> bool:
+        """returns whether the next token is an indent, if so, consume it"""
+        # if we're at EOF, there is no indent
+        if self.is_at_end():
+            return False
+
+        # if the next token is an indent, consume it
+        return self.match(TokenType.INDENT) is not None
+
     def _statement_block(self) -> list[Statement]:
+        """returns a list of statements in the block, list is empty if there is no indent"""
+        # we can either have an empty block or we must have an indent
+        if not self._has_indent():
+            return []
+
         # capture all statements until we get a dedent
         statements: list[Statement] = []
         while not self.match(TokenType.DEDENT):
@@ -96,8 +110,6 @@ class AstGenerator:
         self.expect(TokenType.COLON)
         # followed by a newline
         self.expect_newline()
-        # and finally an indent token
-        self.expect(TokenType.INDENT)
 
         # continue with the body of the statement
         statements: list[Statement] = self._statement_block()
@@ -160,7 +172,7 @@ class AstGenerator:
         if statement := self.if_statement():
             # found and consumed an if statement
             # return the if statement if we found an EOF
-            if self.match(TokenType.EOF):
+            if self.is_at_end():
                 return statement
 
             # check for else-if and else blocks
@@ -175,10 +187,10 @@ class AstGenerator:
                     self.expect(TokenType.COLON)
                     # followed by a newline
                     self.expect_newline()
-                    # and finally an indent token
-                    self.expect(TokenType.INDENT)
+
                     # now parse the statements
                     statements: list[Statement] = self._statement_block()
+
                     # add this block as the else statements to the if statement
                     statement.else_statements = statements
                     # nothing more in an if statement after an else, so break from the loop
