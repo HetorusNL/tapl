@@ -198,7 +198,7 @@ class Tokenizer:
         self._line += 1
         # if the previous token was also a newline, add it to the discarded tokens stream
         last_token: Token | None = self._tokens.last()
-        if not last_token or last_token.token_type == TokenType.NEWLINE:
+        if not last_token or last_token.token_type in [TokenType.NEWLINE, TokenType.INDENT, TokenType.DEDENT]:
             self._discarded_tokens.add(newline_token)
         else:
             self._tokens.add(newline_token)

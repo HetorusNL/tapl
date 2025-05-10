@@ -87,7 +87,7 @@ class IfStatement(Statement):
         return code
 
     def __str__(self) -> str:
-        return f"if({self.expression.__str__()}): ..."
+        return f"if ({self.expression.__str__()}): ..."
 
     def __repr__(self) -> str:
-        return f"<IfStatement {self.expression.__str__()}>"
+        return f"<IfStatement {self.expression.__repr__()}>"
