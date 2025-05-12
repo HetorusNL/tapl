@@ -12,6 +12,7 @@ from .expressions.token_expression import TokenExpression
 from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
+from .statements.for_loop_statement import ForLoopStatement
 from .statements.identifier_statement import IdentifierStatement
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
@@ -102,6 +103,39 @@ class AstGenerator:
             statements.append(statement)
         return statements
 
+    def for_statement(self) -> ForLoopStatement | None:
+        # early return if we don't have a for-loop statement
+        if not self.match(TokenType.FOR):
+            return None
+
+        # otherwise we have an (already consumed) for-loop statement
+        # start parsing the initial value statement (if it exists)
+        init: Statement | None = None
+        if not self.match(TokenType.SEMICOLON):
+            init: Statement | None = self.statement(must_end_with_newline=False)
+            self.match(TokenType.SEMICOLON)
+
+        # parse the check expression (if it exists)
+        check: Expression | None = None
+        if not self.match(TokenType.SEMICOLON):
+            check: Expression | None = self.expression()
+            self.match(TokenType.SEMICOLON)
+
+        # parse the loop expression (if it exists)
+        loop: Expression | None = None
+        if not self.match(TokenType.COLON):
+            loop: Expression | None = self.expression()
+            self.match(TokenType.COLON)
+
+        # followed by a newline
+        self.expect_newline()
+
+        # continue with the body of the for-loop statement
+        statements: list[Statement] = self._statement_block()
+
+        # return the finished for-loop statement
+        return ForLoopStatement(init, check, loop, statements)
+
     def if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
         if not self.match(TokenType.IF):
@@ -166,7 +200,10 @@ class AstGenerator:
         # temporary(!) print statement, printing an expression
         # TODO: replace this temporary statement with a builtin function :)
         if self.match(TokenType.PRINT):
+            # match an expression between parenthesis
+            self.match(TokenType.PAREN_OPEN)
             value = self.expression()
+            self.match(TokenType.PAREN_CLOSE)
 
             # statements should end with a newline
             self.expect_newline()
@@ -202,6 +239,10 @@ class AstGenerator:
                     break
 
             # no (more) else statements, return the finished if statement
+            return statement
+
+        # check for a for-loop statement
+        if statement := self.for_statement():
             return statement
 
         # TODO:

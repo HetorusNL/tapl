@@ -1,15 +1,15 @@
-// print functionality
+print("basic print functionality")
 print(1100 + 150 * 2 + 37 - 100)
 print(1 * 2 + 3 / (4 + true))
 print(1 + 1 - 1)
 
-// variables and printing of variables
+print("\nvariables and printing of variables")
 u16 bla
 print(bla)
 u16 bla2 = 1337
 print(bla2)
 
-// types test
+print("\ntesting types")
 u1 _u1 = 1
 u8 _u8 = 12
 u16 _u16 = 1234
@@ -22,7 +22,7 @@ s64 _s64 = -12345678
 f32 _f32 = -12345678
 f64 _f64 = -12345678
 
-// and print them
+print("\nprinting types")
 print(_u1)
 print(_u8)
 print(_u16)
@@ -35,7 +35,7 @@ print(_s64)
 print(_f32)
 print(_f64)
 
-// boolean expressions
+print("\nboolean expressions")
 print(1 == 1)
 print(1 == 2)
 print(2 > 1)
@@ -51,7 +51,7 @@ print(2 <= 1)
 print(1337 != 1338)
 print(1337 != 1337)
 
-// parse an if-statement
+print("\nparse an if-statement")
 if 1337:
     print(1337)
 else if 1338:
@@ -59,9 +59,14 @@ else if 1338:
 else:
     print(0)
 
+print("\ntesting pre and post increment/decrement")
 u8 index = 0
 print(index++)
 print(index++)
 u8 other_index = 0
 print(++other_index)
 print(--other_index)
+
+print("\nparsing a for-loop statement")
+for u8 i = 0; i < 10; i++:
+    print(i)

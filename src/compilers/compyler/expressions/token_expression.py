@@ -33,7 +33,7 @@ class TokenExpression(Expression):
                 return str(self._token.value)
             case TokenType.STRING:
                 assert isinstance(self._token, StringToken)
-                return self._token.value
+                return f'"{self._token.value}"'
             case TokenType.IDENTIFIER:
                 assert isinstance(self._token, IdentifierToken)
                 return self._token.value
