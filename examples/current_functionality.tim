@@ -69,4 +69,5 @@ print(--other_index)
 
 print("\nparsing a for-loop statement")
 for u8 i = 0; i < 10; i++:
+    i++
     print(i)

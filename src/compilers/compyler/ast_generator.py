@@ -13,7 +13,6 @@ from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.for_loop_statement import ForLoopStatement
-from .statements.identifier_statement import IdentifierStatement
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.statement import Statement
@@ -37,6 +36,12 @@ class AstGenerator:
     def current(self) -> Token:
         """returns the token at the current location"""
         return self._tokens[self._current_index]
+
+    def next(self) -> Token:
+        """returns the token after the current location"""
+        if self._current_index + 1 > len(self._tokens):
+            raise AstError("unexpected end-of-file, next token doesn't exist!")
+        return self._tokens[self._current_index + 1]
 
     def previous(self) -> Token:
         """returns the previous (consumed) token"""
@@ -103,6 +108,31 @@ class AstGenerator:
             statements.append(statement)
         return statements
 
+    def assignment_statement(self, must_end_with_newline: bool) -> AssignmentStatement | None:
+        # check (but don't consume) if we have an identifier token
+        if self.current().token_type != TokenType.IDENTIFIER:
+            return
+        # check if there is an assignment (still no consuming)
+        if self.next().token_type != TokenType.EQUAL:
+            return
+
+        # this is an assignment, consume the identifier
+        identifier = self.match(TokenType.IDENTIFIER)
+        # make sure the type is correct to please the type analyzer
+        assert type(identifier) is IdentifierToken
+
+        # consume the equal
+        self.expect(TokenType.EQUAL)
+
+        # then consume the expression
+        value: Expression = self.expression()
+
+        # statements should end with a newline
+        self.expect_newline(must_end_with_newline=must_end_with_newline)
+
+        # return the assignment statement
+        return AssignmentStatement(identifier, value)
+
     def for_statement(self) -> ForLoopStatement | None:
         # early return if we don't have a for-loop statement
         if not self.match(TokenType.FOR):
@@ -136,7 +166,7 @@ class AstGenerator:
         # return the finished for-loop statement
         return ForLoopStatement(init, check, loop, statements)
 
-    def if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
+    def single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
         if not self.match(TokenType.IF):
             return None
@@ -161,8 +191,52 @@ class AstGenerator:
         # otherwise return a new if statement
         return IfStatement(expression, statements)
 
-    def statement(self, must_end_with_newline: bool = True) -> Statement:
-        """returns a statement of some kind"""
+    def if_statement(self) -> IfStatement | None:
+        statement: IfStatement | None = self.single_if_statement()
+        # return the if statement if we found an EOF, or None if we didn't find a if statement
+        if self.is_at_end() or not statement:
+            return statement
+
+        # check for else-if and else blocks
+        while self.match(TokenType.ELSE):
+            # check for another if, an else-if block
+            if self.single_if_statement(statement):
+                # found an else-if block, it has already been added, so loop back to search for more
+                pass
+            else:
+                # found a bare else, this is the final statement block
+                # first expect a colon
+                self.expect(TokenType.COLON)
+                # followed by a newline
+                self.expect_newline()
+
+                # now parse the statements
+                statements: list[Statement] = self._statement_block()
+
+                # add this block as the else statements to the if statement
+                statement.else_statements = statements
+                # nothing more in an if statement after an else, so break from the loop
+                break
+
+        # no (more) else statements, return the finished if statement
+        return statement
+
+    def print_statement(self) -> PrintStatement | None:
+        # early return if we don't have a print statement
+        if not self.match(TokenType.PRINT):
+            return
+
+        # match an expression between parenthesis
+        self.match(TokenType.PAREN_OPEN)
+        value = self.expression()
+        self.match(TokenType.PAREN_CLOSE)
+
+        # statements should end with a newline
+        self.expect_newline()
+
+        return PrintStatement(value)
+
+    def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
         # check if we have a variable declaration token, and convert this to a statement
         if var_decl_token := self.match(TokenType.VAR_DECL):
             # make sure the type is correct to please the type analyzer
@@ -178,67 +252,23 @@ class AstGenerator:
 
             return VarDeclStatement(var_decl_token, initial_value)
 
-        # check if we have an identifier token
-        if identifier := self.match(TokenType.IDENTIFIER):
-            # make sure the type is correct to please the type analyzer
-            assert type(identifier) is IdentifierToken
+    def statement(self, must_end_with_newline: bool = True) -> Statement:
+        """returns a statement of some kind"""
+        # check for a variable declaration statement
+        if statement := self.var_decl_statement(must_end_with_newline):
+            return statement
 
-            # check if there is an assignment
-            value: Expression | None = None
-            if self.match(TokenType.EQUAL):
-                value = self.expression()
-
-            # statements should end with a newline
-            self.expect_newline(must_end_with_newline=must_end_with_newline)
-
-            # return either an empty statement or an assignment
-            if value:
-                return AssignmentStatement(identifier, value)
-            else:
-                return IdentifierStatement(identifier)
+        # check for an assignment statement
+        if statement := self.assignment_statement(must_end_with_newline):
+            return statement
 
         # temporary(!) print statement, printing an expression
         # TODO: replace this temporary statement with a builtin function :)
-        if self.match(TokenType.PRINT):
-            # match an expression between parenthesis
-            self.match(TokenType.PAREN_OPEN)
-            value = self.expression()
-            self.match(TokenType.PAREN_CLOSE)
-
-            # statements should end with a newline
-            self.expect_newline()
-
-            return PrintStatement(value)
+        if statement := self.print_statement():
+            return statement
 
         # check for an if statement
         if statement := self.if_statement():
-            # found and consumed an if statement
-            # return the if statement if we found an EOF
-            if self.is_at_end():
-                return statement
-
-            # check for else-if and else blocks
-            while self.match(TokenType.ELSE):
-                # check for another if, an else-if block
-                if self.if_statement(statement):
-                    # found an else-if block, it has already been added, so loop back to search for more
-                    pass
-                else:
-                    # found a bare else, this is the final statement block
-                    # first expect a colon
-                    self.expect(TokenType.COLON)
-                    # followed by a newline
-                    self.expect_newline()
-
-                    # now parse the statements
-                    statements: list[Statement] = self._statement_block()
-
-                    # add this block as the else statements to the if statement
-                    statement.else_statements = statements
-                    # nothing more in an if statement after an else, so break from the loop
-                    break
-
-            # no (more) else statements, return the finished if statement
             return statement
 
         # check for a for-loop statement
