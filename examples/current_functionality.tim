@@ -10,30 +10,30 @@ u16 bla2 = 1337
 print(bla2)
 
 // types test
-u1 u1 = -12345678
-u8 u8 = -12345678
-u16 u16 = -12345678
-u32 u32 = -12345678
-u64 u64 = -12345678
-s8 s8 = -12345678
-s16 s16 = -12345678
-s32 s32 = -12345678
-s64 s64 = -12345678
-f32 f32 = -12345678
-f64 f64 = -12345678
+u1 _u1 = 1
+u8 _u8 = 12
+u16 _u16 = 1234
+u32 _u32 = 123456
+u64 _u64 = 12345678
+s8 _s8 = -12
+s16 _s16 = -1234
+s32 _s32 = 123456
+s64 _s64 = -12345678
+f32 _f32 = -12345678
+f64 _f64 = -12345678
 
 // and print them
-print(u1)
-print(u8)
-print(u16)
-print(u32)
-print(u64)
-print(s8)
-print(s16)
-print(s32)
-print(s64)
-print(f32)
-print(f64)
+print(_u1)
+print(_u8)
+print(_u16)
+print(_u32)
+print(_u64)
+print(_s8)
+print(_s16)
+print(_s32)
+print(_s64)
+print(_f32)
+print(_f64)
 
 // boolean expressions
 print(1 == 1)
@@ -58,3 +58,10 @@ else if 1338:
     print(1338)
 else:
     print(0)
+
+u8 index = 0
+print(index++)
+print(index++)
+u8 other_index = 0
+print(++other_index)
+print(--other_index)

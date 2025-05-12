@@ -12,3 +12,7 @@ class ExpressionType(Enum):
     GROUPING = auto()
     MINUS = auto()
     NOT = auto()
+    POST_DECREMENT = auto()
+    POST_INCREMENT = auto()
+    PRE_DECREMENT = auto()
+    PRE_INCREMENT = auto()

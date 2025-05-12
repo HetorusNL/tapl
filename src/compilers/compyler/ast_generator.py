@@ -63,14 +63,19 @@ class AstGenerator:
             return self.consume()
         return None
 
-    def expect(self, token_type: TokenType, message: str = "") -> None:
-        """expects the next token to be of token_type, raises AstError otherwise"""
-        if not self.match(token_type):
+    def expect(self, token_type: TokenType, message: str = "") -> Token:
+        """expects the next token to be of token_type, return token if match, raises AstError otherwise"""
+        if token := self.match(token_type):
+            return token
+        else:
             if not message:
                 message = f"expected {token_type} but found {self.current()} at line {self.current().line}"
             raise AstError(message)
 
-    def expect_newline(self, type_: str = "statement") -> None:
+    def expect_newline(self, type_: str = "statement", must_end_with_newline: bool = True) -> None:
+        if not must_end_with_newline:
+            return
+
         if not self.match(TokenType.NEWLINE, TokenType.EOF):
             msg = f"expected a newline or End-Of-File after {type_}"
             raise AstError(f"{msg}, found {self.current()} at line {self.current().line}")
@@ -122,7 +127,7 @@ class AstGenerator:
         # otherwise return a new if statement
         return IfStatement(expression, statements)
 
-    def statement(self) -> Statement:
+    def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""
         # check if we have a variable declaration token, and convert this to a statement
         if var_decl_token := self.match(TokenType.VAR_DECL):
@@ -135,7 +140,7 @@ class AstGenerator:
                 initial_value = self.expression()
 
             # statements should end with a newline
-            self.expect_newline()
+            self.expect_newline(must_end_with_newline=must_end_with_newline)
 
             return VarDeclStatement(var_decl_token, initial_value)
 
@@ -150,7 +155,7 @@ class AstGenerator:
                 value = self.expression()
 
             # statements should end with a newline
-            self.expect_newline()
+            self.expect_newline(must_end_with_newline=must_end_with_newline)
 
             # return either an empty statement or an assignment
             if value:
@@ -293,9 +298,26 @@ class AstGenerator:
             expression: Expression = self.primary()
             return UnaryExpression(ExpressionType.MINUS, expression)
 
+        # match pre increment or decrement expression
+        if token := self.match(TokenType.INCREMENT):
+            identifier: Token = self.expect(TokenType.IDENTIFIER)
+            expression: Expression = TokenExpression(identifier)
+            return UnaryExpression(ExpressionType.PRE_INCREMENT, expression)
+        if token := self.match(TokenType.DECREMENT):
+            identifier: Token = self.expect(TokenType.IDENTIFIER)
+            expression: Expression = TokenExpression(identifier)
+            return UnaryExpression(ExpressionType.PRE_DECREMENT, expression)
+
         # match an identifier
         if token := self.match(TokenType.IDENTIFIER):
-            return TokenExpression(token)
+            expression: Expression = TokenExpression(token)
+            # check for increment and decrement
+            if self.match(TokenType.INCREMENT):
+                return UnaryExpression(ExpressionType.POST_INCREMENT, expression)
+            if self.match(TokenType.DECREMENT):
+                return UnaryExpression(ExpressionType.POST_DECREMENT, expression)
+            # otherwise return the bare token expression
+            return expression
 
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()} at line {self.current().line}")

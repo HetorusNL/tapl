@@ -64,13 +64,19 @@ class Tokenizer:
                 case TokenType.DOT.value:
                     self._add_token(TokenType.DOT)
                 case TokenType.MINUS.value:
-                    self._add_token(TokenType.MINUS)
+                    if self._consume(TokenType.MINUS.value):
+                        self._add_token(TokenType.DECREMENT)
+                    else:
+                        self._add_token(TokenType.MINUS)
                 case TokenType.PAREN_CLOSE.value:
                     self._add_token(TokenType.PAREN_CLOSE)
                 case TokenType.PAREN_OPEN.value:
                     self._add_token(TokenType.PAREN_OPEN)
                 case TokenType.PLUS.value:
-                    self._add_token(TokenType.PLUS)
+                    if self._consume(TokenType.PLUS.value):
+                        self._add_token(TokenType.INCREMENT)
+                    else:
+                        self._add_token(TokenType.PLUS)
                 case TokenType.SEMICOLON.value:
                     self._add_token(TokenType.SEMICOLON)
                 # match all single- or double-character tokens

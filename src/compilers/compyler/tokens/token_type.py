@@ -33,6 +33,8 @@ class TokenType(Enum):
     NOT_EQUAL = "!="
     SLASH = "/"
     STAR = "*"
+    INCREMENT = "++"
+    DECREMENT = "--"
 
     # literals
     IDENTIFIER = "<IDENTIFIER>"

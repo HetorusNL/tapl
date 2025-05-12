@@ -37,7 +37,15 @@ class UnaryExpression(Expression):
                 return f"(!({self.expression.c_code()}))"
             case ExpressionType.MINUS:
                 return f"(-({self.expression.c_code()}))"
-        # assert False, f"{self.expression_type} not in UnaryExpression!"
+            case ExpressionType.POST_DECREMENT:
+                return f"(({self.expression.c_code()})--)"
+            case ExpressionType.POST_INCREMENT:
+                return f"(({self.expression.c_code()})++)"
+            case ExpressionType.PRE_DECREMENT:
+                return f"(--({self.expression.c_code()}))"
+            case ExpressionType.PRE_INCREMENT:
+                return f"(++({self.expression.c_code()}))"
+        assert False, f"{self.expression_type} not in UnaryExpression!"
 
     def __str__(self) -> str:
         return f"({self.expression})"
