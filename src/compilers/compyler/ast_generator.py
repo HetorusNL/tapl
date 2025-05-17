@@ -166,7 +166,7 @@ class AstGenerator:
         # return the finished for-loop statement
         return ForLoopStatement(init, check, loop, statements)
 
-    def single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
+    def _single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
         if not self.match(TokenType.IF):
             return None
@@ -192,7 +192,7 @@ class AstGenerator:
         return IfStatement(expression, statements)
 
     def if_statement(self) -> IfStatement | None:
-        statement: IfStatement | None = self.single_if_statement()
+        statement: IfStatement | None = self._single_if_statement()
         # return the if statement if we found an EOF, or None if we didn't find a if statement
         if self.is_at_end() or not statement:
             return statement
@@ -200,7 +200,7 @@ class AstGenerator:
         # check for else-if and else blocks
         while self.match(TokenType.ELSE):
             # check for another if, an else-if block
-            if self.single_if_statement(statement):
+            if self._single_if_statement(statement):
                 # found an else-if block, it has already been added, so loop back to search for more
                 pass
             else:

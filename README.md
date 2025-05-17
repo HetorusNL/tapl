@@ -55,6 +55,24 @@ poery run python -m src.compilers.compyler /path/to/file.tim
 - implicit "python modules' class imports", example:
   - `modules/some_module.tim`: `class SomeModule: // blabla`
   - `file.tim`: `from module import SomeModule`
+- add `returnif` keyword-like thing:
+
+  - an indented block of statements follow this
+  - if a statement returns a non-null value, return this from the surrounding function
+  - example:
+
+    ```
+    Statement statement():
+        // very neatly functions returning if they are non-null
+        returnif:
+            if_statement()
+            for_statement()
+            print_statement()
+
+        // outside of the block use a normal return statement
+        Expression e = expression()
+        return ExpressionStatement(e)
+    ```
 
 ## FAQ
 
