@@ -38,6 +38,7 @@ class TokenType(Enum):
 
     # literals
     IDENTIFIER = "<IDENTIFIER>"
+    TYPE = "<TYPE>"
     NUMBER = "<NUMBER>"
     STRING = "<STRING>"
     INLINE_COMMENT = "<INLINE_COMMENT>"

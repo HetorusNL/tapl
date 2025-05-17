@@ -36,7 +36,7 @@ class IfStatement(Statement):
     def else_if_statement_blocks(self) -> list[tuple[Expression, list[Statement]]]:
         return self._else_if_statement_blocks
 
-    def add_else_if_statement_block(self, expression: Expression, statement_block: list[Statement]):
+    def add_else_if_statement_block(self, expression: Expression, statement_block: list[Statement]) -> None:
         self._else_if_statement_blocks.append((expression, statement_block))
 
     @property

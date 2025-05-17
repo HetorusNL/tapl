@@ -35,10 +35,10 @@ class Types:
             Type("string"),
         ]
         types: dict[str, Type] = {}
-        for _type in self._types_list:
-            for keyword in _type.all_keywords:
+        for type_ in self._types_list:
+            for keyword in type_.all_keywords:
                 assert keyword not in types
-                types[keyword] = _type
+                types[keyword] = type_
 
         return types
 
@@ -50,8 +50,8 @@ class Types:
         if keyword in self._types:
             return
         # create the Type, and add the keyword:Type to the collection
-        _type = Type(keyword)
-        self._types[keyword] = _type
+        type_ = Type(keyword)
+        self._types[keyword] = type_
 
     def get(self, keyword: str) -> Type | None:
         """returns the Type with the provided keyword, None if not present"""
@@ -68,9 +68,11 @@ class Types:
         ]
 
         # formulate the typedefs for the basic types used in TAPL
-        for _type in self._types_list:
-            if _type.is_basic_type:
-                c_code.append(f"typedef {_type.underlying_type} {_type.keyword};\n")
+        for type_ in self._types_list:
+            if type_.is_basic_type:
+                # only add the type if it has a different name in c
+                if type_.underlying_type != type_.keyword:
+                    c_code.append(f"typedef {type_.underlying_type} {type_.keyword};\n")
 
         # write the content to the file
         types_header: Path = header_folder / "types.h"
