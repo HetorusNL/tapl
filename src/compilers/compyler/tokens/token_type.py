@@ -64,8 +64,5 @@ class TokenType(Enum):
     ERROR = "<ERROR>"
     NEWLINE = "<NEWLINE>"
 
-    # combined variable declaration token
-    VAR_DECL = "<VAR_DECL>"
-
     # end of file/input token
     EOF = "<EOF>"

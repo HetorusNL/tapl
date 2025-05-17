@@ -16,10 +16,10 @@ from .statements.for_loop_statement import ForLoopStatement
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.statement import Statement
-from .statements.var_decl_statemtnt import VarDeclStatement
+from .statements.var_decl_statement import VarDeclStatement
 from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
-from .tokens.var_decl_token import VarDeclToken
+from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
 from .utils.ast import AST
 from .utils.stream import Stream
@@ -237,20 +237,28 @@ class AstGenerator:
         return PrintStatement(value)
 
     def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
-        # check if we have a variable declaration token, and convert this to a statement
-        if var_decl_token := self.match(TokenType.VAR_DECL):
-            # make sure the type is correct to please the type analyzer
-            assert type(var_decl_token) is VarDeclToken
+        # variable declarations start with a type
+        if self.current().token_type != TokenType.TYPE:
+            return
+        # then we need an identifier
+        if self.next().token_type != TokenType.IDENTIFIER:
+            return
 
-            # check if there is an initial value, fall back to None
-            initial_value: Expression | None = None
-            if self.match(TokenType.EQUAL):
-                initial_value = self.expression()
+        # we have found a variable declaration, consume the tokens above
+        type_token: Token = self.consume()
+        assert isinstance(type_token, TypeToken)
+        name: Token = self.consume()
+        assert isinstance(name, IdentifierToken)
 
-            # statements should end with a newline
-            self.expect_newline(must_end_with_newline=must_end_with_newline)
+        # check if there is an initial value, fall back to None
+        initial_value: Expression | None = None
+        if self.match(TokenType.EQUAL):
+            initial_value: Expression | None = self.expression()
 
-            return VarDeclStatement(var_decl_token, initial_value)
+        # statements should end with a newline
+        self.expect_newline(must_end_with_newline=must_end_with_newline)
+
+        return VarDeclStatement(type_token, name, initial_value)
 
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""

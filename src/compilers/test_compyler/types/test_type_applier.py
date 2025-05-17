@@ -10,7 +10,7 @@ import unittest
 from compyler.tokenizer import Tokenizer
 from compyler.tokens.identifier_token import IdentifierToken
 from compyler.tokens.token import Token
-from compyler.tokens.var_decl_token import VarDeclToken
+from compyler.tokens.type_token import TypeToken
 from compyler.types.type_applier import TypeApplier
 from compyler.types.type_resolver import TypeResolver
 from compyler.types.types import Types
@@ -29,21 +29,22 @@ class TestTypeApplier(unittest.TestCase):
         type_resolver: TypeResolver = TypeResolver(tokens)
         types: Types = type_resolver.resolve()
 
-        # run the TypeApplier to create the VarDecl tokens
+        # run the TypeApplier to create the TypeToken tokens
         type_applier: TypeApplier = TypeApplier(types)
         tokens = type_applier.apply(tokens)
 
-        # extract the variable VarDecl tokens and values
-        var_decl_tokens = [token for token in tokens.objects if isinstance(token, VarDeclToken)]
-        var_decl_values: list[str] = [token.name for token in var_decl_tokens]
+        # extract the variable TypeToken tokens and keywords
+        type_tokens: list[TypeToken] = [token for token in tokens.objects if isinstance(token, TypeToken)]
+        type_token_keywords: list[str] = []
+        for token in type_tokens:
+            type_token_keywords.extend(token.type_.all_keywords)
 
-        # check that all VarDecl tokens have been created
-        # to ease testing, we only test if the variable name exists
-        self.assertIn("byte", var_decl_values)
-        self.assertIn("s", var_decl_values)
-        self.assertIn("flag", var_decl_values)
-        self.assertIn("instance", var_decl_values)
-        self.assertIn("other_instance", var_decl_values)
+        # check that all TypeToken tokens have been created
+        self.assertIn("u8", type_token_keywords)
+        self.assertIn("string", type_token_keywords)
+        self.assertIn("bool", type_token_keywords)
+        self.assertIn("ClassName", type_token_keywords)
+        self.assertIn("OtherClass", type_token_keywords)
 
         # extract the identifier tokens and their names
         identifier_tokens: list[IdentifierToken] = [
@@ -56,10 +57,3 @@ class TestTypeApplier(unittest.TestCase):
         self.assertNotIn("string", identifier_values)
         self.assertNotIn("bool", identifier_values)
         # ClassName and OtherClass also exist in the declarations, so don't check
-
-        # check that the variable names no longer exist in the token stream
-        self.assertNotIn("byte", identifier_values)
-        self.assertNotIn("s", identifier_values)
-        self.assertNotIn("flag", identifier_values)
-        self.assertNotIn("instance", identifier_values)
-        self.assertNotIn("other_instance", identifier_values)

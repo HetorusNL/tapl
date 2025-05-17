@@ -6,7 +6,7 @@
 
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.token import Token
-from ..tokens.var_decl_token import VarDeclToken
+from ..tokens.type_token import TypeToken
 from .types import Types
 from ..utils.stream import Stream
 
@@ -17,25 +17,21 @@ class TypeApplier:
 
     def apply(self, tokens: Stream[Token]) -> Stream[Token]:
         """loop through the provided token stream.
-        replace the type token and variable name token with a single variable declaration token.
+        replace the IdentifierToken that is a type with a TypeToken.
         modifies the token stream inplace, and returns a reference to the stream.
         """
 
-        # find type and identifier tokens of a variable declaration
-        # consume those two and add a var_decl token
-        # loop through the tokens to find variable declarations
+        # find a type IdentifierToken
+        # consume the token and add a TypeToken
+        # loop through the tokens to find the types
         for token in tokens.iter():
             if isinstance(token, IdentifierToken):
                 # check that the identifier corresponds with a type
                 if var_type := self._types.get(token.value):
-                    # get the next token, should be the variable name
-                    next_token: Token = tokens.iter_next()
-                    if isinstance(next_token, IdentifierToken):
-                        # found the variable name, construct the var_decl token
-                        line: int = token.line
-                        name: str = next_token.value
-                        var_decl: VarDeclToken = VarDeclToken(line, var_type, name)
-                        # replace the type and variable name token with var_decl
-                        tokens.replace(2, var_decl)
+                    # found the type of the IdentifierToken, construct the TypeToken
+                    line: int = token.line
+                    type_token: TypeToken = TypeToken(line, var_type)
+                    # replace the IdentifierToken with a TypeToken
+                    tokens.replace(1, type_token)
 
         return tokens
