@@ -63,8 +63,6 @@ class IfStatement(Statement):
         return new_code
 
     def c_code(self) -> str:
-        # TODO: add multi-level indentation to statements
-
         # construct the if statement
         code: str = self.add_if_statement(None, self.expression, self.statements)
 

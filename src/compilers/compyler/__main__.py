@@ -67,6 +67,15 @@ def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> Path:
     return main_c_file
 
 
+def format_files(folder: Path) -> None:
+    # recursively find all .c and .h files in the build folder and format all found files
+    for file_path in folder.rglob("*.[ch]"):
+        if file_path.is_file():
+            command: str = f"clang-format -i --fallback-style=none {file_path}"
+            print(command)
+            system(command)
+
+
 def compile_c(c_file: Path, build_folder: Path) -> Path:
     executable: Path = c_file.parent / "main"
 
@@ -105,6 +114,9 @@ def main():
 
     # generate c-code from the AST and write the source files in the build folder
     c_file: Path = generate_code(ast, build_folder, header_folder)
+
+    # format the generated c-code files
+    format_files(build_folder)
 
     # run the c compiler to compile the file
     executable: Path = compile_c(c_file, build_folder)
