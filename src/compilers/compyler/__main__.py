@@ -61,26 +61,21 @@ def create_build_folders() -> tuple[Path, Path]:
     return build_folder, header_folder
 
 
-def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> list[str]:
-    c_code: list[str] = CodeGenerator(ast, build_folder, header_folder).generate_c()
-    print("``` c")
-    print(*c_code, sep="", end="")
-    print("```")
-    return c_code
-
-
-def write_file(c_code: list[str], build_folder: Path) -> Path:
-    # create the full filename of the c source file
-    c_file: Path = build_folder / "main.c"
-    # write all lines to the file
-    with open(c_file, "w") as f:
-        f.writelines(c_code)
-    return c_file
+def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> Path:
+    main_c_file: Path = build_folder / "main.c"
+    CodeGenerator(ast, build_folder, header_folder).generate_c(main_c_file)
+    return main_c_file
 
 
 def compile_c(c_file: Path, build_folder: Path) -> Path:
-    # directly call the gcc compiler, passing the build folder as additional include path
     executable: Path = c_file.parent / "main"
+
+    # remove the old executable (if it exists)
+    command: str = f"rm -f {executable}"
+    print(command)
+    system(command)
+
+    # directly call the gcc compiler, passing the build folder as additional include path
     command: str = f"gcc -I{build_folder} -o {executable} {c_file}"
     print(command)
     system(command)
@@ -108,11 +103,8 @@ def main():
     # formulate the path to output the c-code, and a subfolder for the headers
     build_folder, header_folder = create_build_folders()
 
-    # generate c-code from the AST
-    c_code: list[str] = generate_code(ast, build_folder, header_folder)
-
-    # write the code to main.c in the build folder
-    c_file: Path = write_file(c_code, build_folder)
+    # generate c-code from the AST and write the source files in the build folder
+    c_file: Path = generate_code(ast, build_folder, header_folder)
 
     # run the c compiler to compile the file
     executable: Path = compile_c(c_file, build_folder)

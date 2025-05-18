@@ -21,6 +21,7 @@ class Types:
         """
         # also store the list of types in the class
         self._types_list: list[Type] = [
+            Type("void", underlying_type="void"),
             Type("u1", "bool", underlying_type="bool"),
             Type("u8", underlying_type="uint8_t"),
             Type("u16", underlying_type="uint16_t"),
@@ -61,6 +62,8 @@ class Types:
         """generates a c types header for all builtin basic types in the header folder"""
         # add the strings to be added to the types header
         c_code: list[str] = [
+            "#pragma once\n",
+            "\n",
             "#include <stdbool.h>\n",
             "#include <stdint.h>\n",
             "\n",

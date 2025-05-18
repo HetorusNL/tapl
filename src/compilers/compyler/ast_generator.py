@@ -13,6 +13,7 @@ from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.for_loop_statement import ForLoopStatement
+from .statements.function_statement import FunctionStatement
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
 from .statements.statement import Statement
@@ -37,11 +38,11 @@ class AstGenerator:
         """returns the token at the current location"""
         return self._tokens[self._current_index]
 
-    def next(self) -> Token:
-        """returns the token after the current location"""
-        if self._current_index + 1 > len(self._tokens):
-            raise AstError("unexpected end-of-file, next token doesn't exist!")
-        return self._tokens[self._current_index + 1]
+    def next(self, offset: int = 1) -> Token:
+        """returns the token after the current location, or at the offset, if offset is provided"""
+        if self._current_index + offset > len(self._tokens):
+            raise AstError(f"unexpected end-of-file, token at offset {offset} doesn't exist!")
+        return self._tokens[self._current_index + offset]
 
     def previous(self) -> Token:
         """returns the previous (consumed) token"""
@@ -166,6 +167,58 @@ class AstGenerator:
         # return the finished for-loop statement
         return ForLoopStatement(init, check, loop, statements)
 
+    def _type_statement(self, must_end_with_newline: bool) -> FunctionStatement | VarDeclStatement | None:
+        """returns a statement starting with a type, or None otherwise"""
+        # start with a type
+        if self.current().token_type != TokenType.TYPE:
+            return None
+        # the next common token is an identifier
+        if self.next(1).token_type != TokenType.IDENTIFIER:
+            return None
+
+        # check if we have a function that has an opening paren here
+        # no need to handle parsing past-EOF here, as this is token exists in the stream
+        if self.next(2).token_type == TokenType.PAREN_OPEN:
+            return self.function_statement()
+
+        # otherwise we have an variable declaration statement
+        return self.var_decl_statement(must_end_with_newline)
+
+    def function_statement(self) -> FunctionStatement:
+        # the _type_statement function already checked the tokens for us
+        # so we can start consuming here
+        return_type: Token = self.consume()
+        assert type(return_type) == TypeToken
+        name: Token = self.consume()
+        assert type(name) == IdentifierToken
+        function_statement: FunctionStatement = FunctionStatement(return_type, name)
+        self.expect(TokenType.PAREN_OPEN)
+
+        # while not matching a closing paren, consume type-name function arguments
+        while not self.match(TokenType.PAREN_CLOSE):
+            argument_type: Token = self.expect(TokenType.TYPE)
+            assert type(argument_type) == TypeToken
+            # test that the argument type is non-void
+            if not argument_type.type_.non_void():
+                raise AstError("function arguments cannot be of type void!")
+            argument_name: Token = self.expect(TokenType.IDENTIFIER)
+            assert type(argument_name) == IdentifierToken
+            # add the argument to the function statement
+            function_statement.add_argument(argument_type, argument_name)
+
+        # then we expect a colon
+        self.expect(TokenType.COLON)
+        # followed by a newline
+        self.expect_newline()
+
+        # continue with the body of the function
+        statements: list[Statement] = self._statement_block()
+        # add them to the function
+        function_statement.statements = statements
+
+        # return the finished function statement
+        return function_statement
+
     def _single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
         if not self.match(TokenType.IF):
@@ -237,14 +290,8 @@ class AstGenerator:
         return PrintStatement(value)
 
     def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
-        # variable declarations start with a type
-        if self.current().token_type != TokenType.TYPE:
-            return
-        # then we need an identifier
-        if self.next().token_type != TokenType.IDENTIFIER:
-            return
-
-        # we have found a variable declaration, consume the tokens above
+        # the _type_statement function already checked the tokens for us
+        # so we can start consuming here
         type_token: Token = self.consume()
         assert isinstance(type_token, TypeToken)
         name: Token = self.consume()
@@ -262,8 +309,8 @@ class AstGenerator:
 
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""
-        # check for a variable declaration statement
-        if statement := self.var_decl_statement(must_end_with_newline):
+        # check for a statement starting with a type
+        if statement := self._type_statement(must_end_with_newline):
             return statement
 
         # check for an assignment statement

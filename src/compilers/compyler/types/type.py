@@ -37,3 +37,7 @@ class Type:
     def underlying_type(self) -> str | None:
         """returns the underlying c-type, or None if it doesn't exist"""
         return self._underlying_type
+
+    def non_void(self) -> bool:
+        """returns whether the type is not of type void"""
+        return self.keyword != "void"

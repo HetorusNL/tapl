@@ -71,3 +71,14 @@ print("\nparsing a for-loop statement")
 for u8 i = 0; i < 10; i++:
     i++
     print(i)
+
+print("\nparsing a function statement")
+void func(u8 argument):
+    print(argument)
+    u8 local = 1
+    local++
+    print(local)
+void func2():  // void as we don't support return statements yet :s
+    print(1337)
+print("and call the function")
+//func()

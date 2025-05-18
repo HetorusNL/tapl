@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .utils.ast import AST
 from .types.types import Types
+from .statements.function_statement import FunctionStatement
 
 
 class CodeGenerator:
@@ -16,29 +17,67 @@ class CodeGenerator:
         self._build_folder: Path = build_folder
         self._header_folder: Path = header_folder
 
-    def generate_c(self) -> list[str]:
+    def generate_c(self, main_c_file: Path) -> None:
         # also generate the typedefs for all builtin basic types
         Types().generate_c_header(self._header_folder)
 
-        # add the initial lines of code
-        c_code: list[str] = [
+        main_c_lines: list[str] = []
+        function_c_declarations: list[str] = []
+        function_c_definitions: list[str] = []
+
+        # compile the statements in the AST to code
+        for statement in self._ast.statements.objects:
+            if isinstance(statement, FunctionStatement):
+                function_c_declarations.append(f"{statement.c_declaration()}\n")
+                function_c_definitions.append(f"{statement.c_code()}\n")
+            else:
+                main_c_lines.append(f"{statement.c_code()}\n")
+
+        # write the functions to the functions c file
+        self._write_functions_c(function_c_declarations, function_c_definitions)
+
+        # write the main c file with the code
+        self._write_main_c_file(main_c_lines, main_c_file)
+
+    def _write_functions_c(self, declarations: list[str], definitions: list[str]):
+        functions_c_file: Path = self._header_folder / "functions.h"
+
+        initial_lines: list[str] = [
+            "#pragma once\n",
+            "\n",
             "// include the needed system headers\n",
             "#include <stdio.h>\n",
             "\n",
             "// also include the needed TAPL headers\n",
             "#include <tapl_headers/types.h>\n",
             "\n",
-            "int main(int argc, char** argv) {\n",
-            '    printf("hello world!\\n");\n',
+            "// function declarations\n",
+        ]
+        definition_lines: list[str] = [
+            "\n",
+            "// function definitions\n",
         ]
 
-        # compile the statements in the AST to code
-        for statement in self._ast.statements.objects:
-            statement_code: str = statement.c_code()
-            c_code.append(f"    {statement_code}\n")
+        with open(functions_c_file, "w") as f:
+            f.writelines(initial_lines)
+            f.writelines(declarations)
+            f.writelines(definition_lines)
+            f.writelines(definitions)
 
-        # add the ending lines of code
-        c_code.append("}\n")
+    def _write_main_c_file(self, code_lines: list[str], c_file: Path) -> None:
+        initial_lines: list[str] = [
+            "// include the needed system headers\n",
+            "#include <stdio.h>\n",
+            "\n",
+            "// also include the needed TAPL headers\n",
+            "#include <tapl_headers/functions.h>\n",
+            "#include <tapl_headers/types.h>\n",
+            "\n",
+            "int main(int argc, char** argv) {\n",
+            'printf("hello world!\\n");\n',
+        ]
 
-        # return the full source code
-        return c_code
+        with open(c_file, "w") as f:
+            f.writelines(initial_lines)
+            f.writelines(code_lines)
+            f.write("}\n")
