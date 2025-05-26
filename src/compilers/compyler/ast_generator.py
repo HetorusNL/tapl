@@ -136,7 +136,7 @@ class AstGenerator:
         # return the assignment statement
         return AssignmentStatement(identifier, value)
 
-    def for_statement(self) -> ForLoopStatement | None:
+    def for_loop_statement(self) -> ForLoopStatement | None:
         # early return if we don't have a for-loop statement
         if not self.match(TokenType.FOR):
             return None
@@ -146,19 +146,19 @@ class AstGenerator:
         init: Statement | None = None
         if not self.match(TokenType.SEMICOLON):
             init: Statement | None = self.statement(must_end_with_newline=False)
-            self.match(TokenType.SEMICOLON)
+            self.expect(TokenType.SEMICOLON)
 
         # parse the check expression (if it exists)
         check: Expression | None = None
         if not self.match(TokenType.SEMICOLON):
             check: Expression | None = self.expression()
-            self.match(TokenType.SEMICOLON)
+            self.expect(TokenType.SEMICOLON)
 
         # parse the loop expression (if it exists)
         loop: Expression | None = None
         if not self.match(TokenType.COLON):
             loop: Expression | None = self.expression()
-            self.match(TokenType.COLON)
+            self.expect(TokenType.COLON)
 
         # followed by a newline
         self.expect_newline()
@@ -325,6 +325,26 @@ class AstGenerator:
 
         return VarDeclStatement(type_token, name, initial_value)
 
+    def while_loop_statement(self) -> ForLoopStatement | None:
+        # will generate a for loop statement if a while loop is found
+        # early return if we don't have a while-loop statement
+        if not self.match(TokenType.WHILE):
+            return None
+
+        # otherwise we have an (already consumed) while-loop statement
+        # parse the condition (to be placed in the check expression of the for-loop statement)
+        check: Expression = self.expression()
+
+        # followed by a colon and newline
+        self.expect(TokenType.COLON)
+        self.expect_newline()
+
+        # continue with the body of the while-loop statement
+        statements: list[Statement] = self._statement_block()
+
+        # return the finished while-loop as a for-loop statement
+        return ForLoopStatement(None, check, None, statements)
+
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""
         # check for a statement starting with a type
@@ -345,10 +365,13 @@ class AstGenerator:
             return statement
 
         # check for a for-loop statement
-        if statement := self.for_statement():
+        if statement := self.for_loop_statement():
             return statement
 
-        # TODO: add while loops
+        # check for a while-loop statement
+        if statement := self.while_loop_statement():
+            return statement
+
         # TODO: add classes
 
         # fall back to a bare expression statement

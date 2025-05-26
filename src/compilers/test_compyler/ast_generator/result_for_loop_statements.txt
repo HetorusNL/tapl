@@ -1,3 +1,7 @@
 for (u8 i = 0; (i < 10); ((i)++)) {
 printf("%d\n", i);
 }
+u8 idx = 0;
+for (; (((idx)++) < 10); ) {
+printf("%d\n", idx);
+}

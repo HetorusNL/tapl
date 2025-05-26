@@ -54,6 +54,7 @@ poery run python -m src.compilers.compyler /path/to/file.tim
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
 - update error handling and supporting multiple errors in a single file
+- add return to functions
 
 ## Ideas
 
@@ -79,8 +80,9 @@ Statement statement():
     // very neatly functions returning if they are non-null
     returnif:
         if_statement()
-        for_statement()
+        for_loop_statement()
         print_statement()
+        while_loop_statement()
 
     // outside of the block use a normal return statement
     Expression e = expression()

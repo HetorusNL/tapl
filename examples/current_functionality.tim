@@ -71,6 +71,11 @@ print("\nparsing a for-loop statement")
 for u8 i = 0; i < 10; i++:
     i++
     print(i)
+print("and parsing a while-loop statement")
+u8 idx = 0
+while idx++ < 10:
+    idx++
+    print(idx)
 
 print("\nparsing function statements")
 void func(u8 argument):
