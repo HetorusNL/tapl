@@ -45,14 +45,14 @@ poery run python -m src.compilers.compyler /path/to/file.tim
 - fix open TODOs in `tokenizer.py`
   - add 0o / e number parsing
   - make distinction between int and float/double numbers
-- add additional expression stuff to the ast_generator
-- add statements to the ast_generator
+- fix open TODOs in `ast_generator.py`
+  - add while loops
+  - add classes
+  - add standard library / built-in function, to do print(..)
 - add another typing (type propagation / type checking) pass
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
-- functions:
-  - add function invocation
 - update error handling and supporting multiple errors in a single file
 
 ## Ideas

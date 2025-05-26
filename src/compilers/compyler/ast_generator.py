@@ -348,8 +348,8 @@ class AstGenerator:
         if statement := self.for_statement():
             return statement
 
-        # TODO:
-        # more statements starting with a keyword
+        # TODO: add while loops
+        # TODO: add classes
 
         # fall back to a bare expression statement
         expression: Expression = self.expression()
