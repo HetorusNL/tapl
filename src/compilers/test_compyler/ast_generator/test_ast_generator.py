@@ -31,6 +31,9 @@ class TestAstGenerator(unittest.TestCase):
     def test_ast_generator_for_statement(self):
         self._run_compilation_test("for_loop_statements.tim", "result_for_loop_statements.txt")
 
+    def test_ast_generator_functions(self):
+        self._run_compilation_test("functions.tim", "result_functions.txt")
+
     def _run_compilation_test(self, tim_file: str, result_statements_file: str):
         # make sure to pass a resolved path to the tokenizer and ast generator
         this_folder: Path = Path(__file__).parent.resolve()

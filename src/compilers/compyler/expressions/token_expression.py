@@ -15,7 +15,7 @@ from ..tokens.token_type import TokenType
 class TokenExpression(Expression):
     def __init__(self, token: Token):
         super().__init__()
-        self._token = token
+        self._token: Token = token
 
     @property
     def token(self) -> Token:

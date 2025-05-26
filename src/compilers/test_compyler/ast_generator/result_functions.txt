@@ -1,0 +1,12 @@
+void func(u8 argument) {
+printf("%d\n", argument);
+}
+void func2() {
+printf("%d\n", 1337);
+}
+void func3(u8 a, u8 b, u8 c) {
+printf("%d\n", ((a + b) + c));
+}
+func(10);
+func2();
+func3(1, 2, 3);

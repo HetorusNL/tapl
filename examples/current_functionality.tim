@@ -72,7 +72,7 @@ for u8 i = 0; i < 10; i++:
     i++
     print(i)
 
-print("\nparsing a function statement")
+print("\nparsing function statements")
 void func(u8 argument):
     print(argument)
     u8 local = 1
@@ -80,5 +80,9 @@ void func(u8 argument):
     print(local)
 void func2():  // void as we don't support return statements yet :s
     print(1337)
-print("and call the function")
-//func()
+void func3(u8 a, u8 b, u8 c):
+    print(a + b + c)
+print("and call the functions")
+func(10)
+func2()
+func3(1, 2, 3)

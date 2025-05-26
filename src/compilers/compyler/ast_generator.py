@@ -6,6 +6,7 @@
 
 from .errors.ast_error import AstError
 from .expressions.binary_expression import BinaryExpression
+from .expressions.call_expression import CallExpression
 from .expressions.expression import Expression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.token_expression import TokenExpression
@@ -184,29 +185,8 @@ class AstGenerator:
         # otherwise we have an variable declaration statement
         return self.var_decl_statement(must_end_with_newline)
 
-    def function_statement(self) -> FunctionStatement:
-        # the _type_statement function already checked the tokens for us
-        # so we can start consuming here
-        return_type: Token = self.consume()
-        assert type(return_type) == TypeToken
-        name: Token = self.consume()
-        assert type(name) == IdentifierToken
-        function_statement: FunctionStatement = FunctionStatement(return_type, name)
-        self.expect(TokenType.PAREN_OPEN)
-
-        # while not matching a closing paren, consume type-name function arguments
-        while not self.match(TokenType.PAREN_CLOSE):
-            argument_type: Token = self.expect(TokenType.TYPE)
-            assert type(argument_type) == TypeToken
-            # test that the argument type is non-void
-            if not argument_type.type_.non_void():
-                raise AstError("function arguments cannot be of type void!")
-            argument_name: Token = self.expect(TokenType.IDENTIFIER)
-            assert type(argument_name) == IdentifierToken
-            # add the argument to the function statement
-            function_statement.add_argument(argument_type, argument_name)
-
-        # then we expect a colon
+    def _finish_function_statement(self, function_statement: FunctionStatement) -> FunctionStatement:
+        # after the function definition itself, we expect a colon
         self.expect(TokenType.COLON)
         # followed by a newline
         self.expect_newline()
@@ -218,6 +198,43 @@ class AstGenerator:
 
         # return the finished function statement
         return function_statement
+
+    def function_statement(self) -> FunctionStatement:
+        # the _type_statement function already checked the tokens for us
+        # so we can start consuming here
+        return_type: Token = self.consume()
+        assert type(return_type) == TypeToken
+        name: Token = self.consume()
+        assert type(name) == IdentifierToken
+        function_statement: FunctionStatement = FunctionStatement(return_type, name)
+        self.expect(TokenType.PAREN_OPEN)
+
+        # check for a closing parenthesis, then we have a function without arguments
+        if self.match(TokenType.PAREN_CLOSE):
+            # finish parsing and return the function statement
+            return self._finish_function_statement(function_statement)
+
+        # consume type-name function arguments
+        while True:
+            argument_type: Token = self.expect(TokenType.TYPE)
+            assert type(argument_type) == TypeToken
+            # test that the argument type is non-void
+            if not argument_type.type_.non_void():
+                raise AstError("function arguments cannot be of type void!")
+            argument_name: Token = self.expect(TokenType.IDENTIFIER)
+            assert type(argument_name) == IdentifierToken
+            # add the argument to the function statement
+            function_statement.add_argument(argument_type, argument_name)
+
+            # if we don't have a comma, it's the end of the argument list
+            if not self.match(TokenType.COMMA):
+                break
+
+        # we must end with a closing parenthesis
+        self.expect(TokenType.PAREN_CLOSE)
+
+        # finish parsing and return the function statement
+        return self._finish_function_statement(function_statement)
 
     def _single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
@@ -409,6 +426,7 @@ class AstGenerator:
 
         # match expressions between parenthesis
         if token := self.match(TokenType.PAREN_OPEN):
+            # TODO: add type casting parsing here
             expression: Expression = self.expression()
             message = f"expected closing parenthesis, but found {self.current()} at line {self.current().line}"
             self.expect(TokenType.PAREN_CLOSE, message)
@@ -442,11 +460,40 @@ class AstGenerator:
                 return UnaryExpression(ExpressionType.POST_INCREMENT, expression)
             if self.match(TokenType.DECREMENT):
                 return UnaryExpression(ExpressionType.POST_DECREMENT, expression)
+            # check for a function call
+            if self.match(TokenType.PAREN_OPEN):
+                assert isinstance(token, IdentifierToken)
+                return self.call_expression(token)
             # otherwise return the bare token expression
             return expression
 
         # otherwise we have an error, there must be an expression here
         raise AstError(f"expected an expression, found {self.current()} at line {self.current().line}")
+
+    def call_expression(self, name: IdentifierToken) -> CallExpression:
+        # the name is already provided, and the opening parenthesis is consumed
+
+        # check for a closing parenthesis, then we have a function call without arguments
+        if self.match(TokenType.PAREN_CLOSE):
+            # simply return a call expression without arguments
+            return CallExpression(name)
+
+        # otherwise start parsing the arguments
+        arguments: list[Expression] = []
+        while True:
+            # start with the expression
+            expression: Expression = self.expression()
+            arguments.append(expression)
+
+            # if we don't have a comma, it's the end of the argument list
+            if not self.match(TokenType.COMMA):
+                break
+
+        # we must end with a closing parenthesis
+        self.expect(TokenType.PAREN_CLOSE)
+
+        # construct and return the call expression
+        return CallExpression(name, arguments)
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
