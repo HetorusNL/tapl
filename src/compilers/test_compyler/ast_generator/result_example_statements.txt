@@ -14,3 +14,6 @@ printf("%d\n", 1338);
 } else {
 printf("%d\n", 0);
 }
+u8 small = 123;
+u16 big = ((u16)small);
+u8 small_again = (((u8)big) + 1);

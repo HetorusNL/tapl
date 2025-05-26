@@ -86,3 +86,11 @@ print("and call the functions")
 func(10)
 func2()
 func3(1, 2, 3)
+
+print("\ntype-cast a value around")
+u8 small = 123
+print(small)
+u16 big = (u16)small + 1337 // this is gonna be big
+print(big)
+u8 small_again = (u8)big // this is not able to hold the big number
+print(small_again)

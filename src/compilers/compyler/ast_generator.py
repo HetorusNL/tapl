@@ -10,6 +10,7 @@ from .expressions.call_expression import CallExpression
 from .expressions.expression import Expression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.token_expression import TokenExpression
+from .expressions.type_cast_expression import TypeCastExpression
 from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.expression_statement import ExpressionStatement
@@ -426,7 +427,16 @@ class AstGenerator:
 
         # match expressions between parenthesis
         if token := self.match(TokenType.PAREN_OPEN):
-            # TODO: add type casting parsing here
+            # check if this is a type casting
+            if type_ := self.match(TokenType.TYPE):
+                assert isinstance(type_, TypeToken)
+                # expect a closing parenthesis
+                self.expect(TokenType.PAREN_CLOSE)
+                # followed by a primary expression that is type casted
+                primary: Expression = self.primary()
+                return TypeCastExpression(type_, primary)
+
+            # otherwise it's a grouping expression
             expression: Expression = self.expression()
             message = f"expected closing parenthesis, but found {self.current()} at line {self.current().line}"
             self.expect(TokenType.PAREN_CLOSE, message)

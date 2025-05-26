@@ -13,3 +13,7 @@ else if 1338:
     print(1338)
 else:
     print(0)
+// cast some types around
+u8 small = 123
+u16 big = (u16)small
+u8 small_again = (u8)big + 1
