@@ -1,10 +1,13 @@
 // parse two functions
-void func(u8 argument):
+u8 func(u8 argument):
     print(argument)
-void func2():
+    return argument
+s16 func2():
     print(1337)
+    return 1337
 void func3(u8 a, u8 b, u8 c):
     print(a + b + c)
+    return
 // call the functions
 func(10)
 func2()
