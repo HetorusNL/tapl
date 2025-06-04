@@ -78,19 +78,30 @@ while idx++ < 10:
     print(idx)
 
 print("\nparsing function statements")
-void func(u8 argument):
+u8 func1(u8 argument):
     print(argument)
     u8 local = 1
     local++
     print(local)
-void func2():  // void as we don't support return statements yet :s
+    return argument + local
+u8 func2():  // u8 as we don't support pointers (yet) :s
     print(1337)
+    return null
 void func3(u8 a, u8 b, u8 c):
     print(a + b + c)
+    return
 print("and call the functions")
-func(10)
-func2()
+print("func1:")
+u8 ret1 = func1(10)
+print("return1:")
+print(ret1)
+print("func2:")
+u8 ret2 = func2()
+print("return2:")
+print(ret2)
+print("func3:")
 func3(1, 2, 3)
+print("func3 returns void")
 
 print("\ntype-cast a value around")
 u8 small = 123

@@ -18,6 +18,7 @@ from .statements.for_loop_statement import ForLoopStatement
 from .statements.function_statement import FunctionStatement
 from .statements.if_statement import IfStatement
 from .statements.print_statement import PrintStatement
+from .statements.return_statement import ReturnStatement
 from .statements.statement import Statement
 from .statements.var_decl_statement import VarDeclStatement
 from .tokens.identifier_token import IdentifierToken
@@ -307,6 +308,24 @@ class AstGenerator:
 
         return PrintStatement(value)
 
+    def return_statement(self) -> ReturnStatement | None:
+        # early return if we don't have a return statement
+        if not self.match(TokenType.RETURN):
+            return
+
+        # check if we have a newline
+        if self.match(TokenType.NEWLINE, TokenType.EOF):
+            # we don't have a return value, return the statement without value
+            return ReturnStatement()
+
+        # otherwise expect an expression to return
+        expression: Expression = self.expression()
+
+        # statements should end with a newline
+        self.expect_newline()
+
+        return ReturnStatement(expression)
+
     def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
         # the _type_statement function already checked the tokens for us
         # so we can start consuming here
@@ -349,6 +368,10 @@ class AstGenerator:
         """returns a statement of some kind"""
         # check for a statement starting with a type
         if statement := self._type_statement(must_end_with_newline):
+            return statement
+
+        # check for a return statement
+        if statement := self.return_statement():
             return statement
 
         # check for an assignment statement

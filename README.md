@@ -46,15 +46,18 @@ poery run python -m src.compilers.compyler /path/to/file.tim
   - add 0o / e number parsing
   - make distinction between int and float/double numbers
 - fix open TODOs in `ast_generator.py`
-  - add while loops
   - add classes
   - add standard library / built-in function, to do print(..)
+- fix open TODOs in `token_expression.py`
+  - support pointers?
+  - after supporting pointers, refactor 0 to NULL
 - add another typing (type propagation / type checking) pass
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
 - update error handling and supporting multiple errors in a single file
 - add return to functions
+- add checking around return statement (must be inside function)
 
 ## Ideas
 

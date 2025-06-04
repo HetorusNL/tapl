@@ -37,6 +37,9 @@ class TokenExpression(Expression):
             case TokenType.IDENTIFIER:
                 assert isinstance(self._token, IdentifierToken)
                 return self._token.value
+            case TokenType.NULL:
+                # TODO: refactor to NULL when we support pointers
+                return f"0"
             # fall back to the string representation of the token type
             case _:
                 return self._token.token_type.value
