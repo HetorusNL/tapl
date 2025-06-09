@@ -36,6 +36,7 @@ class AstGenerator:
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0
+        self._can_return: bool = False
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -193,10 +194,16 @@ class AstGenerator:
         # followed by a newline
         self.expect_newline()
 
+        # we're inside a function, allow return statements here
+        self._can_return = True
+
         # continue with the body of the function
         statements: list[Statement] = self._statement_block()
         # add them to the function
         function_statement.statements = statements
+
+        # we've finished parsing the function statements, don't allow return statements from now on
+        self._can_return = False
 
         # return the finished function statement
         return function_statement
@@ -312,6 +319,10 @@ class AstGenerator:
         # early return if we don't have a return statement
         if not self.match(TokenType.RETURN):
             return
+
+        # check if we're allowed to return, raise error otherwise
+        if not self._can_return:
+            raise AstError(f"return statement is not allowed here, at line {self.current().line}!")
 
         # check if we have a newline
         if self.match(TokenType.NEWLINE, TokenType.EOF):

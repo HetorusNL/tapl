@@ -52,12 +52,12 @@ poery run python -m src.compilers.compyler /path/to/file.tim
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
 - add another typing (type propagation / type checking) pass
+  - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
 - update error handling and supporting multiple errors in a single file
-- add return to functions
-- add checking around return statement (must be inside function)
+- add checking around return statement (function return type and returned value type must match)
 
 ## Ideas
 
