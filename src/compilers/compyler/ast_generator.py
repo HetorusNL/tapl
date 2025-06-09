@@ -4,6 +4,8 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from typing import NoReturn
+
 from .errors.ast_error import AstError
 from .expressions.binary_expression import BinaryExpression
 from .expressions.call_expression import CallExpression
@@ -26,6 +28,7 @@ from .tokens.token import Token
 from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
 from .utils.ast import AST
+from .utils.colors import Colors
 from .utils.stream import Stream
 
 
@@ -45,13 +48,13 @@ class AstGenerator:
     def next(self, offset: int = 1) -> Token:
         """returns the token after the current location, or at the offset, if offset is provided"""
         if self._current_index + offset > len(self._tokens):
-            raise AstError(f"unexpected end-of-file, token at offset {offset} doesn't exist!")
+            self.ast_error(f"unexpected end-of-file, token at offset {offset} doesn't exist!")
         return self._tokens[self._current_index + offset]
 
     def previous(self) -> Token:
         """returns the previous (consumed) token"""
         if self._current_index == 0:
-            raise AstError("can't call previous when no tokens have been consumed yet!")
+            self.ast_error("can't call previous when no tokens have been consumed yet!")
         return self._tokens[self._current_index - 1]
 
     def is_at_end(self) -> bool:
@@ -65,7 +68,7 @@ class AstGenerator:
         """consumes the token at the current location"""
         self._current_index += 1
         if self._current_index > len(self._tokens):
-            raise AstError("unexpected end-of-file, can't consume more tokens!")
+            self.ast_error("unexpected end-of-file, can't consume more tokens!")
         return self.previous()
 
     def match(self, *token_types: TokenType) -> Token | None:
@@ -80,16 +83,15 @@ class AstGenerator:
             return token
         else:
             if not message:
-                message = f"expected {token_type} but found {self.current()} at line {self.current().line}"
-            raise AstError(message)
+                message = f"expected '{token_type}' but found '{self.current()}'"
+            self.ast_error(message)
 
     def expect_newline(self, type_: str = "statement", must_end_with_newline: bool = True) -> None:
         if not must_end_with_newline:
             return
 
         if not self.match(TokenType.NEWLINE, TokenType.EOF):
-            msg = f"expected a newline or End-Of-File after {type_}"
-            raise AstError(f"{msg}, found {self.current()} at line {self.current().line}")
+            self.ast_error(f"expected a newline or End-Of-File after {type_}, found '{self.current()}'")
 
     def _has_indent(self) -> bool:
         """returns whether the next token is an indent, if so, consume it"""
@@ -229,7 +231,7 @@ class AstGenerator:
             assert type(argument_type) == TypeToken
             # test that the argument type is non-void
             if not argument_type.type_.non_void():
-                raise AstError("function arguments cannot be of type void!")
+                self.ast_error("function arguments cannot be of type void!")
             argument_name: Token = self.expect(TokenType.IDENTIFIER)
             assert type(argument_name) == IdentifierToken
             # add the argument to the function statement
@@ -320,9 +322,9 @@ class AstGenerator:
         if not self.match(TokenType.RETURN):
             return
 
-        # check if we're allowed to return, raise error otherwise
+        # check if we're allowed to return, error otherwise
         if not self._can_return:
-            raise AstError(f"return statement is not allowed here, at line {self.current().line}!")
+            self.ast_error(f"return statement is not allowed here!")
 
         # check if we have a newline
         if self.match(TokenType.NEWLINE, TokenType.EOF):
@@ -495,7 +497,7 @@ class AstGenerator:
 
             # otherwise it's a grouping expression
             expression: Expression = self.expression()
-            message = f"expected closing parenthesis, but found {self.current()} at line {self.current().line}"
+            message = f"expected closing parenthesis, but found '{self.current()}'"
             self.expect(TokenType.PAREN_CLOSE, message)
             return UnaryExpression(ExpressionType.GROUPING, expression)
 
@@ -535,7 +537,7 @@ class AstGenerator:
             return expression
 
         # otherwise we have an error, there must be an expression here
-        raise AstError(f"expected an expression, found {self.current()} at line {self.current().line}")
+        self.ast_error(f"expected an expression, found '{self.current()}'!")
 
     def call_expression(self, name: IdentifierToken) -> CallExpression:
         # the name is already provided, and the opening parenthesis is consumed
@@ -561,6 +563,26 @@ class AstGenerator:
 
         # construct and return the call expression
         return CallExpression(name, arguments)
+
+    def ast_error(self, message: str) -> NoReturn:
+        """constructs and raises an AstError"""
+        line: int = -1
+        try:
+            # try to get the line number from the current token
+            line: int = self.current().line
+        except IndexError:
+            # if that fails (out of bounds), try the previous token
+            if self._current_index != 0:  # sanity check for previous()
+                line: int = self.previous().line
+
+        source_line: str = f"<TODO: source code line here>"
+
+        # check for internal compiler error (line == -1)
+        if line == -1:
+            error: str = f"{Colors.BOLD}{Colors.RED}[ internal compiler error! (line == -1) ]{Colors.RESET}"
+            source_line = f"{error} {source_line}"
+
+        raise AstError(message, line, source_line)
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
