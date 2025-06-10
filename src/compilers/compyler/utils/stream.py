@@ -6,10 +6,7 @@
 
 from collections.abc import Iterator
 
-
-class StreamError(ValueError):
-    def __init__(self, *args: object):
-        super().__init__(args)
+from ..errors.stream_error import StreamError
 
 
 class Stream[T]:

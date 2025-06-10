@@ -4,20 +4,18 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
-from .tapl_error import TaplError
 from ..utils.colors import Colors
+from ..errors.tapl_error import TaplError
 
 
-class AstError(TaplError):
-    def __init__(self, message: str, line: int, source_line: str):
+class StreamError(TaplError):
+    def __init__(self, message: str):
         # construdt the separate sections of the error message
         newline: str = f"{Colors.RESET}\n"
-        filename: str = f"{Colors.BOLD}/path/to/file:{line}:{Colors.RESET}"
-        error: str = f"{Colors.BOLD}{Colors.RED}error:{Colors.RESET}"
+        error: str = f"{Colors.BOLD}{Colors.RED}internal compiler error:{Colors.RESET}"
 
         # construct the error message itself
-        error_str: str = f"{newline}{filename} {error} {message}\n"
-        error_str += f"{line:>4d} | {source_line}"
+        error_str: str = f"{newline}{error} {message}"
 
         # pass it to the base class
         super().__init__(error_str)

@@ -6,6 +6,7 @@
 
 from typing import NoReturn
 
+from .errors.tapl_error import TaplError
 from .errors.ast_error import AstError
 from .expressions.binary_expression import BinaryExpression
 from .expressions.call_expression import CallExpression
@@ -83,7 +84,7 @@ class AstGenerator:
             return token
         else:
             if not message:
-                message = f"expected '{token_type}' but found '{self.current()}'"
+                message = f"expected '{token_type}' but found '{self.current()}'!"
             self.ast_error(message)
 
     def expect_newline(self, type_: str = "statement", must_end_with_newline: bool = True) -> None:
@@ -91,7 +92,7 @@ class AstGenerator:
             return
 
         if not self.match(TokenType.NEWLINE, TokenType.EOF):
-            self.ast_error(f"expected a newline or End-Of-File after {type_}, found '{self.current()}'")
+            self.ast_error(f"expected a newline or End-Of-File after {type_}, found '{self.current()}'!")
 
     def _has_indent(self) -> bool:
         """returns whether the next token is an indent, if so, consume it"""
@@ -308,9 +309,9 @@ class AstGenerator:
             return
 
         # match an expression between parenthesis
-        self.match(TokenType.PAREN_OPEN)
+        self.expect(TokenType.PAREN_OPEN)
         value = self.expression()
-        self.match(TokenType.PAREN_CLOSE)
+        self.expect(TokenType.PAREN_CLOSE)
 
         # statements should end with a newline
         self.expect_newline()
@@ -497,7 +498,7 @@ class AstGenerator:
 
             # otherwise it's a grouping expression
             expression: Expression = self.expression()
-            message = f"expected closing parenthesis, but found '{self.current()}'"
+            message = f"expected closing parenthesis, but found '{self.current()}'!"
             self.expect(TokenType.PAREN_CLOSE, message)
             return UnaryExpression(ExpressionType.GROUPING, expression)
 
@@ -586,7 +587,20 @@ class AstGenerator:
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
+        errors: list[TaplError] = []
         ast: AST = AST()
         while not self.is_at_end():
-            ast.append(self.statement())
+            try:
+                ast.append(self.statement())
+            except TaplError as e:
+                errors.append(e)
+                # continue until we get to a newline, indicating a new statement
+                while not self.match(TokenType.NEWLINE, TokenType.EOF):
+                    pass
+
+        # if we found errors, print them and exit with exit code 1
+        if errors:
+            [print(e) for e in errors]
+            exit(1)
+
         return ast
