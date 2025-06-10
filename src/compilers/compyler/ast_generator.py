@@ -4,6 +4,7 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from pathlib import Path
 from typing import NoReturn
 
 from .errors.tapl_error import TaplError
@@ -34,9 +35,10 @@ from .utils.stream import Stream
 
 
 class AstGenerator:
-    def __init__(self, token_stream: Stream[Token]):
+    def __init__(self, filename: Path, token_stream: Stream[Token]):
         self._token_stream: Stream[Token] = token_stream
         self._tokens: list[Token] = token_stream.objects
+        self._filename: Path = filename
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0
@@ -567,6 +569,10 @@ class AstGenerator:
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""
+        # fill in the filename that we're compiling
+        filename: str = str(self._filename.resolve())
+
+        # extract the line number from the current or previous token
         line: int = -1
         try:
             # try to get the line number from the current token
@@ -576,14 +582,25 @@ class AstGenerator:
             if self._current_index != 0:  # sanity check for previous()
                 line: int = self.previous().line
 
-        source_line: str = f"<TODO: source code line here>"
+        # extract the source code line from the file
+        no_source: str = f"<no source code line available>"
+        if line >= 0:
+            with open(filename) as f:
+                lines: list[str] = f.readlines()
+                if line > 0 and line <= len(lines):
+                    source_line: str = lines[line - 1].strip()
+                else:
+                    error = f"[ internal compiler error! (line {line} not found in source) ]"
+                    source_line: str = f"{Colors.BOLD}{Colors.RED}{error}{Colors.RESET} {no_source}"
+        else:
+            source_line: str = no_source
 
         # check for internal compiler error (line == -1)
         if line == -1:
             error: str = f"{Colors.BOLD}{Colors.RED}[ internal compiler error! (line == -1) ]{Colors.RESET}"
             source_line = f"{error} {source_line}"
 
-        raise AstError(message, line, source_line)
+        raise AstError(message, filename, line, source_line)
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""

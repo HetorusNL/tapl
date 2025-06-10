@@ -9,14 +9,14 @@ from ..utils.colors import Colors
 
 
 class AstError(TaplError):
-    def __init__(self, message: str, line: int, source_line: str):
+    def __init__(self, message: str, filename: str, line: int, source_line: str):
         # construdt the separate sections of the error message
         newline: str = f"{Colors.RESET}\n"
-        filename: str = f"{Colors.BOLD}/path/to/file:{line}:{Colors.RESET}"
+        file_path: str = f"{Colors.BOLD}{filename}:{line}:{Colors.RESET}"
         error: str = f"{Colors.BOLD}{Colors.RED}error:{Colors.RESET}"
 
         # construct the error message itself
-        error_str: str = f"{newline}{filename} {error} {message}\n"
+        error_str: str = f"{newline}{file_path} {error} {message}\n"
         error_str += f"{line:>4d} | {source_line}"
 
         # pass it to the base class

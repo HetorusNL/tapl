@@ -23,7 +23,7 @@ def argument_parser() -> Path:
     parser = argparse.ArgumentParser()
     parser.add_argument("file")
     parsed_args = parser.parse_args()
-    return parsed_args.file
+    return Path(parsed_args.file)
 
 
 def tokenize(file: Path) -> Stream[Token]:
@@ -44,8 +44,8 @@ def typing_passes(tokens: Stream[Token]):
     return tokens
 
 
-def generate_ast(tokens: Stream[Token]) -> AST:
-    ast: AST = AstGenerator(tokens).generate()
+def generate_ast(file: Path, tokens: Stream[Token]) -> AST:
+    ast: AST = AstGenerator(file, tokens).generate()
     print(*ast.statements.objects, sep="\n")
     return ast
 
@@ -107,7 +107,7 @@ def main():
     tokens = typing_passes(tokens)
 
     # generate an AST from the tokens
-    ast: AST = generate_ast(tokens)
+    ast: AST = generate_ast(file, tokens)
 
     # formulate the path to output the c-code, and a subfolder for the headers
     build_folder, header_folder = create_build_folders()
