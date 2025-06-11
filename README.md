@@ -13,31 +13,36 @@ The compilers compile '.tim' files into c-code, which in turn is compiled in mac
 
 Homepage: https://tapl-lang.com
 
+## Dependencies
+
+- uv
+- gcc
+- clang-format
+
 ## Usage
 
-Install the poetry environment for the compyler by running:
+Install the uv environment for the compyler by running:
 
 ```bash
-poetry install
+uv sync
 ```
 
-Currently working on the tokenizer and AST generator of the compyler TAPL compiler.
 Run the following command to watch the tokenizer and AST generator using the unittests and the example `.tim` files in the test directory, and see the output of the tokenizing and AST generation step:
 
 ```bash
-poetry run ptw
+uv run ptw
 ```
 
 Run the following command to compile and run the example with the currently implemented functionality:
 
 ```bash
-poetry run python -m src.compilers.compyler examples/current_functionality.tim
+uv run -m src.compilers.compyler examples/current_functionality.tim
 ```
 
 Run the following command to compile and execute any tim file:
 
 ```bash
-poery run python -m src.compilers.compyler /path/to/file.tim
+uv run -m src.compilers.compyler /path/to/file.tim
 ```
 
 ## TODO
