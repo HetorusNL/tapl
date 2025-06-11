@@ -56,8 +56,8 @@ poery run python -m src.compilers.compyler /path/to/file.tim
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
-- update error handling and supporting multiple errors in a single file
 - add checking around return statement (function return type and returned value type must match)
+- refactor poetry to uv
 
 ## Ideas
 
