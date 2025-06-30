@@ -29,6 +29,7 @@ from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
 from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
+from .types.type import Type
 from .utils.ast import AST
 from .utils.colors import Colors
 from .utils.stream import Stream
@@ -43,6 +44,7 @@ class AstGenerator:
         # some variables to store the state of the ast generator
         self._current_index: int = 0
         self._can_return: bool = False
+        self._function_return_type: Type | None = None
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -202,6 +204,9 @@ class AstGenerator:
         # we're inside a function, allow return statements here
         self._can_return = True
 
+        # store the type of the function in the class
+        self._function_return_type = function_statement.return_type.type_
+
         # continue with the body of the function
         statements: list[Statement] = self._statement_block()
         # add them to the function
@@ -209,6 +214,9 @@ class AstGenerator:
 
         # we've finished parsing the function statements, don't allow return statements from now on
         self._can_return = False
+
+        # set the function return type back to None
+        self._function_return_type = None
 
         # return the finished function statement
         return function_statement
@@ -330,12 +338,26 @@ class AstGenerator:
             self.ast_error(f"return statement is not allowed here!")
 
         # check if we have a newline
-        if self.match(TokenType.NEWLINE, TokenType.EOF):
-            # we don't have a return value, return the statement without value
-            return ReturnStatement()
+        if token := self.match(TokenType.NEWLINE, TokenType.EOF):
+            # we don't have a return value, check that the function is indeed void
+            assert self._function_return_type
+            if self._function_return_type.keyword == "void":
+                # return the statement without value
+                return ReturnStatement()
+
+            # in other case we have an error, revert the newline that is consumed
+            if token.token_type == TokenType.NEWLINE:
+                self._current_index -= 1
+            # show the type error in the return statement
+            self.ast_error("non-void function expects a return value!")
 
         # otherwise expect an expression to return
         expression: Expression = self.expression()
+
+        # check that the return type is not a void
+        assert self._function_return_type
+        if self._function_return_type.keyword == "void":
+            self.ast_error("cannot return a value from a void function!")
 
         # statements should end with a newline
         self.expect_newline()
@@ -613,6 +635,9 @@ class AstGenerator:
                 errors.append(e)
                 # continue until we get to a newline, indicating a new statement
                 while not self.match(TokenType.NEWLINE, TokenType.EOF):
+                    self.consume()
+                # also consume the indent and dedent tokens if they are there
+                while self.match(TokenType.INDENT, TokenType.DEDENT):
                     pass
 
         # if we found errors, print them and exit with exit code 1

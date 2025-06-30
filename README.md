@@ -53,6 +53,7 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - fix open TODOs in `ast_generator.py`
   - add classes
   - add standard library / built-in function, to do print(..)
+    - this needs imports
 - fix open TODOs in `token_expression.py`
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
@@ -61,8 +62,6 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
-- add checking around return statement (function return type and returned value type must match)
-- refactor poetry to uv
 
 ## Ideas
 
