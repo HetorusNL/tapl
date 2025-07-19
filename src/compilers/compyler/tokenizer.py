@@ -278,6 +278,11 @@ class Tokenizer:
             if char == '"':
                 self._current_index += 1
                 break
+            # if we have a newline, then raise an error as the string is unterminated
+            if char == "\n":
+                print(f'unterminated string "{string}"!')
+                self._add_token(TokenType.ERROR)
+                return
             # append to the string and consume the character
             string += char
             self._current_index += 1
