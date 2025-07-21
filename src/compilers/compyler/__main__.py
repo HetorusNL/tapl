@@ -73,7 +73,8 @@ def format_files(folder: Path) -> None:
         if file_path.is_file():
             command: str = f"clang-format -i --fallback-style=none {file_path}"
             print(command)
-            system(command)
+            if error_code := system(command):
+                handle_error(f"clang-format failed to format {file_path} with error code {error_code}")
 
 
 def compile_c(c_file: Path, build_folder: Path) -> Path:
@@ -87,13 +88,35 @@ def compile_c(c_file: Path, build_folder: Path) -> Path:
     # directly call the gcc compiler, passing the build folder as additional include path
     command: str = f"gcc -I{build_folder} -o {executable} {c_file}"
     print(command)
-    system(command)
+    if error_code := system(command):
+        handle_error(f"gcc returned error code {error_code}")
     return executable
 
 
 def run_executable(executable: Path):
     print(executable)
     system(executable)
+
+
+def handle_error(error_msg: str):
+    # lazy import the inspect and colors modules for error handling
+    import inspect
+    from inspect import FrameInfo
+
+    from .utils.colors import Colors
+
+    # try to get the line number of the function calling this function
+    stack: list[FrameInfo] = inspect.stack()
+    line: str = f"{stack[1].lineno}:" if len(stack) >= 2 else ""
+
+    # construct the filename and error message with colors
+    filename: str = f"\n{Colors.BOLD}{__file__}:{line} {Colors.RESET}"
+    error: str = f"{Colors.BOLD}{Colors.RED}internal compiler error: {Colors.RESET}"
+
+    # print the error and exit with failure
+    print(f"{filename}{error}{error_msg}!")
+    print(f"{Colors.BOLD}{Colors.MAGENTA}terminating...{Colors.RESET}")
+    exit(1)
 
 
 def main():
