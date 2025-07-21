@@ -33,6 +33,7 @@ from .types.type import Type
 from .utils.ast import AST
 from .utils.colors import Colors
 from .utils.stream import Stream
+from .utils.utils import Utils
 
 
 class AstGenerator:
@@ -605,17 +606,7 @@ class AstGenerator:
                 line: int = self.previous().line
 
         # extract the source code line from the file
-        no_source: str = f"<no source code line available>"
-        if line >= 0:
-            with open(filename) as f:
-                lines: list[str] = f.readlines()
-                if line > 0 and line <= len(lines):
-                    source_line: str = lines[line - 1].strip()
-                else:
-                    error = f"[ internal compiler error! (line {line} not found in source) ]"
-                    source_line: str = f"{Colors.BOLD}{Colors.RED}{error}{Colors.RESET} {no_source}"
-        else:
-            source_line: str = no_source
+        source_line: str = Utils.get_source_line(self._filename, line)
 
         # check for internal compiler error (line == -1)
         if line == -1:
@@ -627,7 +618,7 @@ class AstGenerator:
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
         errors: list[TaplError] = []
-        ast: AST = AST()
+        ast: AST = AST(self._filename)
         while not self.is_at_end():
             try:
                 ast.append(self.statement())

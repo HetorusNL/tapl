@@ -57,12 +57,15 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - fix open TODOs in `token_expression.py`
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
-- add another typing (type propagation / type checking) pass
-  - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64
+- add passes:
+  - variable and scoping check pass
+  - add another typing (type propagation / type checking) pass
+    - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
 - use hypothesis tests: https://hypothesis.readthedocs.io/en/latest/
+- rewrite code generation to separate backend module instead of in statement/expression
 
 ## Ideas
 

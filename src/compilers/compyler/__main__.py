@@ -17,6 +17,7 @@ from .types.type_resolver import TypeResolver
 from .types.types import Types
 from .utils.ast import AST
 from .utils.stream import Stream
+from .ast_checks.ast_check import AstCheck
 
 
 def argument_parser() -> Path:
@@ -48,6 +49,11 @@ def generate_ast(file: Path, tokens: Stream[Token]) -> AST:
     ast: AST = AstGenerator(file, tokens).generate()
     print(*ast.statements.objects, sep="\n")
     return ast
+
+
+def check_ast(ast: AST) -> None:
+    """run several checks on the generated AST"""
+    AstCheck(ast).run()
 
 
 def create_build_folders() -> tuple[Path, Path]:
@@ -131,6 +137,9 @@ def main():
 
     # generate an AST from the tokens
     ast: AST = generate_ast(file, tokens)
+
+    # run several checks on the generated AST
+    check_ast(ast)
 
     # formulate the path to output the c-code, and a subfolder for the headers
     build_folder, header_folder = create_build_folders()
