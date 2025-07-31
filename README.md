@@ -57,6 +57,8 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - fix open TODOs in `token_expression.py`
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
+- update tokens to have index in source code (instead of line) and a size/num-chars
+  - also add fancy error-highlighting/pointing in the source code line(s)
 - add passes:
   - variable and scoping check pass
   - add another typing (type propagation / type checking) pass
