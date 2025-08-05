@@ -110,3 +110,8 @@ u16 big = (u16)small + 1337 // this is gonna be big
 print(big)
 u8 small_again = (u8)big // this is not able to hold the big number
 print(small_again)
+
+print("\ndo we support 0xe stuff??")
+print("print(0xe+1):")
+print(0xe+1)
+print("yes we do!")

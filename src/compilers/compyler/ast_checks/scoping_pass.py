@@ -10,7 +10,12 @@ from typing import NoReturn
 
 from ..errors.tapl_error import TaplError
 from ..errors.ast_error import AstError
+from ..expressions.binary_expression import BinaryExpression
+from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression
+from ..expressions.token_expression import TokenExpression
+from ..expressions.type_cast_expression import TypeCastExpression
+from ..expressions.unary_expression import UnaryExpression
 from ..statements.assignment_statement import AssignmentStatement
 from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
@@ -48,7 +53,7 @@ class ScopingPass:
             exit(1)
 
     def parse_statement(self, statement: Statement | None) -> None:
-        """wrapper around the statement parse to catch exceptions"""
+        """wrapper around the statement parsing to catch and handle exceptions"""
         try:
             if statement:
                 self._parse_statement(statement)
@@ -56,7 +61,7 @@ class ScopingPass:
             self._errors.append(e)
 
     def _parse_statement(self, statement: Statement) -> None:
-        # TODO: refactor this to a visitor pattern?
+        # TODO: refactor this and _parse_expression to a visitor pattern?
         match statement:
             case AssignmentStatement():
                 # check that the identifier exists in the current or outer scopes
@@ -77,6 +82,8 @@ class ScopingPass:
                     for body_statement in statement.statements:
                         self.parse_statement(body_statement)
             case FunctionStatement():
+                # add the function name to the surrounding scope
+                self._add_identifier(statement.name, statement.return_type.type_)
                 # create a new scope for the function arguments and body statements
                 with self._new_scope():
                     # add the arguments to the newly created scope
@@ -121,8 +128,38 @@ class ScopingPass:
                 assert False, f"internal compiler error, {type(statement)} not handled!"
 
     def parse_expression(self, expression: Expression | None) -> None:
-        # TODO: check expressions also
-        pass
+        """wrapper around the expression parsing to catch and handle exceptions"""
+        try:
+            if expression:
+                self._parse_expression(expression)
+        except TaplError as e:
+            self._errors.append(e)
+
+    def _parse_expression(self, expression: Expression) -> None:
+        match expression:
+            case BinaryExpression():
+                # check the left and right expression of the binary expression
+                self.parse_expression(expression.left)
+                self.parse_expression(expression.right)
+            case CallExpression():
+                # check that the function name exists
+                self._ensure_exists(expression.name)
+                # check all argument expressions
+                for argument in expression.arguments:
+                    self.parse_expression(argument)
+            case TokenExpression():
+                # check if it is a token expression
+                if type(expression.token) == IdentifierToken:
+                    # check that the identifier exists in the current or outer scopes
+                    self._ensure_exists(expression.token)
+            case TypeCastExpression():
+                # check the expression being type-casted
+                self.parse_expression(expression.expression)
+            case UnaryExpression():
+                # check the expression within the unary expression
+                self.parse_expression(expression.expression)
+            case _:
+                assert False, f"internal compiler error, {type(expression)} not handled!"
 
     def _ensure_exists(self, identifier_token: IdentifierToken) -> Type:
         """checks that the identifier exists in current or outer scopes, and return its type"""
@@ -157,7 +194,7 @@ class ScopingPass:
             # no matter if there is an exception, leave the scope
             # remove the innermost scope, making sure that a scope exists
             assert len(self._scopes) > 1, "internal compiler error, trying to leave outermost scope!"
-            print(f"leaving {self._scopes[-1]}")
+            print(f"leaving scope with identifiers: {{{', '.join(self._scopes[-1].keys())}}}")
             del self._scopes[-1]
 
     def ast_error(self, message: str, token: IdentifierToken) -> NoReturn:
