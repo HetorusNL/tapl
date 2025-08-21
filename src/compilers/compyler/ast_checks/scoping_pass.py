@@ -8,8 +8,8 @@ from contextlib import contextmanager
 from typing import Generator
 from typing import NoReturn
 
-from ..errors.tapl_error import TaplError
 from ..errors.ast_error import AstError
+from ..errors.tapl_error import TaplError
 from ..expressions.binary_expression import BinaryExpression
 from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression

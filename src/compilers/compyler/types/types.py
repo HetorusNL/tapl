@@ -41,6 +41,16 @@ class Types:
                 assert keyword not in types
                 types[keyword] = type_
 
+        # add the promotions for the basic types
+        types["u1"].add_promotions(types["u8"], types["u16"], types["u32"], types["u64"])
+        types["u8"].add_promotions(types["u16"], types["u32"], types["u64"])
+        types["u16"].add_promotions(types["u32"], types["u64"])
+        types["u32"].add_promotions(types["u64"])
+        types["s8"].add_promotions(types["s16"], types["s32"], types["s64"])
+        types["s16"].add_promotions(types["s32"], types["s64"])
+        types["s32"].add_promotions(types["s64"])
+        types["f32"].add_promotions(types["f64"])
+
         return types
 
     def add(self, keyword: str):

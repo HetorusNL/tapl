@@ -55,3 +55,38 @@ class TestTypes(unittest.TestCase):
         types: Types = Types()
         types.add("new_type_1337")
         self.assertIsInstance(types.get("new_type_1337"), Type)
+
+    def test_get_promotions(self):
+        # test get_promotion for unsigned/signed and floating point values
+        types: Types = Types()
+        u1: Type | None = types.get("u1")
+        assert u1
+        promotions: list[Type] = u1.get_promotions()
+        self.assertIn(types.get("u8"), promotions)
+
+        s8: Type | None = types.get("s8")
+        assert s8
+        promotions: list[Type] = s8.get_promotions()
+        self.assertIn(types.get("s16"), promotions)
+
+        f32: Type | None = types.get("f32")
+        assert f32
+        promotions: list[Type] = f32.get_promotions()
+        self.assertIn(types.get("f64"), promotions)
+
+    def test_can_promote_to(self):
+        # test that a type can promote to itself or a bigger (same) type
+        types: Types = Types()
+        u1: Type | None = types.get("u1")
+        assert u1
+        u8: Type | None = types.get("u8")
+        assert u8
+        s8: Type | None = types.get("s8")
+        assert s8
+        f32: Type | None = types.get("f32")
+        assert f32
+
+        self.assertTrue(u1.can_promote_to(u1))
+        self.assertTrue(u1.can_promote_to(u8))
+        self.assertFalse(u1.can_promote_to(s8))
+        self.assertFalse(u1.can_promote_to(f32))

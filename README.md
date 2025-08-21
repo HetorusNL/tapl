@@ -60,7 +60,6 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - update tokens to have index in source code (instead of line) and a size/num-chars
   - also add fancy error-highlighting/pointing in the source code line(s)
 - add passes:
-  - variable and scoping check pass
   - add another typing (type propagation / type checking) pass
     - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64
 - add language server
