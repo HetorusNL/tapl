@@ -6,6 +6,7 @@
 
 from pathlib import Path
 
+from .numeric_type import NumericType
 from .type import Type
 
 
@@ -22,17 +23,17 @@ class Types:
         # also store the list of types in the class
         self._types_list: list[Type] = [
             Type("void", underlying_type="void"),
-            Type("u1", "bool", underlying_type="bool"),
-            Type("u8", underlying_type="uint8_t"),
-            Type("u16", underlying_type="uint16_t"),
-            Type("u32", underlying_type="uint32_t"),
-            Type("u64", underlying_type="uint64_t"),
-            Type("s8", underlying_type="int8_t"),
-            Type("s16", underlying_type="int16_t"),
-            Type("s32", underlying_type="int32_t"),
-            Type("s64", underlying_type="int64_t"),
-            Type("f32", underlying_type="float"),
-            Type("f64", underlying_type="double"),
+            NumericType("u1", "bool", underlying_type="bool"),
+            NumericType("u8", underlying_type="uint8_t"),
+            NumericType("u16", underlying_type="uint16_t"),
+            NumericType("u32", underlying_type="uint32_t"),
+            NumericType("u64", underlying_type="uint64_t"),
+            NumericType("s8", underlying_type="int8_t"),
+            NumericType("s16", underlying_type="int16_t"),
+            NumericType("s32", underlying_type="int32_t"),
+            NumericType("s64", underlying_type="int64_t"),
+            NumericType("f32", underlying_type="float"),
+            NumericType("f64", underlying_type="double"),
             Type("string"),
         ]
         types: dict[str, Type] = {}
@@ -42,14 +43,30 @@ class Types:
                 types[keyword] = type_
 
         # add the promotions for the basic types
-        types["u1"].add_promotions(types["u8"], types["u16"], types["u32"], types["u64"])
-        types["u8"].add_promotions(types["u16"], types["u32"], types["u64"])
-        types["u16"].add_promotions(types["u32"], types["u64"])
-        types["u32"].add_promotions(types["u64"])
-        types["s8"].add_promotions(types["s16"], types["s32"], types["s64"])
-        types["s16"].add_promotions(types["s32"], types["s64"])
-        types["s32"].add_promotions(types["s64"])
-        types["f32"].add_promotions(types["f64"])
+        u1: Type = types["u1"]
+        assert type(u1) == NumericType
+        u1.add_promotions(types["u8"], types["u16"], types["u32"], types["u64"])
+        u8: Type = types["u8"]
+        assert type(u8) == NumericType
+        u8.add_promotions(types["u16"], types["u32"], types["u64"])
+        u16: Type = types["u16"]
+        assert type(u16) == NumericType
+        u16.add_promotions(types["u32"], types["u64"])
+        u32: Type = types["u32"]
+        assert type(u32) == NumericType
+        u32.add_promotions(types["u64"])
+        s8: Type = types["s8"]
+        assert type(s8) == NumericType
+        s8.add_promotions(types["s16"], types["s32"], types["s64"])
+        s16: Type = types["s16"]
+        assert type(s16) == NumericType
+        s16.add_promotions(types["s32"], types["s64"])
+        s32: Type = types["s32"]
+        assert type(s32) == NumericType
+        s32.add_promotions(types["s64"])
+        f32: Type = types["f32"]
+        assert type(f32) == NumericType
+        f32.add_promotions(types["f64"])
 
         return types
 

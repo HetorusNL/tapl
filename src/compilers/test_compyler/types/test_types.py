@@ -9,6 +9,7 @@
 
 import unittest
 
+from compyler.types.numeric_type import NumericType
 from compyler.types.type import Type
 from compyler.types.types import Types
 
@@ -60,17 +61,17 @@ class TestTypes(unittest.TestCase):
         # test get_promotion for unsigned/signed and floating point values
         types: Types = Types()
         u1: Type | None = types.get("u1")
-        assert u1
+        assert type(u1) == NumericType
         promotions: list[Type] = u1.get_promotions()
         self.assertIn(types.get("u8"), promotions)
 
         s8: Type | None = types.get("s8")
-        assert s8
+        assert type(s8) == NumericType
         promotions: list[Type] = s8.get_promotions()
         self.assertIn(types.get("s16"), promotions)
 
         f32: Type | None = types.get("f32")
-        assert f32
+        assert type(f32) == NumericType
         promotions: list[Type] = f32.get_promotions()
         self.assertIn(types.get("f64"), promotions)
 
@@ -78,13 +79,13 @@ class TestTypes(unittest.TestCase):
         # test that a type can promote to itself or a bigger (same) type
         types: Types = Types()
         u1: Type | None = types.get("u1")
-        assert u1
+        assert type(u1) == NumericType
         u8: Type | None = types.get("u8")
-        assert u8
+        assert type(u8) == NumericType
         s8: Type | None = types.get("s8")
-        assert s8
+        assert type(s8) == NumericType
         f32: Type | None = types.get("f32")
-        assert f32
+        assert type(f32) == NumericType
 
         self.assertTrue(u1.can_promote_to(u1))
         self.assertTrue(u1.can_promote_to(u8))
