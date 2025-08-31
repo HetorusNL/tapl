@@ -7,6 +7,7 @@
 from pathlib import Path
 
 from .numeric_type import NumericType
+from .numeric_type_type import NumericTypeType
 from .type import Type
 
 
@@ -23,17 +24,17 @@ class Types:
         # also store the list of types in the class
         self._types_list: list[Type] = [
             Type("void", underlying_type="void"),
-            NumericType("u1", "bool", underlying_type="bool"),
-            NumericType("u8", underlying_type="uint8_t"),
-            NumericType("u16", underlying_type="uint16_t"),
-            NumericType("u32", underlying_type="uint32_t"),
-            NumericType("u64", underlying_type="uint64_t"),
-            NumericType("s8", underlying_type="int8_t"),
-            NumericType("s16", underlying_type="int16_t"),
-            NumericType("s32", underlying_type="int32_t"),
-            NumericType("s64", underlying_type="int64_t"),
-            NumericType("f32", underlying_type="float"),
-            NumericType("f64", underlying_type="double"),
+            NumericType("u1", NumericTypeType.UNSIGNED, 1, ["bool"], underlying_type="bool"),
+            NumericType("u8", NumericTypeType.UNSIGNED, 8, underlying_type="uint8_t"),
+            NumericType("u16", NumericTypeType.UNSIGNED, 16, underlying_type="uint16_t"),
+            NumericType("u32", NumericTypeType.UNSIGNED, 32, underlying_type="uint32_t"),
+            NumericType("u64", NumericTypeType.UNSIGNED, 64, underlying_type="uint64_t"),
+            NumericType("s8", NumericTypeType.SIGNED, 8, underlying_type="int8_t"),
+            NumericType("s16", NumericTypeType.SIGNED, 16, underlying_type="int16_t"),
+            NumericType("s32", NumericTypeType.SIGNED, 32, underlying_type="int32_t"),
+            NumericType("s64", NumericTypeType.SIGNED, 64, underlying_type="int64_t"),
+            NumericType("f32", NumericTypeType.FLOATING_POINT, 32, underlying_type="float"),
+            NumericType("f64", NumericTypeType.FLOATING_POINT, 64, underlying_type="double"),
             Type("string"),
         ]
         types: dict[str, Type] = {}

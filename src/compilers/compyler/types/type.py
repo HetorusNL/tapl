@@ -6,9 +6,9 @@
 
 
 class Type:
-    def __init__(self, keyword: str, *syntactic_sugar: str, underlying_type: str | None = None):
+    def __init__(self, keyword: str, syntactic_sugar: list[str] = [], underlying_type: str | None = None):
         self._keyword: str = keyword
-        self._syntactic_sugar: list[str] = list(syntactic_sugar)
+        self._syntactic_sugar: list[str] = syntactic_sugar
         self._underlying_type: str | None = underlying_type
 
     @property

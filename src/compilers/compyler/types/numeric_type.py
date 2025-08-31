@@ -5,12 +5,22 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .type import Type
+from .numeric_type_type import NumericTypeType
 
 
 class NumericType(Type):
-    def __init__(self, keyword: str, *syntactic_sugar: str, underlying_type: str | None = None):
-        super().__init__(keyword, *syntactic_sugar, underlying_type=underlying_type)
+    def __init__(
+        self,
+        keyword: str,
+        numeric_type_type: NumericTypeType,
+        num_bits: int,
+        syntactic_sugar: list[str] = [],
+        underlying_type: str | None = None,
+    ):
+        super().__init__(keyword, syntactic_sugar=syntactic_sugar, underlying_type=underlying_type)
         self._promotions: list[Type] = []
+        self._numeric_type_type: NumericTypeType = numeric_type_type
+        self._num_bits: int = num_bits
 
     def add_promotions(self, *promotions: "Type") -> None:
         """add promotions to which this type can promote to"""

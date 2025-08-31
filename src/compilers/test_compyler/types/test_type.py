@@ -18,13 +18,13 @@ class TestType(unittest.TestCase):
         self.list_equal(type_.all_keywords, ["keyword"])
 
     def test_type_syntactic_sugar_single(self):
-        type_ = Type("keyword", "sugar")
+        type_ = Type("keyword", syntactic_sugar=["sugar"])
         self.assertEqual(type_.keyword, "keyword")
         self.list_equal(type_.syntactic_sugar, ["sugar"])
         self.list_equal(type_.all_keywords, ["keyword", "sugar"])
 
     def test_type_syntactic_sugar_multiple(self):
-        type_ = Type("kw", "sugar", "more", "third")
+        type_ = Type("kw", syntactic_sugar=["sugar", "more", "third"])
         self.assertEqual(type_.keyword, "kw")
         self.list_equal(type_.syntactic_sugar, ["sugar", "more", "third"])
         self.list_equal(type_.all_keywords, ["kw", "sugar", "more", "third"])
@@ -33,7 +33,7 @@ class TestType(unittest.TestCase):
         type1: Type = Type("test1", underlying_type="type")
         self.assertTrue(type1.is_basic_type)
         self.assertEqual(type1.underlying_type, "type")
-        type2: Type = Type("test2", "some", "sugar")
+        type2: Type = Type("test2", syntactic_sugar=["some", "sugar"])
         self.assertFalse(type2.is_basic_type)
         self.assertIsNone(type2.underlying_type)
 
