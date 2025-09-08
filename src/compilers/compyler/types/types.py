@@ -35,6 +35,7 @@ class Types:
             NumericType("s64", NumericTypeType.SIGNED, 64, underlying_type="int64_t"),
             NumericType("f32", NumericTypeType.FLOATING_POINT, 32, underlying_type="float"),
             NumericType("f64", NumericTypeType.FLOATING_POINT, 64, underlying_type="double"),
+            NumericType("base", NumericTypeType.SIGNED, 64),  # base type for non-determined integer values
             Type("string"),
         ]
         types: dict[str, Type] = {}

@@ -6,6 +6,7 @@
 
 from ..utils.ast import AST
 from .scoping_pass import ScopingPass
+from .typing_pass import TypingPass
 
 
 class AstCheck:
@@ -16,3 +17,5 @@ class AstCheck:
         """run several passes on the AST to perform a variety of checks on the statements"""
         # check the variables defined in the scopes of the AST
         ScopingPass(self._ast).run()
+        # check and apply types to the variables, including type 'upscaling'
+        TypingPass(self._ast).run()

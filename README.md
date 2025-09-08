@@ -59,9 +59,8 @@ uv run -m src.compilers.compyler /path/to/file.tim
   - after supporting pointers, refactor 0 to NULL
 - update tokens to have index in source code (instead of line) and a size/num-chars
   - also add fancy error-highlighting/pointing in the source code line(s)
-- add passes:
-  - add another typing (type propagation / type checking) pass
-    - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64
+- fix todos in the typing pass:
+- allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64, in typing pass
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html
   - example: https://github.com/windelbouwman/sauce-os/tree/main/language-server/slang-lang
