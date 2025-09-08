@@ -80,7 +80,9 @@ class TypingPass:
                 # get the identifier token type
                 requested_type: Type = self._get_type(statement.identifier_token)
                 # check that the expression is of this type
-                self.parse_expression(statement.value, requested_type)
+                value_type: Type = self.parse_expression(statement.value)
+                # check that returned type and requested are valid
+                self._check_types(requested_type, value_type, statement.identifier_token)
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -169,32 +171,24 @@ class TypingPass:
                     # get the identifier token type
                     requested_type: Type = self._get_type(statement.name)
                     # check that the expression is of this type
-                    value_type: Type = self.parse_expression(initial_value, requested_type)
+                    value_type: Type = self.parse_expression(initial_value)
                     # check that returned type and requested are valid
                     self._check_types(requested_type, value_type, statement.name)
             case _:
                 assert False, f"internal compiler error, {type(statement)} not handled!"
 
-    def parse_expression(self, expression: Expression, requested_type: Type | None = None) -> Type:
+    def parse_expression(self, expression: Expression) -> Type:
         """parse an expression, where exceptions are thrown toward the surrounding statement"""
-        # store the type found in the expression, if any
-        found_type: Type | None = None
-        token: Token | None = None
-
         # parse all types of expressions
         match expression:
             case BinaryExpression():
-                token = expression.token
                 # check the left and right expression of the binary expression
                 type_left: Type = self.parse_expression(expression.left)
                 type_right: Type = self.parse_expression(expression.right)
-                found_type = self._check_types(type_left, type_right, expression.token)
+                return self._check_types(type_left, type_right, expression.token)
             case CallExpression():
-                token = expression.name
                 # check that the expression is callable
                 if function := self._functions.get(expression.name.value):
-                    # set the type as the return type of the function
-                    found_type = self._get_type(expression.name)
                     # check that the amount of arguments are correct
                     required_arguments: int = len(function.arguments)
                     passed_arguments: int = len(expression.arguments)
@@ -222,55 +216,48 @@ class TypingPass:
                             message += f"'{required_argument_type.keyword}', "
                             message += f"but found '{passed_argument_type.keyword}'!"
                             self.ast_error(message, error_token)
+                    # return the return type of the function
+                    return self._get_type(expression.name)
                 else:
                     self.ast_error(f"identifier '{expression.name.value}' is not callable!", expression.name)
             case TokenExpression():
-                token = expression.token
                 match expression.token:
                     case NumberToken():
-                        if requested_type:
-                            # check the number token, and return requested type if check passes
-                            found_type = self._check_number_token(requested_type, expression)
-                        else:
-                            # no requested type, so we're going to return a base type
-                            found_type = self._types.get("base")
-                            assert found_type
+                        # no checking happens here so we're going to return a base type
+                        return self._types["base"]
                     case StringToken():
-                        found_type = self._types.get("string")
-                        assert found_type
+                        return self._types["string"]
                     case IdentifierToken():
                         # TODO: handle callables differently, this now results in gcc errors
                         # get the type from the identifier
-                        found_type = self._get_type(expression.token)
+                        return self._get_type(expression.token)
                     case _:
                         match expression.token.token_type:
                             # TODO: refactor true/false to special booleans
                             case TokenType.TRUE:
-                                found_type = self._types.get("base")
+                                return self._types["base"]
                             case TokenType.FALSE:
-                                found_type = self._types.get("base")
+                                return self._types["base"]
                             case TokenType.NULL:
                                 # TODO: refactor when ptr implemented
-                                found_type = self._types.get("base")
+                                return self._types["base"]
                             case _:
                                 assert False, "TODO: process generic token thing"
             case TypeCastExpression():
-                token = expression.cast_to
                 # get the type of the inner expression
                 inner_type = self.parse_expression(expression.expression)
                 cast_to_type: Type = expression.cast_to.type_
                 # we allow any NumericType to be type casted, otherwise we fail
                 if isinstance(cast_to_type, NumericType) and isinstance(inner_type, NumericType):
-                    found_type = cast_to_type
+                    return cast_to_type
                 else:
                     message: str = f"cannot type cast from '{inner_type.keyword}' to '{cast_to_type.keyword}'!"
                     self.ast_error(message, expression.cast_to)
             case UnaryExpression():
-                token = NumberToken(1, 1)  # TODO: fix token passed
                 inner_type: Type = self.parse_expression(expression.expression)
                 if expression.expression_type == ExpressionType.GROUPING:
                     # if it's a grouping, anything goes, return the inner type
-                    found_type = inner_type
+                    return inner_type
                 else:
                     # otherwise it must be a numeric type
                     if not isinstance(inner_type, NumericType):
@@ -278,25 +265,9 @@ class TypingPass:
                         message += f", found '{inner_type.keyword}'!"
                         # TODO: fix the token passed
                         self.ast_error(message, NumberToken(1, 1))
-                    found_type = inner_type
+                    return inner_type
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
-
-        # if we didn't find a type, something is wrong with parsing
-        if not found_type:
-            assert False, f"internal compiler error, type not found but is requested!"
-
-        # handle the request
-        if requested_type:
-            # check that the requested type and found type is the same
-            assert token, f"internal compiler error, no token found with type mismatch!"
-            self._check_types(requested_type, found_type, token)
-
-            # otherwise we found a valid type, return it
-            return requested_type
-
-        # if no type is requested, return the type we found
-        return found_type
 
     def _check_identifier(self, identifier_token: IdentifierToken, target_type: Type) -> None:
         identifier_type: Type = self._get_type(identifier_token)
@@ -315,7 +286,7 @@ class TypingPass:
         assert False, f"internal compiler error, {identifier} not found in scopes!"
 
     def _check_types(self, left: Type, right: Type, token: Token) -> Type:
-        # TODO: we should check the size of a base type if the other side is no base type
+        # TODO: we should check the size of a base type if the other side is no base type with _check_number_token(...)
         # check if they are both number types
         if isinstance(left, NumericType) and isinstance(right, NumericType):
             # check if there are two base types

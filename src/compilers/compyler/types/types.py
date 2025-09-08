@@ -87,6 +87,11 @@ class Types:
         """returns the Type with the provided keyword, None if not present"""
         return self._types.get(keyword)
 
+    def __getitem__(self, keyword: str) -> Type:
+        keyword_type: Type | None = self.get(keyword)
+        assert keyword_type
+        return keyword_type
+
     def generate_c_header(self, header_folder: Path) -> None:
         """generates a c types header for all builtin basic types in the header folder"""
         # add the strings to be added to the types header
