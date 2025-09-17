@@ -7,29 +7,15 @@
 from .expression import Expression
 from .token_expression import TokenExpression
 from ..tokens.token import Token
+from ..utils.source_location import SourceLocation
 
 
 class BinaryExpression(TokenExpression):
     def __init__(self, left: Expression, token: Token, right: Expression):
-        super().__init__(token)
-        self._left: Expression = left
-        self._right: Expression = right
-
-    @property
-    def left(self) -> Expression:
-        return self._left
-
-    @left.setter
-    def left(self, left: Expression) -> None:
-        self._left: Expression = left
-
-    @property
-    def right(self) -> Expression:
-        return self._right
-
-    @right.setter
-    def right(self, right: Expression) -> None:
-        self._right: Expression = right
+        source_location: SourceLocation = left.source_location + token.source_location + right.source_location
+        super().__init__(source_location, token)
+        self.left: Expression = left
+        self.right: Expression = right
 
     def c_code(self) -> str:
         left_code: str = self.left.c_code()
@@ -41,4 +27,4 @@ class BinaryExpression(TokenExpression):
         return f"({self.left} {self.token.token_type.value} {self.right})"
 
     def __repr__(self) -> str:
-        return f"<BinaryExpression {self.left} {self.token.token_type} {self.right}>"
+        return f"<BinaryExpression: location {self.source_location}, {self.left} {self.token.token_type} {self.right}>"

@@ -4,10 +4,12 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from ..utils.source_location import SourceLocation
+
 
 class Expression:
-    def __init__(self):
-        pass
+    def __init__(self, source_location: SourceLocation):
+        self.source_location: SourceLocation = source_location
 
     def c_code(self) -> str:
         assert False, f"we can't generate code for a bare expression!"
@@ -16,4 +18,4 @@ class Expression:
         return f""
 
     def __repr__(self) -> str:
-        return f"<Expression >"
+        return f"<Expression: location {self.source_location}>"

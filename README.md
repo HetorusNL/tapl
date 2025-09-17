@@ -57,9 +57,10 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - fix open TODOs in `token_expression.py`
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
-- update tokens to have index in source code (instead of line) and a size/num-chars
-  - also add fancy error-highlighting/pointing in the source code line(s)
 - fix todos in the typing pass:
+  - add the SourceLocation to statements
+  - refactor the obscure error handling in typing pass to SourceLocation
+  - add fancy error-highlighting/pointing in the source code line(s)
 - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64, in typing pass
 - add language server
   - https://pygls.readthedocs.io/en/latest/servers/getting-started.html

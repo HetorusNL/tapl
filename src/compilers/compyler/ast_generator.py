@@ -477,20 +477,20 @@ class AstGenerator:
         """returns a primary expression: primary keywords or number/string"""
         # match the primary keywords
         if token := self.match(TokenType.FALSE):
-            return TokenExpression(token)
+            return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.NULL):
-            return TokenExpression(token)
+            return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.TRUE):
-            return TokenExpression(token)
+            return TokenExpression(token.source_location, token)
 
         # match literal numbers and strings
         if token := self.match(TokenType.NUMBER):
-            return TokenExpression(token)
+            return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.STRING):
-            return TokenExpression(token)
+            return TokenExpression(token.source_location, token)
 
         # match expressions between parenthesis
-        if token := self.match(TokenType.PAREN_OPEN):
+        if paren_open := self.match(TokenType.PAREN_OPEN):
             # check if this is a type casting
             if type_ := self.match(TokenType.TYPE):
                 assert isinstance(type_, TypeToken)
@@ -498,42 +498,52 @@ class AstGenerator:
                 self.expect(TokenType.PAREN_CLOSE)
                 # followed by a primary expression that is type casted
                 primary: Expression = self.primary()
-                return TypeCastExpression(type_, primary)
+                # the SourceLocation is from paren_open till the primary expression
+                source_location: SourceLocation = paren_open.source_location + primary.source_location
+                return TypeCastExpression(source_location, type_, primary)
 
             # otherwise it's a grouping expression
             expression: Expression = self.expression()
             message = f"expected closing parenthesis, but found '{self.current()}'!"
-            self.expect(TokenType.PAREN_CLOSE, message)
-            return UnaryExpression(ExpressionType.GROUPING, expression)
+            paren_close: Token = self.expect(TokenType.PAREN_CLOSE, message)
+            # the SourceLocation is from paren_open till paren_close and everything in between
+            source_location: SourceLocation = paren_open.source_location + paren_close.source_location
+            return UnaryExpression(source_location, ExpressionType.GROUPING, expression)
 
         # match boolean not expression
-        if token := self.match(TokenType.NOT):
+        if not_token := self.match(TokenType.NOT):
             expression: Expression = self.primary()
-            return UnaryExpression(ExpressionType.NOT, expression)
+            source_location: SourceLocation = not_token.source_location + expression.source_location
+            return UnaryExpression(source_location, ExpressionType.NOT, expression)
 
         # match unary minus expression
-        if token := self.match(TokenType.MINUS):
+        if minus_token := self.match(TokenType.MINUS):
             expression: Expression = self.primary()
-            return UnaryExpression(ExpressionType.MINUS, expression)
+            source_location: SourceLocation = minus_token.source_location + expression.source_location
+            return UnaryExpression(source_location, ExpressionType.MINUS, expression)
 
         # match pre increment or decrement expression
-        if token := self.match(TokenType.INCREMENT):
+        if increment_token := self.match(TokenType.INCREMENT):
             identifier: Token = self.expect(TokenType.IDENTIFIER)
-            expression: Expression = TokenExpression(identifier)
-            return UnaryExpression(ExpressionType.PRE_INCREMENT, expression)
-        if token := self.match(TokenType.DECREMENT):
+            expression: Expression = TokenExpression(identifier.source_location, identifier)
+            source_location: SourceLocation = increment_token.source_location + expression.source_location
+            return UnaryExpression(source_location, ExpressionType.PRE_INCREMENT, expression)
+        if decrement_token := self.match(TokenType.DECREMENT):
             identifier: Token = self.expect(TokenType.IDENTIFIER)
-            expression: Expression = TokenExpression(identifier)
-            return UnaryExpression(ExpressionType.PRE_DECREMENT, expression)
+            expression: Expression = TokenExpression(identifier.source_location, identifier)
+            source_location: SourceLocation = decrement_token.source_location + expression.source_location
+            return UnaryExpression(source_location, ExpressionType.PRE_DECREMENT, expression)
 
         # match an identifier
         if token := self.match(TokenType.IDENTIFIER):
-            expression: Expression = TokenExpression(token)
+            expression: Expression = TokenExpression(token.source_location, token)
             # check for increment and decrement
-            if self.match(TokenType.INCREMENT):
-                return UnaryExpression(ExpressionType.POST_INCREMENT, expression)
-            if self.match(TokenType.DECREMENT):
-                return UnaryExpression(ExpressionType.POST_DECREMENT, expression)
+            if increment_token := self.match(TokenType.INCREMENT):
+                source_location: SourceLocation = expression.source_location + increment_token.source_location
+                return UnaryExpression(source_location, ExpressionType.POST_INCREMENT, expression)
+            if decrement_token := self.match(TokenType.DECREMENT):
+                source_location: SourceLocation = expression.source_location + decrement_token.source_location
+                return UnaryExpression(source_location, ExpressionType.POST_DECREMENT, expression)
             # check for a function call
             if self.match(TokenType.PAREN_OPEN):
                 assert isinstance(token, IdentifierToken)
@@ -548,9 +558,11 @@ class AstGenerator:
         # the name is already provided, and the opening parenthesis is consumed
 
         # check for a closing parenthesis, then we have a function call without arguments
-        if self.match(TokenType.PAREN_CLOSE):
+        if paren_close := self.match(TokenType.PAREN_CLOSE):
+            # calculate the SourceLocation from name till paren_close
+            source_location: SourceLocation = name.source_location + paren_close.source_location
             # simply return a call expression without arguments
-            return CallExpression(name)
+            return CallExpression(source_location, name)
 
         # otherwise start parsing the arguments
         arguments: list[Expression] = []
@@ -564,10 +576,13 @@ class AstGenerator:
                 break
 
         # we must end with a closing parenthesis
-        self.expect(TokenType.PAREN_CLOSE)
+        paren_close = self.expect(TokenType.PAREN_CLOSE)
+
+        # calculate the SourceLocation from name till paren_close and everything in between
+        source_location: SourceLocation = name.source_location + paren_close.source_location
 
         # construct and return the call expression
-        return CallExpression(name, arguments)
+        return CallExpression(source_location, name, arguments)
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""
