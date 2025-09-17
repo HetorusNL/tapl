@@ -6,24 +6,17 @@
 
 from .token_type import TokenType
 from .token import Token
+from ..utils.source_location import SourceLocation
 
 
 class NumberToken(Token):
-    def __init__(self, line: int, value: int):
-        super().__init__(TokenType.NUMBER, line)
+    def __init__(self, source_location: SourceLocation, value: int):
+        super().__init__(TokenType.NUMBER, source_location)
         # store the additional properties in the class
-        self._value: int = value
-
-    @property
-    def value(self) -> int:
-        return self._value
-
-    @value.setter
-    def value(self, value: int) -> None:
-        self._value = value
+        self.value: int = value
 
     def __str__(self) -> str:
         return f"{self.value}"
 
     def __repr__(self) -> str:
-        return f"<{self.token_type}: line {self.line}, {self.value}>"
+        return f"<{self.token_type}: location {self.source_location}, {self.value}>"

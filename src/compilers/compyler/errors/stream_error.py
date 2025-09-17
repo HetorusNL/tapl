@@ -10,7 +10,7 @@ from ..errors.tapl_error import TaplError
 
 class StreamError(TaplError):
     def __init__(self, message: str):
-        # construdt the separate sections of the error message
+        # construct the separate sections of the error message
         newline: str = f"{Colors.RESET}\n"
         error: str = f"{Colors.BOLD}{Colors.RED}internal compiler error:{Colors.RESET}"
 

@@ -28,7 +28,6 @@ from ..statements.var_decl_statement import VarDeclStatement
 from ..tokens.identifier_token import IdentifierToken
 from ..types.type import Type
 from ..utils.ast import AST
-from ..utils.utils import Utils
 
 
 class ScopingPass:
@@ -199,13 +198,4 @@ class ScopingPass:
 
     def ast_error(self, message: str, token: IdentifierToken) -> NoReturn:
         """constructs and raises an AStError"""
-        # fill in the filename that we're compiling
-        filename: str = str(self._ast.filename.resolve())
-
-        # extract the line number from the token
-        line: int = token.line
-
-        # extract the source code line from the file
-        source_line: str = Utils.get_source_line(self._ast.filename, line)
-
-        raise AstError(message, filename, line, source_line)
+        raise AstError(message, self._ast.filename, token.source_location)

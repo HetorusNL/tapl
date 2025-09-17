@@ -29,8 +29,7 @@ class TypeApplier:
                 # check that the identifier corresponds with a type
                 if var_type := self._types.get(token.value):
                     # found the type of the IdentifierToken, construct the TypeToken
-                    line: int = token.line
-                    type_token: TypeToken = TypeToken(line, var_type)
+                    type_token: TypeToken = TypeToken(token.source_location, var_type)
                     # replace the IdentifierToken with a TypeToken
                     tokens.replace(1, type_token)
 

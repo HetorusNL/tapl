@@ -31,9 +31,8 @@ from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
 from .types.types import Types
 from .utils.ast import AST
-from .utils.colors import Colors
+from .utils.source_location import SourceLocation
 from .utils.stream import Stream
-from .utils.utils import Utils
 
 
 class AstGenerator:
@@ -572,28 +571,17 @@ class AstGenerator:
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""
-        # fill in the filename that we're compiling
-        filename: str = str(self._filename.resolve())
-
         # extract the line number from the current or previous token
-        line: int = -1
+        source_location: SourceLocation | None = None
         try:
-            # try to get the line number from the current token
-            line: int = self.current().line
+            # try to get the SourceLocation from the current token
+            source_location: SourceLocation | None = self.current().source_location
         except IndexError:
             # if that fails (out of bounds), try the previous token
             if self._current_index != 0:  # sanity check for previous()
-                line: int = self.previous().line
+                source_location: SourceLocation | None = self.previous().source_location
 
-        # extract the source code line from the file
-        source_line: str = Utils.get_source_line(self._filename, line)
-
-        # check for internal compiler error (line == -1)
-        if line == -1:
-            error: str = f"{Colors.BOLD}{Colors.RED}[ internal compiler error! (line == -1) ]{Colors.RESET}"
-            source_line = f"{error} {source_line}"
-
-        raise AstError(message, filename, line, source_line)
+        raise AstError(message, self._filename, source_location)
 
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""

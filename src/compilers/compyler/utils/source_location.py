@@ -26,3 +26,6 @@ class SourceLocation:
         # calculate the length
         length: int = end - start
         return SourceLocation(start, length)
+
+    def __str__(self) -> str:
+        return f"<{self.start}:{self.length}>"

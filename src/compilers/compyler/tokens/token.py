@@ -5,31 +5,16 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .token_type import TokenType
+from ..utils.source_location import SourceLocation
 
 
 class Token:
-    def __init__(self, token_type: TokenType, line: int):
-        self._token_type: TokenType = token_type
-        self._line: int = line
-
-    @property
-    def token_type(self) -> TokenType:
-        return self._token_type
-
-    @token_type.setter
-    def token_type(self, token_type: TokenType) -> None:
-        self._token_type: TokenType = token_type
-
-    @property
-    def line(self) -> int:
-        return self._line
-
-    @line.setter
-    def line(self, line: int) -> None:
-        self._line: int = line
+    def __init__(self, token_type: TokenType, source_location: SourceLocation):
+        self.token_type: TokenType = token_type
+        self.source_location: SourceLocation = source_location
 
     def __str__(self) -> str:
         return f"{self.token_type}"
 
     def __repr__(self) -> str:
-        return f"<{self.token_type}: line {self.line}>"
+        return f"<{self.token_type}: location {self.source_location}>"

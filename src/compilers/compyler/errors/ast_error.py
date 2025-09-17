@@ -4,13 +4,27 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from pathlib import Path
+
 from .tapl_error import TaplError
 from ..utils.colors import Colors
+from ..utils.source_location import SourceLocation
+from ..utils.utils import Utils
 
 
 class AstError(TaplError):
-    def __init__(self, message: str, filename: str, line: int, source_line: str):
-        # construdt the separate sections of the error message
+    def __init__(self, message: str, filename: Path, source_location: SourceLocation | None):
+        # extract the source code line and line number from the file
+        line: int = Utils.get_source_line_number(filename, source_location)
+        source_line: str = Utils.get_source_line(filename, line)
+
+        # check for internal compiler error (no SourceLocation)
+        if not source_location:
+            error: str = f"[ internal compiler error! (no source location found) ]"
+            error: str = f"{Colors.BOLD}{Colors.RED}{error}{Colors.RESET}"
+            source_line = f"{error} {source_line}"
+
+        # construct the separate sections of the error message
         newline: str = f"{Colors.RESET}\n"
         file_path: str = f"{Colors.BOLD}{filename}:{line}:{Colors.RESET}"
         error: str = f"{Colors.BOLD}{Colors.RED}error:{Colors.RESET}"

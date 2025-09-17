@@ -12,6 +12,7 @@ from .tokens.identifier_token import IdentifierToken
 from .tokens.number_token import NumberToken
 from .tokens.string_token import StringToken
 from .tokens.token import Token
+from .utils.source_location import SourceLocation
 from .utils.stream import Stream
 
 
@@ -50,65 +51,65 @@ class Tokenizer:
             match char := self._next():
                 # match all single-character tokens
                 case TokenType.BRACE_CLOSE.value:
-                    self._add_token(TokenType.BRACE_CLOSE)
+                    self._add_token_of_length(TokenType.BRACE_CLOSE)
                 case TokenType.BRACE_OPEN.value:
-                    self._add_token(TokenType.BRACE_OPEN)
+                    self._add_token_of_length(TokenType.BRACE_OPEN)
                 case TokenType.BRACKET_CLOSE.value:
-                    self._add_token(TokenType.BRACKET_CLOSE)
+                    self._add_token_of_length(TokenType.BRACKET_CLOSE)
                 case TokenType.BRACKET_OPEN.value:
-                    self._add_token(TokenType.BRACKET_OPEN)
+                    self._add_token_of_length(TokenType.BRACKET_OPEN)
                 case TokenType.COLON.value:
-                    self._add_token(TokenType.COLON)
+                    self._add_token_of_length(TokenType.COLON)
                 case TokenType.COMMA.value:
-                    self._add_token(TokenType.COMMA)
+                    self._add_token_of_length(TokenType.COMMA)
                 case TokenType.DOT.value:
-                    self._add_token(TokenType.DOT)
+                    self._add_token_of_length(TokenType.DOT)
                 case TokenType.MINUS.value:
                     if self._consume(TokenType.MINUS.value):
-                        self._add_token(TokenType.DECREMENT)
+                        self._add_token_of_length(TokenType.DECREMENT)
                     else:
-                        self._add_token(TokenType.MINUS)
+                        self._add_token_of_length(TokenType.MINUS)
                 case TokenType.PAREN_CLOSE.value:
-                    self._add_token(TokenType.PAREN_CLOSE)
+                    self._add_token_of_length(TokenType.PAREN_CLOSE)
                 case TokenType.PAREN_OPEN.value:
-                    self._add_token(TokenType.PAREN_OPEN)
+                    self._add_token_of_length(TokenType.PAREN_OPEN)
                 case TokenType.PLUS.value:
                     if self._consume(TokenType.PLUS.value):
-                        self._add_token(TokenType.INCREMENT)
+                        self._add_token_of_length(TokenType.INCREMENT)
                     else:
-                        self._add_token(TokenType.PLUS)
+                        self._add_token_of_length(TokenType.PLUS)
                 case TokenType.SEMICOLON.value:
-                    self._add_token(TokenType.SEMICOLON)
+                    self._add_token_of_length(TokenType.SEMICOLON)
                 # match all single- or double-character tokens
                 case TokenType.EQUAL.value:
                     if self._consume(TokenType.EQUAL.value):
-                        self._add_token(TokenType.EQUAL_EQUAL)
+                        self._add_token_of_length(TokenType.EQUAL_EQUAL)
                     else:
-                        self._add_token(TokenType.EQUAL)
+                        self._add_token_of_length(TokenType.EQUAL)
                 case TokenType.GREATER.value:
                     if self._consume(TokenType.EQUAL.value):
-                        self._add_token(TokenType.GREATER_EQUAL)
+                        self._add_token_of_length(TokenType.GREATER_EQUAL)
                     else:
-                        self._add_token(TokenType.GREATER)
+                        self._add_token_of_length(TokenType.GREATER)
                 case TokenType.LESS.value:
                     if self._consume(TokenType.EQUAL.value):
-                        self._add_token(TokenType.LESS_EQUAL)
+                        self._add_token_of_length(TokenType.LESS_EQUAL)
                     else:
-                        self._add_token(TokenType.LESS)
+                        self._add_token_of_length(TokenType.LESS)
                 case TokenType.NOT.value:
                     if self._consume(TokenType.EQUAL.value):
-                        self._add_token(TokenType.NOT_EQUAL)
+                        self._add_token_of_length(TokenType.NOT_EQUAL)
                     else:
-                        self._add_token(TokenType.NOT)
+                        self._add_token_of_length(TokenType.NOT)
                 case TokenType.SLASH.value:
                     if self._consume(TokenType.SLASH.value):
                         self._add_inline_comment()
                     elif self._consume(TokenType.STAR.value):
                         self._add_block_comment()
                     else:
-                        self._add_token(TokenType.SLASH)
+                        self._add_token_of_length(TokenType.SLASH)
                 case TokenType.STAR.value:
-                    self._add_token(TokenType.STAR)
+                    self._add_token_of_length(TokenType.STAR)
                 # match special EOF case, we parsed the whole file
                 case None:
                     self._add_token(TokenType.EOF)
@@ -125,7 +126,7 @@ class Tokenizer:
                 case " ":
                     pass
                 case "\n":
-                    self._add_newline()
+                    self._add_newline(self._current_index - 1)
                 case "\r":
                     # why use carriage return..
                     pass
@@ -180,27 +181,45 @@ class Tokenizer:
         return self._isdigit(char) or self._isalpha(char) or char == "_"
 
     def _add_identifier_token(self, value: str) -> None:
-        identifier_token: IdentifierToken = IdentifierToken(self._line, value)
+        length: int = len(value)
+        start: int = self._current_index - length
+        source_location: SourceLocation = SourceLocation(start, length)
+        identifier_token: IdentifierToken = IdentifierToken(source_location, value)
         self._tokens.add(identifier_token)
 
-    def _add_number_token(self, value: int) -> None:
-        number_token: NumberToken = NumberToken(self._line, value)
+    def _add_number_token(self, value: int, start: int, length: int) -> None:
+        source_location: SourceLocation = SourceLocation(start, length)
+        number_token: NumberToken = NumberToken(source_location, value)
         self._tokens.add(number_token)
 
     def _add_string_token(self, value: str) -> None:
-        string_token: StringToken = StringToken(self._line, value)
+        length: int = len(value)
+        start: int = self._current_index - length
+        source_location: SourceLocation = SourceLocation(start, length)
+        string_token: StringToken = StringToken(source_location, value)
         self._tokens.add(string_token)
 
     def _add_comment_token(self, token_type: TokenType, value: str) -> None:
-        comment_token: CommentToken = CommentToken(token_type, self._line, value)
+        length: int = len(value)
+        start: int = self._current_index - length
+        source_location: SourceLocation = SourceLocation(start, length)
+        comment_token: CommentToken = CommentToken(token_type, source_location, value)
         self._discarded_tokens.add(comment_token)
 
-    def _add_token(self, token_type: TokenType) -> None:
-        token: Token = Token(token_type, self._line)
+    def _add_token_of_length(self, token_type: TokenType) -> None:
+        """Adds a token of length of token_type value consumed characters"""
+        length: int = len(token_type.value)
+        self._add_token(token_type, self._current_index - length, length)
+
+    def _add_token(self, token_type: TokenType, start: int | None = None, length: int | None = None) -> None:
+        """Adds a token at the current (consumed) position with length of 1 (unless different start-length is passed)"""
+        start = start or self._current_index - 1
+        length = length or 1
+        token: Token = Token(token_type, SourceLocation(start, length))
         self._tokens.add(token)
 
-    def _add_newline(self) -> None:
-        newline_token: Token = Token(TokenType.NEWLINE, self._line)
+    def _add_newline(self, start: int) -> None:
+        newline_token: Token = Token(TokenType.NEWLINE, SourceLocation(start, 1))
         self._line += 1
         # if the previous token was also a newline, add it to the discarded tokens stream
         last_token: Token | None = self._tokens.last()
@@ -219,11 +238,13 @@ class Tokenizer:
                 self._current_index += 1
                 continue
             break
-        if len(binary_str) == 2:
+        length: int = len(binary_str)
+        start: int = self._current_index - length
+        if length == 2:
             print(f'invalid binary value "{binary_str}"!')
-            self._add_token(TokenType.ERROR)
+            self._add_token(TokenType.ERROR, start, length)
         else:
-            self._add_number_token(int(binary_str, 2))
+            self._add_number_token(int(binary_str, 2), start, length)
 
     def _add_hexadecimal_number(self) -> None:
         """parse a hexadecimal number starting with 0x, or an error token if invalid"""
@@ -235,11 +256,13 @@ class Tokenizer:
                 self._current_index += 1
                 continue
             break
+        length: int = len(hexadecimal_str)
+        start: int = self._current_index - length
         if len(hexadecimal_str) == 2:
             print(f'invalid hexadecimal value "{hexadecimal_str}"!')
-            self._add_token(TokenType.ERROR)
+            self._add_token(TokenType.ERROR, start, length)
         else:
-            self._add_number_token(int(hexadecimal_str, 16))
+            self._add_number_token(int(hexadecimal_str, 16), start, length)
 
     def _add_number(self, first_char: str) -> None:
         # TODO: add distinction between int and float/double
@@ -253,13 +276,13 @@ class Tokenizer:
                     return self._add_hexadecimal_number()
                 case None:
                     # EOF, the file ends with number '0'
-                    return self._add_number_token(0)
+                    return self._add_number_token(0, self._current_index - 1, 1)
                 case _ if self._isdigit(char):
                     # ordinary number prefixed with a '0', parse below
                     pass
                 case _:
                     # the value '0'
-                    return self._add_number_token(0)
+                    return self._add_number_token(0, self._current_index - 1, 1)
 
         number_str: str = first_char
         while char := self._get_char(consume=False):
@@ -269,7 +292,9 @@ class Tokenizer:
                 self._current_index += 1
                 continue
             break
-        self._add_number_token(int(number_str))
+        length: int = len(number_str)
+        start: int = self._current_index - length
+        self._add_number_token(int(number_str), start, length)
 
     def _add_string(self) -> None:
         string: str = ""
@@ -280,45 +305,49 @@ class Tokenizer:
                 break
             # if we have a newline, then raise an error as the string is unterminated
             if char == "\n":
+                length: int = len(string)
+                start: int = self._current_index - length
                 print(f'unterminated string "{string}"!')
-                self._add_token(TokenType.ERROR)
+                self._add_token(TokenType.ERROR, start, length)
                 return
             # append to the string and consume the character
             string += char
             self._current_index += 1
         # also handle the empty file case
         if char is None:
+            length: int = len(string)
+            start: int = self._current_index - length
             print(f'unterminated string "{string}"!')
-            self._add_token(TokenType.ERROR)
+            self._add_token(TokenType.ERROR, start, length)
             return
         self._add_string_token(string)
 
     def _add_keyword(self, identifier: str) -> bool:
         match identifier:
             case TokenType.CLASS.value:
-                self._add_token(TokenType.CLASS)
+                self._add_token_of_length(TokenType.CLASS)
             case TokenType.ELSE.value:
-                self._add_token(TokenType.ELSE)
+                self._add_token_of_length(TokenType.ELSE)
             case TokenType.FALSE.value:
-                self._add_token(TokenType.FALSE)
+                self._add_token_of_length(TokenType.FALSE)
             case TokenType.FOR.value:
-                self._add_token(TokenType.FOR)
+                self._add_token_of_length(TokenType.FOR)
             case TokenType.IF.value:
-                self._add_token(TokenType.IF)
+                self._add_token_of_length(TokenType.IF)
             case TokenType.NULL.value:
-                self._add_token(TokenType.NULL)
+                self._add_token_of_length(TokenType.NULL)
             case TokenType.PRINT.value:
-                self._add_token(TokenType.PRINT)
+                self._add_token_of_length(TokenType.PRINT)
             case TokenType.RETURN.value:
-                self._add_token(TokenType.RETURN)
+                self._add_token_of_length(TokenType.RETURN)
             case TokenType.SUPER.value:
-                self._add_token(TokenType.SUPER)
+                self._add_token_of_length(TokenType.SUPER)
             case TokenType.THIS.value:
-                self._add_token(TokenType.THIS)
+                self._add_token_of_length(TokenType.THIS)
             case TokenType.TRUE.value:
-                self._add_token(TokenType.TRUE)
+                self._add_token_of_length(TokenType.TRUE)
             case TokenType.WHILE.value:
-                self._add_token(TokenType.WHILE)
+                self._add_token_of_length(TokenType.WHILE)
             case _:
                 # in de default case we haven't found a keyword
                 return False
@@ -353,7 +382,9 @@ class Tokenizer:
         else:
             # unterminated block comment
             print(f'unterminated block comment "{comment_text}"!')
-            self._add_token(TokenType.ERROR)
+            length: int = len(comment_text)
+            start: int = self._current_index - length
+            self._add_token(TokenType.ERROR, start, length)
             return
         self._add_comment_token(TokenType.BLOCK_COMMENT, comment_text)
 
@@ -387,7 +418,7 @@ class Tokenizer:
 
             if char == "\n":
                 # found a newline, add newline to discarded tokens
-                self._add_newline()
+                self._add_newline(self._current_index + offset)
                 # consume all characters including newline
                 self._get_char(True, offset=offset)
                 # reset the offset
@@ -408,19 +439,21 @@ class Tokenizer:
         while self._consume(" "):
             spaces += 1
 
+        start: int = self._current_index - spaces
+
         if spaces % self.INDENT_SPACES != 0:
             print(f"indentations must be a multiple of {self.INDENT_SPACES} spaces!")
-            self._add_token(TokenType.ERROR)
+            self._add_token(TokenType.ERROR, start, spaces)
 
         indent: int = spaces // self.INDENT_SPACES
         if indent > self._current_indent:
             # found one or more indentations
             for _ in range(indent - self._current_indent):
-                self._add_token(TokenType.INDENT)
+                self._add_token(TokenType.INDENT, start, spaces)
         elif indent < self._current_indent:
             # found one or more dedentations
             for _ in range(self._current_indent - indent):
-                self._add_token(TokenType.DEDENT)
+                self._add_token(TokenType.DEDENT, start, spaces)
 
         # store the current amount of indentations
         self._current_indent: int = indent

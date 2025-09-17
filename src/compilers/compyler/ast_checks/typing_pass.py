@@ -37,7 +37,7 @@ from ..types.types import Types
 from ..types.numeric_type import NumericType
 from ..types.numeric_type_type import NumericTypeType
 from ..utils.ast import AST
-from ..utils.utils import Utils
+from ..utils.source_location import SourceLocation
 
 
 class TypingPass:
@@ -142,7 +142,7 @@ class TypingPass:
                 self.parse_expression(statement.value)
             case ReturnStatement():
                 # TODO: we need an actual token here
-                token: StringToken = StringToken(1, "return")
+                token: StringToken = StringToken(SourceLocation(1, 1), "return")
                 # we only need to type check the return statement, the rest is already done at this point
                 function_return_type: Type = self._function_stack[-1]
                 non_void: bool = function_return_type.non_void()
@@ -264,7 +264,7 @@ class TypingPass:
                         message: str = f"expected numeric type for unary expression '{expression.expression_type.name}'"
                         message += f", found '{inner_type.keyword}'!"
                         # TODO: fix the token passed
-                        self.ast_error(message, NumberToken(1, 1))
+                        self.ast_error(message, NumberToken(SourceLocation(1, 1), 1))
                     return inner_type
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
@@ -367,13 +367,4 @@ class TypingPass:
 
     def ast_error(self, message: str, token: Token) -> NoReturn:
         """constructs and raises an AStError"""
-        # fill in the filename that we're compiling
-        filename: str = str(self._ast.filename.resolve())
-
-        # extract the line number from the token
-        line: int = token.line
-
-        # extract the source code line from the file
-        source_line: str = Utils.get_source_line(self._ast.filename, line)
-
-        raise AstError(message, filename, line, source_line)
+        raise AstError(message, self._ast.filename, token.source_location)
