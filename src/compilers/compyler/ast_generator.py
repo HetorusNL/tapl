@@ -29,6 +29,7 @@ from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
 from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
+from .types.types import Types
 from .utils.ast import AST
 from .utils.colors import Colors
 from .utils.stream import Stream
@@ -36,10 +37,11 @@ from .utils.utils import Utils
 
 
 class AstGenerator:
-    def __init__(self, filename: Path, token_stream: Stream[Token]):
+    def __init__(self, filename: Path, token_stream: Stream[Token], types: Types):
         self._token_stream: Stream[Token] = token_stream
         self._tokens: list[Token] = token_stream.objects
         self._filename: Path = filename
+        self._types: Types = types
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0
@@ -596,7 +598,7 @@ class AstGenerator:
     def generate(self) -> AST:
         """parses the token stream to a list of statements, until EOF is reached"""
         errors: list[TaplError] = []
-        ast: AST = AST(self._filename)
+        ast: AST = AST(self._filename, self._types)
         while not self.is_at_end():
             try:
                 ast.append(self.statement())

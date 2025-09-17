@@ -43,8 +43,8 @@ from ..utils.utils import Utils
 class TypingPass:
     def __init__(self, ast: AST):
         self._ast: AST = ast
-        # TODO: get the types from AST, for now create a new one
-        self._types = Types()
+        # extract the types as determined during the type resolving pass
+        self._types: Types = ast.types
         # store a list of scopes that stores the variable name and its type
         # pre-populate the scopes list with the (empty) outer scope
         self._scopes: list[dict[str, Type]] = [{}]
