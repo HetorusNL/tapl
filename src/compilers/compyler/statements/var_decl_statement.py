@@ -8,38 +8,21 @@ from ..expressions.expression import Expression
 from .statement import Statement
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.type_token import TypeToken
+from ..utils.source_location import SourceLocation
 
 
 class VarDeclStatement(Statement):
     def __init__(self, type_token: TypeToken, name: IdentifierToken, initial_value: Expression | None = None):
-        super().__init__()
-        self._type_token: TypeToken = type_token
-        self._name: IdentifierToken = name
-        self._initial_value: Expression | None = initial_value
+        # formulate the source location from the type name and initial value, if passed
+        source_location: SourceLocation = type_token.source_location + name.source_location
+        if initial_value:
+            source_location += initial_value.source_location
+        super().__init__(source_location)
 
-    @property
-    def type_token(self) -> TypeToken:
-        return self._type_token
-
-    @type_token.setter
-    def type_token(self, type_token: TypeToken) -> None:
-        self._type_token: TypeToken = type_token
-
-    @property
-    def name(self) -> IdentifierToken:
-        return self._name
-
-    @name.setter
-    def name(self, name: IdentifierToken) -> None:
-        self._name: IdentifierToken = name
-
-    @property
-    def initial_value(self) -> Expression | None:
-        return self._initial_value
-
-    @initial_value.setter
-    def initial_value(self, initial_value: Expression | None) -> None:
-        self._initial_value: Expression | None = initial_value
+        # store the rest of the variables in the class
+        self.type_token: TypeToken = type_token
+        self.name: IdentifierToken = name
+        self.initial_value: Expression | None = initial_value
 
     def c_code(self) -> str:
         keyword: str = self.type_token.type_.keyword
@@ -57,4 +40,4 @@ class VarDeclStatement(Statement):
         return f"{self.type_token.type_.keyword} {self.name.value}"
 
     def __repr__(self) -> str:
-        return f"<VarDeclStatement {self.type_token.type_.keyword} {self.name.value}"
+        return f"<VarDeclStatement: location {self.source_location}, {self.type_token.type_.keyword} {self.name.value}"

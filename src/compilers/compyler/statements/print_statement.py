@@ -7,21 +7,16 @@
 from ..expressions.expression import Expression
 from ..expressions.token_expression import TokenExpression
 from .statement import Statement
+from ..tokens.token import Token
 from ..tokens.token_type import TokenType
+from ..utils.source_location import SourceLocation
 
 
 class PrintStatement(Statement):
-    def __init__(self, value: Expression):
-        super().__init__()
-        self._value: Expression = value
-
-    @property
-    def value(self) -> Expression:
-        return self._value
-
-    @value.setter
-    def value(self, value: Expression) -> None:
-        self._value: Expression = value
+    def __init__(self, token: Token, value: Expression):
+        source_location: SourceLocation = token.source_location + value.source_location
+        super().__init__(source_location)
+        self.value: Expression = value
 
     def c_code(self) -> str:
         expression: str = self.value.c_code()
@@ -39,4 +34,4 @@ class PrintStatement(Statement):
         return f"print({self.value.__str__()})"
 
     def __repr__(self) -> str:
-        return f"<PrintStatement {self.value.__repr__()}>"
+        return f"<PrintStatement: location {self.source_location}, {self.value.__repr__()}>"

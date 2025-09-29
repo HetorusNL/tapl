@@ -6,6 +6,8 @@
 
 from ..expressions.expression import Expression
 from .statement import Statement
+from ..tokens.token import Token
+from ..utils.source_location import SourceLocation
 
 
 class ForLoopStatement(Statement):
@@ -15,45 +17,30 @@ class ForLoopStatement(Statement):
     """
 
     def __init__(
-        self, init: Statement | None, check: Expression | None, loop: Expression | None, statements: list[Statement]
+        self,
+        token: Token,
+        init: Statement | None,
+        check: Expression | None,
+        loop: Expression | None,
+        statements: list[Statement],
     ):
-        super().__init__()
-        self._init: Statement | None = init
-        self._check: Expression | None = check
-        self._loop: Expression | None = loop
-        self._statements: list[Statement] = statements
+        # formulate the source location of the for loop
+        source_location: SourceLocation = token.source_location
+        if init:
+            source_location += init.source_location
+        if check:
+            source_location += check.source_location
+        if loop:
+            source_location += loop.source_location
+        for statement in statements:
+            source_location += statement.source_location
+        super().__init__(source_location)
 
-    @property
-    def init(self) -> Statement | None:
-        return self._init
-
-    @init.setter
-    def init(self, init: Statement) -> None:
-        self._init: Statement | None = init
-
-    @property
-    def check(self) -> Expression | None:
-        return self._check
-
-    @check.setter
-    def check(self, check: Expression) -> None:
-        self._check: Expression | None = check
-
-    @property
-    def loop(self) -> Expression | None:
-        return self._loop
-
-    @loop.setter
-    def loop(self, loop: Expression) -> None:
-        self._loop: Expression | None = loop
-
-    @property
-    def statements(self) -> list[Statement]:
-        return self._statements
-
-    @statements.setter
-    def statements(self, statements: list[Statement]) -> None:
-        self._statements: list[Statement] = statements
+        # store the rest of the variables in the class
+        self.init: Statement | None = init
+        self.check: Expression | None = check
+        self.loop: Expression | None = loop
+        self.statements: list[Statement] = statements
 
     def c_code(self) -> str:
         # construct the for-loop statement
@@ -79,4 +66,6 @@ class ForLoopStatement(Statement):
         return f"for ({self.init.__str__()}; {self.check.__str__()}; {self.loop.__str__()}): ..."
 
     def __repr__(self) -> str:
-        return f"<ForLoopStatement {self.init.__repr__()} {self.check.__repr__()} {self.loop.__repr__()}>"
+        string: str = f"<ForLoopStatement: location {self.source_location},"
+        string += f" {self.init.__repr__()} {self.check.__repr__()} {self.loop.__repr__()}>"
+        return string

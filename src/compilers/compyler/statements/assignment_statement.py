@@ -7,29 +7,15 @@
 from ..expressions.expression import Expression
 from .statement import Statement
 from ..tokens.identifier_token import IdentifierToken
+from ..utils.source_location import SourceLocation
 
 
 class AssignmentStatement(Statement):
     def __init__(self, identifier_token: IdentifierToken, value: Expression):
-        super().__init__()
-        self._identifier_token: IdentifierToken = identifier_token
-        self._value: Expression = value
-
-    @property
-    def identifier_token(self) -> IdentifierToken:
-        return self._identifier_token
-
-    @identifier_token.setter
-    def identifier_token(self, identifier_token: IdentifierToken) -> None:
-        self._identifier_token: IdentifierToken = identifier_token
-
-    @property
-    def value(self) -> Expression:
-        return self._value
-
-    @value.setter
-    def value(self, value: Expression) -> None:
-        self._value: Expression = value
+        source_location: SourceLocation = identifier_token.source_location + value.source_location
+        super().__init__(source_location)
+        self.identifier_token: IdentifierToken = identifier_token
+        self.value: Expression = value
 
     def c_code(self) -> str:
         identifier: str = self.identifier_token.value
@@ -47,4 +33,4 @@ class AssignmentStatement(Statement):
         identifier: str = self.identifier_token.value
         value: str = self.value.__repr__()
 
-        return f"<AssignmantStatement {identifier} = {value}>"
+        return f"<AssignmantStatement: location {self.source_location}, {identifier} = {value}>"

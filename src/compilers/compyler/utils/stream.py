@@ -20,22 +20,17 @@ class Stream[T]:
     """
 
     def __init__(self):
-        self._objects: list[T] = []
+        self.objects: list[T] = []
         self._index: int = 0
-
-    @property
-    def objects(self) -> list[T]:
-        """returns the internal objects list"""
-        return self._objects
 
     def add(self, *objs: T) -> "Stream[T]":
         """extend the stream with the objects provided"""
-        self._objects.extend(objs)
+        self.objects.extend(objs)
         return self
 
     def last(self) -> T | None:
-        if self._objects:
-            return self._objects[-1]
+        if self.objects:
+            return self.objects[-1]
         return None
 
     def iter(self) -> Iterator[T]:
@@ -44,17 +39,17 @@ class Stream[T]:
         note that the internal state of the iterators from this function are shared!
         """
         self._index = 0
-        while self._index < len(self._objects):
+        while self._index < len(self.objects):
             self._index += 1
-            yield self._objects[self._index - 1]
+            yield self.objects[self._index - 1]
 
     def iter_next(self) -> T:
         """returns the object after the last object returned by the iterator,
         initially the index is set to 0, so the first object is returned.
         raises a StreamError if there is no next object
         """
-        if self._index < len(self._objects):
-            return self._objects[self._index]
+        if self._index < len(self.objects):
+            return self.objects[self._index]
         raise StreamError("outside of stream's objects!")
 
     def replace(self, count: int, replacement: T) -> None:
@@ -68,24 +63,24 @@ class Stream[T]:
         # sanity check the instance's index
         if self._index == 0:
             raise StreamError("invalid state of the iterator!")
-        if self._index > len(self._objects) + 1:
+        if self._index > len(self.objects) + 1:
             raise StreamError("iterator is outside of stream's objects!")
 
         # speed up the edge case where count is 1, replace the object
         if count == 1:
-            self._objects[self._index - 1] = replacement
+            self.objects[self._index - 1] = replacement
             return
 
         # other cases, delete count objects (when nonzero count)
         if count != 0:
             # check that we can delete count objects
-            if self._index + count - 1 > len(self._objects):
+            if self._index + count - 1 > len(self.objects):
                 raise StreamError("can't replace this many objects")
             # success, delete the objects
-            del self._objects[self._index - 1 : self._index - 1 + count]
+            del self.objects[self._index - 1 : self._index - 1 + count]
         # and add replacement
-        self._objects.insert(self._index - 1, replacement)
+        self.objects.insert(self._index - 1, replacement)
 
     def __len__(self) -> int:
         """returns the length of the objects currently in the stream"""
-        return len(self._objects)
+        return len(self.objects)

@@ -147,7 +147,8 @@ class AstGenerator:
 
     def for_loop_statement(self) -> ForLoopStatement | None:
         # early return if we don't have a for-loop statement
-        if not self.match(TokenType.FOR):
+        token: Token | None = self.match(TokenType.FOR)
+        if not token:
             return None
 
         # otherwise we have an (already consumed) for-loop statement
@@ -176,7 +177,7 @@ class AstGenerator:
         statements: list[Statement] = self._statement_block()
 
         # return the finished for-loop statement
-        return ForLoopStatement(init, check, loop, statements)
+        return ForLoopStatement(token, init, check, loop, statements)
 
     def _type_statement(self, must_end_with_newline: bool) -> FunctionStatement | VarDeclStatement | None:
         """returns a statement starting with a type, or None otherwise"""
@@ -254,7 +255,8 @@ class AstGenerator:
 
     def _single_if_statement(self, if_statement: IfStatement | None = None) -> IfStatement | None:
         # early return if we don't have an if statement
-        if not self.match(TokenType.IF):
+        token: Token | None = self.match(TokenType.IF)
+        if not token:
             return None
 
         # otherwise we have an (already consumed) if statement
@@ -275,7 +277,7 @@ class AstGenerator:
             return if_statement
 
         # otherwise return a new if statement
-        return IfStatement(expression, statements)
+        return IfStatement(token, expression, statements)
 
     def if_statement(self) -> IfStatement | None:
         statement: IfStatement | None = self._single_if_statement()
@@ -309,7 +311,8 @@ class AstGenerator:
 
     def print_statement(self) -> PrintStatement | None:
         # early return if we don't have a print statement
-        if not self.match(TokenType.PRINT):
+        token: Token | None = self.match(TokenType.PRINT)
+        if not token:
             return
 
         # match an expression between parenthesis
@@ -320,11 +323,12 @@ class AstGenerator:
         # statements should end with a newline
         self.expect_newline()
 
-        return PrintStatement(value)
+        return PrintStatement(token, value)
 
     def return_statement(self) -> ReturnStatement | None:
         # early return if we don't have a return statement
-        if not self.match(TokenType.RETURN):
+        token: Token | None = self.match(TokenType.RETURN)
+        if not token:
             return
 
         # check if we're allowed to return, error otherwise
@@ -334,7 +338,7 @@ class AstGenerator:
         # check if we have a newline
         if self.match(TokenType.NEWLINE, TokenType.EOF):
             # return the statement without value
-            return ReturnStatement()
+            return ReturnStatement(token)
 
         # otherwise expect an expression to return
         expression: Expression = self.expression()
@@ -342,7 +346,7 @@ class AstGenerator:
         # statements should end with a newline
         self.expect_newline()
 
-        return ReturnStatement(expression)
+        return ReturnStatement(token, expression)
 
     def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
         # the _type_statement function already checked the tokens for us
@@ -365,7 +369,8 @@ class AstGenerator:
     def while_loop_statement(self) -> ForLoopStatement | None:
         # will generate a for loop statement if a while loop is found
         # early return if we don't have a while-loop statement
-        if not self.match(TokenType.WHILE):
+        token: Token | None = self.match(TokenType.WHILE)
+        if not token:
             return None
 
         # otherwise we have an (already consumed) while-loop statement
@@ -380,7 +385,7 @@ class AstGenerator:
         statements: list[Statement] = self._statement_block()
 
         # return the finished while-loop as a for-loop statement
-        return ForLoopStatement(None, check, None, statements)
+        return ForLoopStatement(token, None, check, None, statements)
 
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""

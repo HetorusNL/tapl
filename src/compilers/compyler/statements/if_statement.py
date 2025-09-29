@@ -6,48 +6,28 @@
 
 from ..expressions.expression import Expression
 from .statement import Statement
+from ..tokens.token import Token
+from ..utils.source_location import SourceLocation
 
 
 class IfStatement(Statement):
-    def __init__(self, expression: Expression, statements: list[Statement]):
-        super().__init__()
-        self._expression: Expression = expression
-        self._statements: list[Statement] = statements
-        self._else_if_statement_blocks: list[tuple[Expression, list[Statement]]] = []
-        self._else_statements: list[Statement] | None = None
+    def __init__(self, token: Token, expression: Expression, statements: list[Statement]):
+        # formulate the source location of the expression and statements
+        source_location: SourceLocation = token.source_location + expression.source_location
+        for statement in statements:
+            source_location += statement.source_location
+        super().__init__(source_location)
 
-    @property
-    def expression(self) -> Expression:
-        return self._expression
-
-    @expression.setter
-    def expression(self, expression: Expression) -> None:
-        self._expression: Expression = expression
-
-    @property
-    def statements(self) -> list[Statement]:
-        return self._statements
-
-    @statements.setter
-    def statements(self, statements: list[Statement]) -> None:
-        self._statements: list[Statement] = statements
-
-    @property
-    def else_if_statement_blocks(self) -> list[tuple[Expression, list[Statement]]]:
-        return self._else_if_statement_blocks
+        # store the rest of the variables in the class
+        self.expression: Expression = expression
+        self.statements: list[Statement] = statements
+        self.else_if_statement_blocks: list[tuple[Expression, list[Statement]]] = []
+        self.else_statements: list[Statement] | None = None
 
     def add_else_if_statement_block(self, expression: Expression, statement_block: list[Statement]) -> None:
-        self._else_if_statement_blocks.append((expression, statement_block))
+        self.else_if_statement_blocks.append((expression, statement_block))
 
-    @property
-    def else_statements(self) -> list[Statement] | None:
-        return self._else_statements
-
-    @else_statements.setter
-    def else_statements(self, statements: list[Statement]) -> None:
-        self._else_statements: list[Statement] | None = statements
-
-    def add_if_statement(self, code: str | None, expression: Expression, statements: list[Statement]) -> str:
+    def _construct_if_statement(self, code: str | None, expression: Expression, statements: list[Statement]) -> str:
         # add the expression in the if statement
         new_code: str = f"if ({expression.c_code()}) {{\n"
         # add the statements of the if block
@@ -64,14 +44,14 @@ class IfStatement(Statement):
 
     def c_code(self) -> str:
         # construct the if statement
-        code: str = self.add_if_statement(None, self.expression, self.statements)
+        code: str = self._construct_if_statement(None, self.expression, self.statements)
 
         # add the else if blocks if they exist
         for else_expression, statements in self.else_if_statement_blocks:
             # add the else line
             code += f" else "
             # add the else-if statement
-            code: str = self.add_if_statement(code, else_expression, statements)
+            code: str = self._construct_if_statement(code, else_expression, statements)
 
         # add the else block if it exists
         if self.else_statements is not None:
@@ -88,4 +68,4 @@ class IfStatement(Statement):
         return f"if ({self.expression.__str__()}): ..."
 
     def __repr__(self) -> str:
-        return f"<IfStatement {self.expression.__repr__()}>"
+        return f"<IfStatement: location {self.source_location}, {self.expression.__repr__()}>"

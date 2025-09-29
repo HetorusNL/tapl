@@ -19,8 +19,8 @@ class NumericType(Type):
     ):
         super().__init__(keyword, syntactic_sugar=syntactic_sugar, underlying_type=underlying_type)
         self._promotions: list[Type] = []
-        self._numeric_type_type: NumericTypeType = numeric_type_type
-        self._num_bits: int = num_bits
+        self.numeric_type_type: NumericTypeType = numeric_type_type
+        self.num_bits: int = num_bits
 
     def add_promotions(self, *promotions: "Type") -> None:
         """add promotions to which this type can promote to"""
@@ -33,11 +33,3 @@ class NumericType(Type):
     def can_promote_to(self, other: "Type") -> bool:
         """check if this type can be promoted (or is of same type) as other"""
         return other == self or other in self.get_promotions()
-
-    @property
-    def numeric_type_type(self) -> NumericTypeType:
-        return self._numeric_type_type
-
-    @property
-    def num_bits(self) -> int:
-        return self._num_bits

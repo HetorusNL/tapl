@@ -6,20 +6,20 @@
 
 from ..expressions.expression import Expression
 from .statement import Statement
+from ..tokens.token import Token
+from ..utils.source_location import SourceLocation
 
 
 class ReturnStatement(Statement):
-    def __init__(self, value: Expression | None = None):
-        super().__init__()
-        self._value: Expression | None = value
+    def __init__(self, token: Token, value: Expression | None = None):
+        # formulate the source location of the return statement
+        source_location: SourceLocation = token.source_location
+        if value:
+            source_location += value.source_location
+        super().__init__(source_location)
 
-    @property
-    def value(self) -> Expression | None:
-        return self._value
-
-    @value.setter
-    def value(self, value: Expression) -> None:
-        self._value: Expression | None = value
+        # store the rest of the variables in the class
+        self.value: Expression | None = value
 
     def c_code(self) -> str:
         if self.value:
@@ -31,4 +31,4 @@ class ReturnStatement(Statement):
         return f"return {self.value.__str__()}"
 
     def __repr__(self) -> str:
-        return f"<ReturnStatement {self.value.__repr__()}>"
+        return f"<ReturnStatement: location {self.source_location}, {self.value.__repr__()}>"
