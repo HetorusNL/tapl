@@ -29,7 +29,6 @@ from ..statements.var_decl_statement import VarDeclStatement
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
 from ..tokens.string_token import StringToken
-from ..tokens.token import Token
 from ..tokens.type_token import TypeToken
 from ..tokens.token_type import TokenType
 from ..types.type import Type
@@ -82,7 +81,7 @@ class TypingPass:
                 # check that the expression is of this type
                 value_type: Type = self.parse_expression(statement.value)
                 # check that returned type and requested are valid
-                self._check_types(requested_type, value_type, statement.identifier_token)
+                self._check_types(requested_type, value_type, statement.value.source_location)
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -141,28 +140,29 @@ class TypingPass:
                 # check the expression
                 self.parse_expression(statement.value)
             case ReturnStatement():
-                # TODO: we need an actual token here
-                token: StringToken = StringToken(SourceLocation(1, 1), "return")
                 # we only need to type check the return statement, the rest is already done at this point
                 function_return_type: Type = self._function_stack[-1]
                 non_void: bool = function_return_type.non_void()
                 if non_void and not statement.value:
                     # if non_void, we need a return value
-                    self.ast_error(f"non-void function expects a return value!", token)
+                    self.ast_error(f"non-void function expects a return value!", statement.source_location)
                 if not non_void and statement.value:
                     # if void, we don't want a return value
-                    self.ast_error(f"void function expects no return value, found '{statement.value}'!", token)
+                    message: str = f"void function expects no return value, found '{statement.value}'!"
+                    source_location: SourceLocation = statement.value.source_location
+                    self.ast_error(message, source_location)
                 if statement.value:
                     return_value_type: Type = self.parse_expression(statement.value)
+                    source_location: SourceLocation = statement.value.source_location
                     try:
                         # perform type checking on the requested return type and provided return value,
                         # and catch an exception if it occurs
-                        self._check_types(function_return_type, return_value_type, token)
+                        self._check_types(function_return_type, return_value_type, source_location)
                     except TaplError:
                         # the type check failed, formulate a nice error for the user
                         message: str = f"expected return value of type '{function_return_type.keyword}', "
                         message += f"but found '{return_value_type.keyword}'!"
-                        self.ast_error(message, token)
+                        self.ast_error(message, source_location)
             case VarDeclStatement():
                 # add the variable declaration to the scope (we may need it already when testing the initial value)
                 self._add_identifier(statement.name, statement.type_token.type_)
@@ -173,7 +173,7 @@ class TypingPass:
                     # check that the expression is of this type
                     value_type: Type = self.parse_expression(initial_value)
                     # check that returned type and requested are valid
-                    self._check_types(requested_type, value_type, statement.name)
+                    self._check_types(requested_type, value_type, initial_value.source_location)
             case _:
                 assert False, f"internal compiler error, {type(statement)} not handled!"
 
@@ -185,7 +185,7 @@ class TypingPass:
                 # check the left and right expression of the binary expression
                 type_left: Type = self.parse_expression(expression.left)
                 type_right: Type = self.parse_expression(expression.right)
-                return self._check_types(type_left, type_right, expression.token)
+                return self._check_types(type_left, type_right, expression.source_location)
             case CallExpression():
                 # check that the expression is callable
                 if function := self._functions.get(expression.name.value):
@@ -195,7 +195,7 @@ class TypingPass:
                     if len(function.arguments) != len(expression.arguments):
                         message: str = f"'{expression.name}' expected {required_arguments} argument(s), "
                         message += f"but {passed_arguments} were passed!"
-                        self.ast_error(message, expression.name)
+                        self.ast_error(message, expression.source_location)
                     # for all arguments, check the types
                     for arg_index in range(required_arguments):
                         # get the type of the required argument
@@ -204,22 +204,22 @@ class TypingPass:
                         # get the type of the passed argument
                         passed_argument: Expression = expression.arguments[arg_index]
                         passed_argument_type: Type = self.parse_expression(passed_argument)
+                        source_location: SourceLocation = passed_argument.source_location
                         # check that the types are correct
-                        # TODO: update token here to the actual argument
-                        error_token: IdentifierToken = expression.name
                         try:
                             # perform the type check, and catch an exception if it occurs
-                            self._check_types(required_argument_type, passed_argument_type, error_token)
+                            self._check_types(required_argument_type, passed_argument_type, source_location)
                         except TaplError:
                             # the type check failed, formulate a nice error for the user
                             message: str = f"expected 'argument {arg_index+1}' of type "
                             message += f"'{required_argument_type.keyword}', "
                             message += f"but found '{passed_argument_type.keyword}'!"
-                            self.ast_error(message, error_token)
+                            self.ast_error(message, source_location)
                     # return the return type of the function
                     return self._get_type(expression.name)
                 else:
-                    self.ast_error(f"identifier '{expression.name.value}' is not callable!", expression.name)
+                    source_location: SourceLocation = expression.name.source_location
+                    self.ast_error(f"identifier '{expression.name.value}' is not callable!", source_location)
             case TokenExpression():
                 match expression.token:
                     case NumberToken():
@@ -252,7 +252,7 @@ class TypingPass:
                     return cast_to_type
                 else:
                     message: str = f"cannot type cast from '{inner_type.keyword}' to '{cast_to_type.keyword}'!"
-                    self.ast_error(message, expression.cast_to)
+                    self.ast_error(message, expression.source_location)
             case UnaryExpression():
                 inner_type: Type = self.parse_expression(expression.expression)
                 if expression.expression_type == ExpressionType.GROUPING:
@@ -263,8 +263,7 @@ class TypingPass:
                     if not isinstance(inner_type, NumericType):
                         message: str = f"expected numeric type for unary expression '{expression.expression_type.name}'"
                         message += f", found '{inner_type.keyword}'!"
-                        # TODO: fix the token passed
-                        self.ast_error(message, NumberToken(SourceLocation(1, 1), 1))
+                        self.ast_error(message, expression.expression.source_location)
                     return inner_type
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
@@ -274,7 +273,7 @@ class TypingPass:
         if identifier_type != target_type:
             message: str = f"identifier {identifier_token.value} is of type {identifier_type.keyword}, "
             message += f"cannot assign value of type {target_type.keyword}!"
-            self.ast_error(message, identifier_token)
+            self.ast_error(message, identifier_token.source_location)
 
     def _get_type(self, identifier_token: IdentifierToken) -> Type:
         """checks that the type of the identifier_token matches the type provided"""
@@ -285,7 +284,7 @@ class TypingPass:
                 return identifier_type
         assert False, f"internal compiler error, {identifier} not found in scopes!"
 
-    def _check_types(self, left: Type, right: Type, token: Token) -> Type:
+    def _check_types(self, left: Type, right: Type, source_location: SourceLocation) -> Type:
         # TODO: we should check the size of a base type if the other side is no base type with _check_number_token(...)
         # check if they are both number types
         if isinstance(left, NumericType) and isinstance(right, NumericType):
@@ -307,7 +306,7 @@ class TypingPass:
         # TODO: allow for a custom error message in this function
         # otherwise we have conflicting types, generate an error
         message: str = f"invalid types provided, '{left.keyword}' and '{right.keyword}' can't be used together!"
-        self.ast_error(message, token)
+        self.ast_error(message, source_location)
 
     def _check_number_token(self, requested_type: Type, expression: TokenExpression) -> Type:
         # TODO: add num bits to the token itself, instead of calculating it here
@@ -335,7 +334,7 @@ class TypingPass:
         if value < min_value or value > max_value:
             message: str = f"can't assign '{value}' to '{requested_type.keyword}', "
             message += f"value must be between [{min_value}, {max_value}]!"
-            self.ast_error(message, expression.token)
+            self.ast_error(message, expression.source_location)
 
         # all checks passed, return the requested type
         return requested_type
@@ -345,7 +344,7 @@ class TypingPass:
         identifier: str = identifier_token.value
         # check in the innermost scope if the identifier already exists
         if identifier in self._scopes[-1]:
-            self.ast_error(f"identifier '{identifier}' already exists!", identifier_token)
+            self.ast_error(f"identifier '{identifier}' already exists!", identifier_token.source_location)
 
         # otherwise add the identifier in the innermost scope
         self._scopes[-1][identifier] = type_
@@ -365,6 +364,6 @@ class TypingPass:
             print(f"leaving scope with identifiers: {{{', '.join(self._scopes[-1].keys())}}}")
             del self._scopes[-1]
 
-    def ast_error(self, message: str, token: Token) -> NoReturn:
+    def ast_error(self, message: str, source_location: SourceLocation) -> NoReturn:
         """constructs and raises an AStError"""
-        raise AstError(message, self._ast.filename, token.source_location)
+        raise AstError(message, self._ast.filename, source_location)

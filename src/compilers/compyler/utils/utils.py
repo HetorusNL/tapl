@@ -28,8 +28,8 @@ class Utils:
             return -1
 
         # return the number of newlines until the SourceLocation start
-        location_start: int = source_location.start + 1
-        return content[:location_start].count("\n")
+        location_start: int = source_location.start
+        return content[:location_start].count("\n") + 1
 
     @classmethod
     def get_source_line(cls, filename: Path, line: int):

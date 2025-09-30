@@ -28,6 +28,7 @@ from ..statements.var_decl_statement import VarDeclStatement
 from ..tokens.identifier_token import IdentifierToken
 from ..types.type import Type
 from ..utils.ast import AST
+from ..utils.source_location import SourceLocation
 
 
 class ScopingPass:
@@ -169,14 +170,14 @@ class ScopingPass:
                 return identifier_type
 
         # the identifier doesn't exist, raise an error
-        self.ast_error(f"unknown identifier '{identifier}'!", identifier_token)
+        self.ast_error(f"unknown identifier '{identifier}'!", identifier_token.source_location)
 
     def _add_identifier(self, identifier_token: IdentifierToken, type_: Type):
         """first checks if the identifier already exists in innermost scope, otherwise adds identifier"""
         identifier: str = identifier_token.value
         # check in the innermost scope if the identifier already exists
         if identifier in self._scopes[-1]:
-            self.ast_error(f"identifier '{identifier}' already exists!", identifier_token)
+            self.ast_error(f"identifier '{identifier}' already exists!", identifier_token.source_location)
 
         # otherwise add the identifier in the innermost scope
         self._scopes[-1][identifier] = type_
@@ -196,6 +197,6 @@ class ScopingPass:
             print(f"leaving scope with identifiers: {{{', '.join(self._scopes[-1].keys())}}}")
             del self._scopes[-1]
 
-    def ast_error(self, message: str, token: IdentifierToken) -> NoReturn:
+    def ast_error(self, message: str, source_location: SourceLocation) -> NoReturn:
         """constructs and raises an AStError"""
-        raise AstError(message, self._ast.filename, token.source_location)
+        raise AstError(message, self._ast.filename, source_location)
