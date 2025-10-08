@@ -58,8 +58,6 @@ uv run -m src.compilers.compyler /path/to/file.tim
   - support pointers?
   - after supporting pointers, refactor 0 to NULL
 - fix todos in the typing pass:
-  - add the SourceLocation to statements
-  - refactor the obscure error handling in typing pass to SourceLocation
   - add fancy error-highlighting/pointing in the source code line(s)
 - allow type 'upscaling', e.g. u8 -> u16 -> u32 -> u64, in typing pass
 - add language server

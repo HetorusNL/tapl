@@ -21,6 +21,7 @@ class TokenType(Enum):
     PAREN_OPEN = "("
     PLUS = "+"
     SEMICOLON = ";"
+    TILDE = "~"
 
     # single or double character tokens
     EQUAL = "="

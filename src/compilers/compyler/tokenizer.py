@@ -80,6 +80,8 @@ class Tokenizer:
                         self._add_token_of_length(TokenType.PLUS)
                 case TokenType.SEMICOLON.value:
                     self._add_token_of_length(TokenType.SEMICOLON)
+                case TokenType.TILDE.value:
+                    self._add_token_of_length(TokenType.TILDE)
                 # match all single- or double-character tokens
                 case TokenType.EQUAL.value:
                     if self._consume(TokenType.EQUAL.value):

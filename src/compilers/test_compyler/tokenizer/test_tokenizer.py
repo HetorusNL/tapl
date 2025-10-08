@@ -122,6 +122,7 @@ class TestTokenizer(unittest.TestCase):
             TokenType.PAREN_CLOSE,
             TokenType.PLUS,
             TokenType.SEMICOLON,
+            TokenType.TILDE,
             TokenType.INCREMENT,
             TokenType.DECREMENT,
             TokenType.NEWLINE,
