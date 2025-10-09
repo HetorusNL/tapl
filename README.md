@@ -45,6 +45,13 @@ Run the following command to compile and execute any tim file:
 uv run -m src.compilers.compyler /path/to/file.tim
 ```
 
+## Needed before AoC
+
+- classes
+- collections: list/hmap
+- file input (/ output)
+- string formatting
+
 ## TODO
 
 - fix open TODOs in `tokenizer.py`

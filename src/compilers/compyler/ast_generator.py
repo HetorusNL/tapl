@@ -17,10 +17,13 @@ from .expressions.token_expression import TokenExpression
 from .expressions.type_cast_expression import TypeCastExpression
 from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
+from .statements.class_statement import ClassStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.for_loop_statement import ForLoopStatement
 from .statements.function_statement import FunctionStatement
 from .statements.if_statement import IfStatement
+from .statements.lifecycle_statement import LifecycleStatement
+from .statements.lifecycle_statement_type import LifecycleStatementType
 from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
 from .statements.statement import Statement
@@ -29,6 +32,7 @@ from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
 from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
+from .types.type import Type
 from .types.types import Types
 from .utils.ast import AST
 from .utils.source_location import SourceLocation
@@ -131,7 +135,7 @@ class AstGenerator:
         # this is an assignment, consume the identifier
         identifier = self.match(TokenType.IDENTIFIER)
         # make sure the type is correct to please the type analyzer
-        assert type(identifier) is IdentifierToken
+        assert type(identifier) == IdentifierToken
 
         # consume the equal
         self.expect(TokenType.EQUAL)
@@ -387,6 +391,160 @@ class AstGenerator:
         # return the finished while-loop as a for-loop statement
         return ForLoopStatement(token, None, check, None, statements)
 
+    def _finish_lifecycle_statement(self, lifecycle_statement: LifecycleStatement) -> LifecycleStatement:
+        # after the lifecycle statement definition itself, we expect a colon
+        self.expect(TokenType.COLON)
+        # followed by a newline
+        self.expect_newline()
+
+        # we're inside a lifecycle statement, allow return statements here
+        self._can_return = True
+
+        # continue with the body of the lifecycle statement
+        statements: list[Statement] = self._statement_block()
+        # add them to the lifecycle statement
+        lifecycle_statement.statements = statements
+
+        # we've finished parsing the lifecycle statement statements, don't allow return statements from now on
+        self._can_return = False
+
+        # return the finished lifecycle statement
+        return lifecycle_statement
+
+    def _constructor(self, type_: Type) -> LifecycleStatement | None:
+        # early return if we don't have the class type
+        name: Token | None = self.match(TokenType.TYPE)
+        if not name:
+            return None
+        assert type(name) == TypeToken
+        # early return if we found a different type
+        if name.type_ != type_:
+            self.ast_error(f"expected {type_} in constructor, but found {name.type_}!")
+
+        # start constructing the constructor lifecycle statement
+        statement_type: LifecycleStatementType = LifecycleStatementType.CONSTRUCTOR
+        constructor: LifecycleStatement = LifecycleStatement(statement_type, type_, name.source_location)
+
+        # constructors start with an opening parenthesis
+        self.expect(TokenType.PAREN_OPEN)
+
+        # check for a closing parenthesis, then we have a constructor without arguments
+        if self.match(TokenType.PAREN_CLOSE):
+            # finished parsing arguments, parse the rest of the constructor
+            return self._finish_lifecycle_statement(constructor)
+
+        # consume type-name constructor arguments
+        while True:
+            argument_type: Token = self.expect(TokenType.TYPE)
+            assert type(argument_type) == TypeToken
+            # test that the argument type is non-void
+            if not argument_type.type_.non_void():
+                self.ast_error("function arguments cannot be of type void!")
+            argument_name: Token = self.expect(TokenType.IDENTIFIER)
+            assert type(argument_name) == IdentifierToken
+            # add the argument to the function statement
+            constructor.add_argument(argument_type, argument_name)
+
+            # if we don't have a comma, it's the end of the argument list
+            if not self.match(TokenType.COMMA):
+                break
+
+        # we must end with a closing parenthesis
+        self.expect(TokenType.PAREN_CLOSE)
+
+        # finished parsing arguments, parse the rest of the constructor
+        return self._finish_lifecycle_statement(constructor)
+
+    def _destructor(self, type_: Type) -> LifecycleStatement | None:
+        # early return if we don't have a tilde
+        tilde: Token | None = self.match(TokenType.TILDE)
+        if not tilde:
+            return None
+
+        # check for the destructor (class) name
+        name: Token | None = self.match(TokenType.TYPE)
+        if not name:
+            self.ast_error(f"expected {type_.keyword} in destructor!")
+        assert type(name) == TypeToken
+        # early return if we found a different type
+        if name.type_ != type_:
+            self.ast_error(f"expected {type_} in destructor, but found {name.type_}!")
+
+        # start constructing the destructor lifecycle statement
+        statement_type: LifecycleStatementType = LifecycleStatementType.DESTRUCTOR
+        destructor: LifecycleStatement = LifecycleStatement(statement_type, type_, name.source_location)
+
+        # destructor should have opening and closing parenthesis without arguments
+        self.expect(TokenType.PAREN_OPEN)
+        self.expect(TokenType.PAREN_CLOSE)
+
+        # parse the rest of the destructor
+        return self._finish_lifecycle_statement(destructor)
+
+    def class_statement(self) -> ClassStatement | None:
+        # will generate a class statement if a class declaration is found
+        # early return if we don't have a class keyword
+        token: Token | None = self.match(TokenType.CLASS)
+        if not token:
+            return None
+
+        # construct the source location of the whole class
+        source_location: SourceLocation = token.source_location
+
+        # consume the class name (which is a type token)
+        name: Token = self.expect(TokenType.TYPE)
+        assert type(name) == TypeToken
+        source_location += name.source_location
+
+        # followed by a colon and newline
+        self.expect(TokenType.COLON)
+        self.expect_newline()
+
+        # check if we have an indented block
+        if not self._has_indent():
+            # otherwise return an empty class without any statement
+            return ClassStatement(name, source_location)
+
+        # construct everything we find in the class until we get to a dedent
+        class_statement: ClassStatement = ClassStatement(name, source_location)
+        while not self.match(TokenType.DEDENT):
+            # check for a var decl or function statement
+            if type_statement := self._type_statement(True):
+                if type(type_statement) == FunctionStatement:
+                    class_statement.functions.append(type_statement)
+                    continue
+                elif type(type_statement) == VarDeclStatement:
+                    class_statement.variables.append(type_statement)
+                    continue
+                else:
+                    message: str = f"expected FunctionStatement or VarDeclStatement, found '{type(type_statement)}'"
+                    raise AstError(message, self._filename, type_statement.source_location)
+
+            # check for a constructor
+            if constructor := self._constructor(name.type_):
+                if class_statement.constructor:
+                    class_name: str = name.type_.keyword
+                    message = f"found a {class_name} constructor while another constructor was already found!"
+                    raise AstError(message, self._filename, constructor.source_location)
+                class_statement.constructor = constructor
+                continue
+
+            # check for a destructor
+            if destructor := self._destructor(name.type_):
+                if class_statement.destructor:
+                    class_name: str = name.type_.keyword
+                    message = f"found a {class_name} destructor while another descructor was already found!"
+                    raise AstError(message, self._filename, destructor.source_location)
+                class_statement.destructor = destructor
+                continue
+
+            message: str = f"expected FunctionStatement, VarDeclStatement, Constructor or Destructor,"
+            message += f" found '{self.current()}'"
+            self.ast_error(message)
+
+        # return the finished class statement
+        return class_statement
+
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""
         # check for a statement starting with a type
@@ -418,7 +576,9 @@ class AstGenerator:
         if statement := self.while_loop_statement():
             return statement
 
-        # TODO: add classes
+        # check for a class 'statement'
+        if statement := self.class_statement():
+            return statement
 
         # fall back to a bare expression statement
         expression: Expression = self.expression()
@@ -615,6 +775,9 @@ class AstGenerator:
                 # continue until we get to a newline, indicating a new statement
                 while not self.match(TokenType.NEWLINE, TokenType.EOF):
                     self.consume()
+                # check if we have consumed the EOF, then don't check for indent/dedent
+                if self.is_at_end():
+                    break
                 # also consume the indent and dedent tokens if they are there
                 while self.match(TokenType.INDENT, TokenType.DEDENT):
                     pass

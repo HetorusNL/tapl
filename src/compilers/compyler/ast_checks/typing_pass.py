@@ -14,6 +14,7 @@ from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
 from .pass_base import PassBase
 from ..statements.assignment_statement import AssignmentStatement
+from ..statements.class_statement import ClassStatement
 from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
@@ -56,6 +57,9 @@ class TypingPass(PassBase):
                 value_type: Type = self.parse_expression(statement.value)
                 # check that returned type and requested are valid
                 self._check_types(requested_type, value_type, statement.value.source_location)
+            case ClassStatement():
+                # TODO: implement
+                pass
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)

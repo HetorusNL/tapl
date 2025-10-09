@@ -12,7 +12,7 @@ class Statement:
         self.source_location: SourceLocation = source_location
 
     def c_code(self) -> str:
-        assert False, f"we can't generate code for a bare statement!"
+        assert False, f"we can't generate code for a {type(self)}!"
 
     def __str__(self) -> str:
         return f""
