@@ -8,6 +8,7 @@ from ..errors.tapl_error import TaplError
 from ..expressions.binary_expression import BinaryExpression
 from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression
+from ..expressions.identifier_expression import IdentifierExpression
 from ..expressions.token_expression import TokenExpression
 from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
@@ -35,8 +36,8 @@ class ScopingPass(PassBase):
         # TODO: refactor this and _parse_expression to a visitor pattern?
         match statement:
             case AssignmentStatement():
-                # check that the identifier exists in the current or outer scopes
-                self._ensure_exists(statement.identifier_token)
+                # check that the this or identifier expression
+                self.parse_expression(statement.expression)
                 # check the value (expression) also for identifiers
                 self.parse_expression(statement.value)
             case ClassStatement():
@@ -116,11 +117,14 @@ class ScopingPass(PassBase):
                 self.parse_expression(expression.left)
                 self.parse_expression(expression.right)
             case CallExpression():
-                # check that the function name exists
-                self._ensure_exists(expression.name)
+                # check that the function name (possibly nested expressions) exists
+                self.parse_expression(expression.expression)
                 # check all argument expressions
                 for argument in expression.arguments:
                     self.parse_expression(argument)
+            case IdentifierExpression():
+                # TODO: implement
+                pass
             case TokenExpression():
                 # check if it is a token expression
                 if type(expression.token) == IdentifierToken:

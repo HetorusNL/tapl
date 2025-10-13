@@ -12,7 +12,9 @@ from .errors.ast_error import AstError
 from .expressions.binary_expression import BinaryExpression
 from .expressions.call_expression import CallExpression
 from .expressions.expression import Expression
+from .expressions.identifier_expression import IdentifierExpression
 from .expressions.unary_expression import UnaryExpression
+from .expressions.this_expression import ThisExpression
 from .expressions.token_expression import TokenExpression
 from .expressions.type_cast_expression import TypeCastExpression
 from .expressions.expression_type import ExpressionType
@@ -48,7 +50,8 @@ class AstGenerator:
 
         # some variables to store the state of the ast generator
         self._current_index: int = 0
-        self._can_return: bool = False
+        self._in_function: bool = False
+        self._in_class: bool = False
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -124,18 +127,13 @@ class AstGenerator:
             statements.append(statement)
         return statements
 
-    def assignment_statement(self, must_end_with_newline: bool) -> AssignmentStatement | None:
-        # check (but don't consume) if we have an identifier token
-        if self.current().token_type != TokenType.IDENTIFIER:
+    def assignment_statement(self, expression: Expression, must_end_with_newline: bool) -> AssignmentStatement | None:
+        # check that we have a ThisExpression or an identifier expression (return otherwise)
+        if not isinstance(expression, (ThisExpression, IdentifierExpression)):
             return
-        # check if there is an assignment (still no consuming)
+        # check, but not consume, if there is an assignment
         if self.next().token_type != TokenType.EQUAL:
             return
-
-        # this is an assignment, consume the identifier
-        identifier = self.match(TokenType.IDENTIFIER)
-        # make sure the type is correct to please the type analyzer
-        assert type(identifier) == IdentifierToken
 
         # consume the equal
         self.expect(TokenType.EQUAL)
@@ -147,7 +145,7 @@ class AstGenerator:
         self.expect_newline(must_end_with_newline=must_end_with_newline)
 
         # return the assignment statement
-        return AssignmentStatement(identifier, value)
+        return AssignmentStatement(expression, value)
 
     def for_loop_statement(self) -> ForLoopStatement | None:
         # early return if we don't have a for-loop statement
@@ -207,7 +205,7 @@ class AstGenerator:
         self.expect_newline()
 
         # we're inside a function, allow return statements here
-        self._can_return = True
+        self._in_function = True  # TODO: make exception-safe
 
         # continue with the body of the function
         statements: list[Statement] = self._statement_block()
@@ -215,7 +213,7 @@ class AstGenerator:
         function_statement.statements = statements
 
         # we've finished parsing the function statements, don't allow return statements from now on
-        self._can_return = False
+        self._in_function = False
 
         # return the finished function statement
         return function_statement
@@ -336,7 +334,7 @@ class AstGenerator:
             return
 
         # check if we're allowed to return, error otherwise
-        if not self._can_return:
+        if not self._in_function:
             self.ast_error(f"return statement is not allowed here!")
 
         # check if we have a newline
@@ -398,7 +396,7 @@ class AstGenerator:
         self.expect_newline()
 
         # we're inside a lifecycle statement, allow return statements here
-        self._can_return = True
+        self._in_function = True  # TODO: make exception-safe
 
         # continue with the body of the lifecycle statement
         statements: list[Statement] = self._statement_block()
@@ -406,7 +404,7 @@ class AstGenerator:
         lifecycle_statement.statements = statements
 
         # we've finished parsing the lifecycle statement statements, don't allow return statements from now on
-        self._can_return = False
+        self._in_function = False
 
         # return the finished lifecycle statement
         return lifecycle_statement
@@ -505,6 +503,9 @@ class AstGenerator:
             # otherwise return an empty class without any statement
             return ClassStatement(name, source_location)
 
+        # we're in a class, so allow parsing class-specific syntax
+        self._in_class = True  # TODO: make exception-safe
+
         # construct everything we find in the class until we get to a dedent
         class_statement: ClassStatement = ClassStatement(name, source_location)
         while not self.match(TokenType.DEDENT):
@@ -542,6 +543,9 @@ class AstGenerator:
             message += f" found '{self.current()}'"
             self.ast_error(message)
 
+        # finished processing the class, we no longer allow parsing class-specific syntax
+        self._in_class = False
+
         # return the finished class statement
         return class_statement
 
@@ -553,10 +557,6 @@ class AstGenerator:
 
         # check for a return statement
         if statement := self.return_statement():
-            return statement
-
-        # check for an assignment statement
-        if statement := self.assignment_statement(must_end_with_newline):
             return statement
 
         # temporary(!) print statement, printing an expression
@@ -582,6 +582,11 @@ class AstGenerator:
 
         # fall back to a bare expression statement
         expression: Expression = self.expression()
+
+        # check if the expression is used in an assignment statement
+        if statement := self.assignment_statement(expression, must_end_with_newline):
+            return statement
+
         self.expect_newline("expression")
 
         return ExpressionStatement(expression)
@@ -701,33 +706,61 @@ class AstGenerator:
 
         # match an identifier
         if token := self.match(TokenType.IDENTIFIER):
-            expression: Expression = TokenExpression(token.source_location, token)
-            # check for increment and decrement
-            if increment_token := self.match(TokenType.INCREMENT):
-                source_location: SourceLocation = expression.source_location + increment_token.source_location
-                return UnaryExpression(source_location, ExpressionType.POST_INCREMENT, expression)
-            if decrement_token := self.match(TokenType.DECREMENT):
-                source_location: SourceLocation = expression.source_location + decrement_token.source_location
-                return UnaryExpression(source_location, ExpressionType.POST_DECREMENT, expression)
-            # check for a function call
-            if self.match(TokenType.PAREN_OPEN):
-                assert isinstance(token, IdentifierToken)
-                return self.call_expression(token)
-            # otherwise return the bare token expression
-            return expression
+            assert isinstance(token, IdentifierToken)
+            return self.identifier_expression(token)
+
+        # match a this-expression
+        if this := self.match(TokenType.THIS):
+            source_location: SourceLocation = this.source_location
+            # check that we're allowed to use this here
+            if not self._in_class:
+                self.ast_error(f"found 'this' while not in a class!")
+            # we expect a dot after this
+            self.expect(TokenType.DOT)
+            # expect a nested identifier
+            identifier: Token = self.expect(TokenType.IDENTIFIER)
+            assert isinstance(identifier, IdentifierToken)
+            expression: Expression = self.identifier_expression(identifier)
+            source_location += expression.source_location
+            # construct and return the this-expression
+            return ThisExpression(source_location, expression)
 
         # otherwise we have an error, there must be an expression here
         self.ast_error(f"expected an expression, found '{self.current()}'!")
 
-    def call_expression(self, name: IdentifierToken) -> CallExpression:
-        # the name is already provided, and the opening parenthesis is consumed
+    def identifier_expression(self, token: IdentifierToken) -> Expression:
+        expression: IdentifierExpression = IdentifierExpression(token.source_location, token)
+
+        # check for increment and decrement
+        if increment_token := self.match(TokenType.INCREMENT):
+            source_location: SourceLocation = expression.source_location + increment_token.source_location
+            return UnaryExpression(source_location, ExpressionType.POST_INCREMENT, expression)
+        if decrement_token := self.match(TokenType.DECREMENT):
+            source_location: SourceLocation = expression.source_location + decrement_token.source_location
+            return UnaryExpression(source_location, ExpressionType.POST_DECREMENT, expression)
+
+        # check for a function call
+        if self.match(TokenType.PAREN_OPEN):
+            return self.call_expression(expression)
+
+        # check for a dot
+        if self.match(TokenType.DOT):
+            inner_token: Token = self.expect(TokenType.IDENTIFIER)
+            assert isinstance(inner_token, IdentifierToken)
+            expression.inner_expression = self.identifier_expression(inner_token)
+
+        # otherwise return the bare token expression
+        return expression
+
+    def call_expression(self, identifier_expression: IdentifierExpression) -> CallExpression:
+        # the identifier expression is provided, and the opening parenthesis is consumed
 
         # check for a closing parenthesis, then we have a function call without arguments
         if paren_close := self.match(TokenType.PAREN_CLOSE):
-            # calculate the SourceLocation from name till paren_close
-            source_location: SourceLocation = name.source_location + paren_close.source_location
+            # calculate the SourceLocation from (outer) identifier expression till paren_close
+            source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
             # simply return a call expression without arguments
-            return CallExpression(source_location, name)
+            return CallExpression(source_location, identifier_expression)
 
         # otherwise start parsing the arguments
         arguments: list[Expression] = []
@@ -743,11 +776,11 @@ class AstGenerator:
         # we must end with a closing parenthesis
         paren_close = self.expect(TokenType.PAREN_CLOSE)
 
-        # calculate the SourceLocation from name till paren_close and everything in between
-        source_location: SourceLocation = name.source_location + paren_close.source_location
+        # calculate the SourceLocation from (outer) identifier expression till paren_close and everything in between
+        source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
 
         # construct and return the call expression
-        return CallExpression(source_location, name, arguments)
+        return CallExpression(source_location, identifier_expression, arguments)
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""

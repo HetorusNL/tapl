@@ -9,6 +9,7 @@ from ..expressions.binary_expression import BinaryExpression
 from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression
 from ..expressions.expression_type import ExpressionType
+from ..expressions.identifier_expression import IdentifierExpression
 from ..expressions.token_expression import TokenExpression
 from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
@@ -52,7 +53,7 @@ class TypingPass(PassBase):
         match statement:
             case AssignmentStatement():
                 # get the identifier token type
-                requested_type: Type = self._get_type(statement.identifier_token)
+                requested_type: Type = self.parse_expression(statement.expression)
                 # check that the expression is of this type
                 value_type: Type = self.parse_expression(statement.value)
                 # check that returned type and requested are valid
@@ -165,13 +166,16 @@ class TypingPass(PassBase):
                 type_right: Type = self.parse_expression(expression.right)
                 return self._check_types(type_left, type_right, expression.source_location)
             case CallExpression():
+                # assert that we don't have an inner expression in the identifier expression
+                assert expression.expression.inner_expression is None
+                identifier_token: IdentifierToken = expression.expression.identifier_token
                 # check that the expression is callable
-                if function := self._functions.get(expression.name.value):
+                if function := self._functions.get(identifier_token.value):
                     # check that the amount of arguments are correct
                     required_arguments: int = len(function.arguments)
                     passed_arguments: int = len(expression.arguments)
                     if len(function.arguments) != len(expression.arguments):
-                        message: str = f"'{expression.name}' expected {required_arguments} argument(s), "
+                        message: str = f"'{identifier_token}' expected {required_arguments} argument(s), "
                         message += f"but {passed_arguments} were passed!"
                         self.ast_error(message, expression.source_location)
                     # for all arguments, check the types
@@ -194,10 +198,15 @@ class TypingPass(PassBase):
                             message += f"but found '{passed_argument_type.keyword}'!"
                             self.ast_error(message, source_location)
                     # return the return type of the function
-                    return self._get_type(expression.name)
+                    return self._get_type(identifier_token)
                 else:
-                    source_location: SourceLocation = expression.name.source_location
-                    self.ast_error(f"identifier '{expression.name.value}' is not callable!", source_location)
+                    source_location: SourceLocation = identifier_token.source_location
+                    self.ast_error(f"identifier '{identifier_token}' is not callable!", source_location)
+            case IdentifierExpression():
+                # TODO: implement
+                if expression.inner_expression:
+                    return self.parse_expression(expression.inner_expression)
+                return self._get_type(expression.identifier_token)
             case TokenExpression():
                 match expression.token:
                     case NumberToken():

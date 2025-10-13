@@ -10,18 +10,22 @@ class ExampleClass:
 
     ExampleClass():
         // initialization happens here, the constructor (if it is present)
-        variable1 = 1337
-        variable2 = 10
-        is_true = true
+        this.variable1 = 1337
+        this.variable2 = 10
+        this.is_true = true
 
     ~ExampleClass():
         // destruction can happen here
 
     u32 get_value():
-        return variable1 + variable2
-
-    u32 get_value():
-        return this.variable1 + this.variable2
+        u32 offset = 5
+        return this.variable1 + this.variable2 + offset
 
     bool is_true():
         return this.is_true
+
+    u32 result():
+        if this.is_true():
+            return this.get_value()
+        else:
+            return 0
