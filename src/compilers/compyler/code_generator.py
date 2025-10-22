@@ -31,7 +31,7 @@ class CodeGenerator:
         for statement in self._ast.statements.objects:
             if isinstance(statement, ClassStatement):
                 class_c_definitions.append(f"{statement.c_code()}\n")
-            if isinstance(statement, FunctionStatement):
+            elif isinstance(statement, FunctionStatement):
                 function_c_declarations.append(f"{statement.c_declaration()}\n")
                 function_c_definitions.append(f"{statement.c_code()}\n")
             else:
