@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .utils.ast import AST
 from .types.types import Types
+from .statements.class_statement import ClassStatement
 from .statements.function_statement import FunctionStatement
 
 
@@ -21,23 +22,48 @@ class CodeGenerator:
         # also generate the typedefs for all builtin basic types
         Types().generate_c_header(self._header_folder)
 
-        main_c_lines: list[str] = []
+        class_c_definitions: list[str] = []
         function_c_declarations: list[str] = []
         function_c_definitions: list[str] = []
+        main_c_lines: list[str] = []
 
         # compile the statements in the AST to code
         for statement in self._ast.statements.objects:
+            if isinstance(statement, ClassStatement):
+                class_c_definitions.append(f"{statement.c_code()}\n")
             if isinstance(statement, FunctionStatement):
                 function_c_declarations.append(f"{statement.c_declaration()}\n")
                 function_c_definitions.append(f"{statement.c_code()}\n")
             else:
                 main_c_lines.append(f"{statement.c_code()}\n")
 
+        # write the classes to the classes c file
+        self._write_classes_c(class_c_definitions)
+
         # write the functions to the functions c file
         self._write_functions_c(function_c_declarations, function_c_definitions)
 
         # write the main c file with the code
         self._write_main_c_file(main_c_lines, main_c_file)
+
+    def _write_classes_c(self, definitions: list[str]):
+        classes_c_file: Path = self._header_folder / "classes.h"
+
+        initial_lines: list[str] = [
+            "#pragma once\n",
+            "\n",
+            "// include the needed system headers\n",
+            "#include <stdio.h>\n",
+            "\n",
+            "// also include the needed TAPL headers\n",
+            "#include <tapl_headers/types.h>\n",
+            "\n",
+            "// classes declarations\n",
+        ]
+
+        with open(classes_c_file, "w") as f:
+            f.writelines(initial_lines)
+            f.writelines(definitions)
 
     def _write_functions_c(self, declarations: list[str], definitions: list[str]):
         functions_c_file: Path = self._header_folder / "functions.h"
@@ -70,6 +96,7 @@ class CodeGenerator:
             "#include <stdio.h>\n",
             "\n",
             "// also include the needed TAPL headers\n",
+            "#include <tapl_headers/classes.h>\n",
             "#include <tapl_headers/functions.h>\n",
             "#include <tapl_headers/types.h>\n",
             "\n",

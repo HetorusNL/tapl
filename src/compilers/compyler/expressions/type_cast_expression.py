@@ -16,10 +16,10 @@ class TypeCastExpression(Expression):
         self.expression: Expression = expression
 
     def c_code(self) -> str:
-        return f"(({self.cast_to.type_.keyword}){self.expression})"
+        return f"(({self.cast_to}){self.expression})"
 
     def __str__(self) -> str:
-        return f"({self.cast_to.type_.keyword}){self.expression}"
+        return f"({self.cast_to}){self.expression}"
 
     def __repr__(self) -> str:
-        return f"<TypeCastExpression: location {self.source_location}, ({self.cast_to.type_.keyword}){self.expression}>"
+        return f"<TypeCastExpression: location {self.source_location}, ({self.cast_to}){self.expression}>"

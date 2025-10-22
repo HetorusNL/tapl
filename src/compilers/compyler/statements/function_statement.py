@@ -11,12 +11,13 @@ from ..utils.source_location import SourceLocation
 
 
 class FunctionStatement(Statement):
-    def __init__(self, return_type: TypeToken, name: IdentifierToken):
+    def __init__(self, return_type: TypeToken, name: IdentifierToken, class_name: TypeToken | None = None):
         # store the initial source location, where arguments are added later
         source_location: SourceLocation = return_type.source_location + name.source_location
         super().__init__(source_location)
         self.return_type: TypeToken = return_type
         self.name: IdentifierToken = name
+        self.class_name: TypeToken | None = class_name
         self.arguments: list[tuple[TypeToken, IdentifierToken]] = []
         self.statements: list[Statement] = []
 
@@ -26,15 +27,25 @@ class FunctionStatement(Statement):
         # add the argument to the class
         self.arguments.append((argument_type, argument_name))
 
+    def _function_name(self) -> str:
+        """return the function name, dependent on whether it's a class method or not"""
+        if self.class_name:
+            return f"{self.class_name}_{self.name}"
+        return f"{self.name}"
+
     def _c_declaration_base(self) -> str:
         """returns the function declaration line, without anything after the closing paren"""
         # start with the function return type and name
-        code: str = f"{self.return_type.type_.keyword} {self.name.value}("
+        code: str = f"{self.return_type} {self._function_name()}("
 
         # create a list of argument type-name pairs
         arguments: list[str] = []
+        # if this is a class, also add the this pointer to the function
+        if self.class_name:
+            arguments.append(f"{self.class_name}* this")
+        # construct the function declaration arguments from the list of arguments
         for argument_type, argument_name in self.arguments:
-            arguments.append(f"{argument_type.type_.keyword} {argument_name.value}")
+            arguments.append(f"{argument_type} {argument_name}")
         # add comma separated list of the argument type-name pairs
         code += ", ".join(arguments)
         code += f")"
@@ -61,9 +72,9 @@ class FunctionStatement(Statement):
         return code
 
     def __str__(self) -> str:
-        return f"{self.return_type.type_.keyword} {self.name.value}: ..."
+        return f"{self.return_type} {self._function_name()}: ..."
 
     def __repr__(self) -> str:
         string: str = f"<FunctionStatement, location {self.source_location},"
-        string += f" {self.return_type.type_.keyword} {self.name.value}>"
+        string += f" {self.return_type} {self._function_name()}>"
         return string

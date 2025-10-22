@@ -51,7 +51,7 @@ class AstGenerator:
         # some variables to store the state of the ast generator
         self._current_index: int = 0
         self._in_function: bool = False
-        self._in_class: bool = False
+        self._class_name: TypeToken | None = None
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -132,7 +132,7 @@ class AstGenerator:
         if not isinstance(expression, (ThisExpression, IdentifierExpression)):
             return
         # check, but not consume, if there is an assignment
-        if self.next().token_type != TokenType.EQUAL:
+        if self.current().token_type != TokenType.EQUAL:
             return
 
         # consume the equal
@@ -225,7 +225,7 @@ class AstGenerator:
         assert type(return_type) == TypeToken
         name: Token = self.consume()
         assert type(name) == IdentifierToken
-        function_statement: FunctionStatement = FunctionStatement(return_type, name)
+        function_statement: FunctionStatement = FunctionStatement(return_type, name, self._class_name)
         self.expect(TokenType.PAREN_OPEN)
 
         # check for a closing parenthesis, then we have a function without arguments
@@ -504,7 +504,7 @@ class AstGenerator:
             return ClassStatement(name, source_location)
 
         # we're in a class, so allow parsing class-specific syntax
-        self._in_class = True  # TODO: make exception-safe
+        self._class_name = name  # TODO: make exception-safe
 
         # construct everything we find in the class until we get to a dedent
         class_statement: ClassStatement = ClassStatement(name, source_location)
@@ -524,8 +524,7 @@ class AstGenerator:
             # check for a constructor
             if constructor := self._constructor(name.type_):
                 if class_statement.constructor:
-                    class_name: str = name.type_.keyword
-                    message = f"found a {class_name} constructor while another constructor was already found!"
+                    message = f"found a {name} constructor while another constructor was already found!"
                     raise AstError(message, self._filename, constructor.source_location)
                 class_statement.constructor = constructor
                 continue
@@ -533,8 +532,7 @@ class AstGenerator:
             # check for a destructor
             if destructor := self._destructor(name.type_):
                 if class_statement.destructor:
-                    class_name: str = name.type_.keyword
-                    message = f"found a {class_name} destructor while another descructor was already found!"
+                    message = f"found a {name} destructor while another descructor was already found!"
                     raise AstError(message, self._filename, destructor.source_location)
                 class_statement.destructor = destructor
                 continue
@@ -544,7 +542,7 @@ class AstGenerator:
             self.ast_error(message)
 
         # finished processing the class, we no longer allow parsing class-specific syntax
-        self._in_class = False
+        self._class_name = None
 
         # return the finished class statement
         return class_statement
@@ -713,7 +711,7 @@ class AstGenerator:
         if this := self.match(TokenType.THIS):
             source_location: SourceLocation = this.source_location
             # check that we're allowed to use this here
-            if not self._in_class:
+            if self._class_name is None:
                 self.ast_error(f"found 'this' while not in a class!")
             # we expect a dot after this
             self.expect(TokenType.DOT)
@@ -760,7 +758,7 @@ class AstGenerator:
             # calculate the SourceLocation from (outer) identifier expression till paren_close
             source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
             # simply return a call expression without arguments
-            return CallExpression(source_location, identifier_expression)
+            return CallExpression(source_location, identifier_expression, self._class_name)
 
         # otherwise start parsing the arguments
         arguments: list[Expression] = []
@@ -780,7 +778,7 @@ class AstGenerator:
         source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
 
         # construct and return the call expression
-        return CallExpression(source_location, identifier_expression, arguments)
+        return CallExpression(source_location, identifier_expression, self._class_name, arguments)
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""

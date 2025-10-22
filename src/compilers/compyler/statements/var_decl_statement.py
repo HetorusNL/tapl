@@ -25,19 +25,16 @@ class VarDeclStatement(Statement):
         self.initial_value: Expression | None = initial_value
 
     def c_code(self) -> str:
-        keyword: str = self.type_token.type_.keyword
-        name: str = self.name.value
-
         # if we have an initial value, also generate code for that
         if self.initial_value:
             initial_value: str = self.initial_value.c_code()
-            return f"{keyword} {name} = {initial_value};"
+            return f"{self.type_token} {self.name} = {initial_value};"
 
         # otherwise it's a default initialized variable
-        return f"{keyword} {name};"
+        return f"{self.type_token} {self.name};"
 
     def __str__(self) -> str:
-        return f"{self.type_token.type_.keyword} {self.name.value}"
+        return f"{self.type_token} {self.name.value}"
 
     def __repr__(self) -> str:
-        return f"<VarDeclStatement: location {self.source_location}, {self.type_token.type_.keyword} {self.name.value}"
+        return f"<VarDeclStatement: location {self.source_location}, {self.type_token} {self.name}"

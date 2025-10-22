@@ -57,6 +57,7 @@ uv run -m src.compilers.compyler /path/to/file.tim
 - make SourceLocation also able to 'add' a Token/Expression/Statement('s source_location)
 - refactor identifier expression from TokenExpression to IdentifierExpression
 - allow nested IdentifierExpressions/ThisExpressions
+- implement or not allow variable assignment during declaration in class
 - fix open TODOs in `tokenizer.py`
   - add 0o / e number parsing
   - make distinction between int and float/double numbers
