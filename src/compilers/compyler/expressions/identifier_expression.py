@@ -5,8 +5,9 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .expression import Expression
-from ..utils.source_location import SourceLocation
 from ..tokens.identifier_token import IdentifierToken
+from ..tokens.type_token import TypeToken
+from ..utils.source_location import SourceLocation
 
 
 class IdentifierExpression(Expression):
@@ -14,12 +15,64 @@ class IdentifierExpression(Expression):
         super().__init__(source_location)
         self.identifier_token: IdentifierToken = identifier_token
         self.inner_expression: Expression | None = None
+        self.class_name: TypeToken | None = None
+
+    def inner_function_call(self) -> IdentifierToken | None:
+        from .call_expression import CallExpression
+
+        # if there's no inner expression, there's obviously not a call
+        if not self.inner_expression:
+            return None
+
+        # recurse if the inner expression is also an IdentifierExpression
+        if isinstance(self.inner_expression, IdentifierExpression):
+            return self.inner_expression.inner_function_call()
+
+        # otherwise return the identifier if the inner expression is a CallExpression
+        if isinstance(self.inner_expression, CallExpression):
+            # consume the inner call expression
+            return self.inner_expression.consume()
+        else:
+            return None
+
+    def get_arguments(self) -> list[str]:
+        from .call_expression import CallExpression
+
+        # recurse if the inner expression is also an IdentifierExpression
+        if isinstance(self.inner_expression, IdentifierExpression):
+            return self.inner_expression.get_arguments()
+
+        # otherwise this must be a CallExpression
+        assert isinstance(self.inner_expression, CallExpression)
+
+        # otherwise get the arguments list if the inner expression is a CallExpression
+        arguments: list[str] = []
+        for argument in self.inner_expression.arguments:
+            arguments.append(argument.c_code())
+
+        # add the arguments
+        return arguments
+
+    def _inner_c_code(self) -> str:
+        # only if we have an inner expression that has not been consumed, return it
+        if self.inner_expression:
+            inner_code: str = self.inner_expression.c_code()
+            if inner_code:
+                return f"{self.identifier_token}.{self.inner_expression.c_code()}"
+
+        return f"{self.identifier_token}"
 
     def c_code(self) -> str:
-        if self.inner_expression:
-            return f"{self.identifier_token}.{self.inner_expression.c_code()}"
-        else:
-            return f"{self.identifier_token}"
+        # if this is a class, check if there is a call expression inside
+        if self.class_name:
+            if name := self.inner_function_call():
+                # we need to create a function call of the outermost function
+                full_name = f"{self.class_name}_{name}"
+                arguments = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
+                return f"{full_name}({arguments})"
+
+        # otherwise simply return the identifier with potential inner expressions
+        return self._inner_c_code()
 
     def __str__(self) -> str:
         if self.inner_expression:

@@ -6,6 +6,7 @@
 
 from ..expressions.expression import Expression
 from ..expressions.identifier_expression import IdentifierExpression
+from ..tokens.identifier_token import IdentifierToken
 from ..tokens.type_token import TypeToken
 from ..utils.source_location import SourceLocation
 
@@ -22,8 +23,22 @@ class CallExpression(Expression):
         self.expression: IdentifierExpression = expression
         self.class_name: TypeToken | None = class_name
         self.arguments: list[Expression] = arguments
+        self.call_consumed: bool = False
+
+    def consume(self) -> IdentifierToken:
+        # consume the call, as it will be generated at the outermost identifier expression
+        self.call_consumed = True
+        return self.expression.identifier_token
 
     def c_code(self) -> str:
+        # construct the function name
+        function_name: str = f"{self.expression.identifier_token}"
+
+        # if the call has been consumed, return an empty string
+        if self.call_consumed:
+            return f""
+
+        # otherwise this should generate a function call
         # build the argument list
         arguments: list[str] = []
         # if it's a class method call, prepend the 'this' argument
@@ -33,8 +48,6 @@ class CallExpression(Expression):
             arguments.append(argument.c_code())
         arguments_string: str = ", ".join(arguments)
 
-        # construct the function name
-        function_name: str = f"{self.expression.c_code()}"
         # if it's a class method call, prepend the class name
         if self.class_name:
             function_name = f"{self.class_name}_{function_name}"

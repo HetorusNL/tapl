@@ -45,6 +45,10 @@ class TypingPass(PassBase):
         # store a list of functions
         # TODO: functions should be callable from everywhere
         self._functions: dict[str, FunctionStatement] = {}
+        # TODO: classes should be usable from everywhere
+        self._classes: dict[str, ClassStatement] = {}
+        # store a stack of class types of variables
+        self._classes_stack: list[Type] = []
         # store a stack of function return types
         self._function_stack: list[Type] = []
 
@@ -60,7 +64,7 @@ class TypingPass(PassBase):
                 self._check_types(requested_type, value_type, statement.value.source_location)
             case ClassStatement():
                 # TODO: implement
-                pass
+                self._classes[statement.name.type_.keyword] = statement
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -199,13 +203,28 @@ class TypingPass(PassBase):
                             self.ast_error(message, source_location)
                     # return the return type of the function
                     return self._get_type(identifier_token)
+                elif self._classes_stack:
+                    # TODO: implement
+                    # return classes[class][function].type
+                    expression.class_name = self._classes[self._classes_stack[-1].keyword].name
+                    return Type("u32")  # self._get_type(identifier_token)
                 else:
                     source_location: SourceLocation = identifier_token.source_location
                     self.ast_error(f"identifier '{identifier_token}' is not callable!", source_location)
             case IdentifierExpression():
                 # TODO: implement
-                if expression.inner_expression:
-                    return self.parse_expression(expression.inner_expression)
+                with self._new_scope():
+                    type_: Type = self._get_type(expression.identifier_token)
+                    is_class: bool = not type_.is_basic_type
+                    if is_class:
+                        self._classes_stack.append(type_)
+                        expression.class_name = self._classes[type_.keyword].name
+                    try:
+                        if expression.inner_expression:
+                            return self.parse_expression(expression.inner_expression)
+                    finally:
+                        if is_class:
+                            self._classes_stack.pop()
                 return self._get_type(expression.identifier_token)
             case TokenExpression():
                 match expression.token:
