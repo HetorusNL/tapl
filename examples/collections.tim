@@ -1,0 +1,11 @@
+// example usage of 'list' collection
+
+// create an instance of a list, which has a size of 0
+list[u32] some_list
+
+// some functions to be called on the list
+some_list.size()  // returns the size, currently 0
+some_list.add(1337)  // adds an element, 1, to the list
+some_list.get(0)  // gets the 0th element (or 0/crash when not there)
+some_list.del(0)  // removes the 0th element
+some_list.insert(0, 10)  // inserts 10 at location 0, return true on success, false/crash on failure
