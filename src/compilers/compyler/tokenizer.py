@@ -336,6 +336,8 @@ class Tokenizer:
                 self._add_token_of_length(TokenType.FOR)
             case TokenType.IF.value:
                 self._add_token_of_length(TokenType.IF)
+            case TokenType.LIST.value:
+                self._add_token_of_length(TokenType.LIST)
             case TokenType.NULL.value:
                 self._add_token_of_length(TokenType.NULL)
             case TokenType.PRINT.value:

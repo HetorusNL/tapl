@@ -150,6 +150,7 @@ class TestTokenizer(unittest.TestCase):
             TokenType.FALSE,
             TokenType.FOR,
             TokenType.IF,
+            TokenType.LIST,
             TokenType.NULL,
             TokenType.PRINT,
             TokenType.RETURN,

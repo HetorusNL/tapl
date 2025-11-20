@@ -51,6 +51,7 @@ class TokenType(Enum):
     FALSE = "false"
     FOR = "for"
     IF = "if"
+    LIST = "list"
     NULL = "null"
     PRINT = "print"
     RETURN = "return"
