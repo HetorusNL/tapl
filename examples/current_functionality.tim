@@ -203,3 +203,13 @@ print("\ninserts 10 at location 0, return true on success, false/crash on failur
 print(some_list.insert(0, 10))
 print("\nsize:")
 print(some_list.size())
+print("\ngets the 0th element (or 0/crash when not there)")
+print(some_list.get(0))
+list[f64] doublee
+list[u1] boool
+list[s8] charr
+charr.add(0)
+charr.add(1)
+print(charr.size())
+print(charr.get(0))
+print(charr.get(1))

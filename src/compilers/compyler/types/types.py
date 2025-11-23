@@ -23,8 +23,7 @@ class Types:
         key: keyword
         value: Type
         """
-        # also store the list of types in the class
-        self._types_list: list[Type] = [
+        types_list: list[Type] = [
             Type("void", underlying_type="void"),
             NumericType("u1", NumericTypeType.UNSIGNED, 1, ["bool"], underlying_type="bool"),
             NumericType("u8", NumericTypeType.UNSIGNED, 8, underlying_type="uint8_t"),
@@ -41,7 +40,7 @@ class Types:
             Type("string"),
         ]
         types: dict[str, Type] = {}
-        for type_ in self._types_list:
+        for type_ in types_list:
             for keyword in type_.all_keywords:
                 assert keyword not in types
                 types[keyword] = type_
@@ -131,8 +130,12 @@ class Types:
         assert keyword_type
         return keyword_type
 
-    def generate_c_header(self, header_folder: Path) -> None:
-        """generates a c types header for all builtin basic types in the header folder"""
+    def generate_c_headers(self, header_folder: Path, templates_folder: Path) -> None:
+        """generates a c types header for all builtin basic types, and the list types in the header folder"""
+        self._generate_basic_type_header(header_folder)
+        self._generate_list_type_header(header_folder, templates_folder)
+
+    def _generate_basic_type_header(self, header_folder: Path) -> None:
         # add the strings to be added to the types header
         c_code: list[str] = [
             "#pragma once\n",
@@ -144,7 +147,7 @@ class Types:
         ]
 
         # formulate the typedefs for the basic types used in TAPL
-        for type_ in self._types_list:
+        for type_ in self._types.values():
             if type_.is_basic_type:
                 # only add the type if it has a different name in c
                 if type_.underlying_type != type_.keyword:
@@ -153,4 +156,34 @@ class Types:
         # write the content to the file
         types_header: Path = header_folder / "types.h"
         with open(types_header, "w") as f:
+            f.writelines(c_code)
+
+    def _generate_list_type_header(self, header_folder: Path, templates_folder: Path) -> None:
+        # add the strings to be added to the types header
+        c_code: list[str] = [
+            "#pragma once\n",
+            "\n",
+            "// include the needed system headers\n",
+            "#include <stdio.h>\n",
+            "#include <stdlib.h>\n",
+            "\n",
+            "// also include the needed TAPL headers\n",
+            "#include <tapl_headers/types.h>\n",
+            "\n",
+        ]
+
+        # for every list type, add the filled in template to the source lines
+        for type_ in self._types.values():
+            if isinstance(type_, ListType):
+                # read the lines from the template
+                with open(templates_folder / "list.h") as f:
+                    lines: list[str] = f.readlines()
+                # replace the "TYPE" text with the actual internal type of the ListType
+                list_type: str = type_.inner_type.keyword
+                lines = [line.replace("TYPE", list_type) for line in lines]
+                c_code.extend(lines)
+
+        # write the content to the file
+        list_header: Path = header_folder / "list.h"
+        with open(list_header, "w") as f:
             f.writelines(c_code)

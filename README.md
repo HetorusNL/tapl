@@ -54,7 +54,6 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## TODO
 
-- make lists not hardcoded for u32
 - clean up list implementation
 - add list tests
 - make SourceLocation also able to 'add' a Token/Expression/Statement('s source_location)

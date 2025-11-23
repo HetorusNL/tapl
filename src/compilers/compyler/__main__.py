@@ -22,6 +22,7 @@ from .ast_checks.ast_check import AstCheck
 
 # get to the repo root folder, several levels up
 repo_root: Path = Path(__file__).parents[3].resolve()
+templates_folder: Path = repo_root / "src" / "templates"
 
 
 def argument_parser() -> Path:
@@ -69,22 +70,10 @@ def create_build_folders() -> tuple[Path, Path]:
     return build_folder, header_folder
 
 
-def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> Path:
+def generate_code(ast: AST, build_folder: Path, header_folder: Path, templates_folder: Path) -> Path:
     main_c_file: Path = build_folder / "main.c"
-    CodeGenerator(ast, build_folder, header_folder).generate_c(main_c_file)
+    CodeGenerator(ast, build_folder, header_folder, templates_folder).generate_c(main_c_file)
     return main_c_file
-
-
-def add_stdlib(header_folder: Path) -> None:
-    # TODO: refactor to Path.copy and force >= python 3.14?
-    from shutil import copy
-
-    # add all header files in the standard library folder to the header folder in the build folder
-    stdlib_folder: Path = repo_root / "src" / "stdlib"
-    for file_path in stdlib_folder.glob("*.h"):
-        # this is only supported from python 3.14 :(
-        # file_path.copy(header_folder)
-        copy(file_path, header_folder)
 
 
 def format_files(folder: Path) -> None:
@@ -159,10 +148,7 @@ def main():
     build_folder, header_folder = create_build_folders()
 
     # generate c-code from the AST and write the source files in the build folder
-    c_file: Path = generate_code(ast, build_folder, header_folder)
-
-    # add standard library
-    add_stdlib(header_folder)
+    c_file: Path = generate_code(ast, build_folder, header_folder, templates_folder)
 
     # format the generated c-code files
     format_files(build_folder)

@@ -7,20 +7,20 @@
 from pathlib import Path
 
 from .utils.ast import AST
-from .types.types import Types
 from .statements.class_statement import ClassStatement
 from .statements.function_statement import FunctionStatement
 
 
 class CodeGenerator:
-    def __init__(self, ast: AST, build_folder: Path, header_folder: Path):
+    def __init__(self, ast: AST, build_folder: Path, header_folder: Path, templates_folder: Path):
         self._ast: AST = ast
         self._build_folder: Path = build_folder
         self._header_folder: Path = header_folder
+        self._templates_folder: Path = templates_folder
 
     def generate_c(self, main_c_file: Path) -> None:
         # also generate the typedefs for all builtin basic types
-        Types().generate_c_header(self._header_folder)
+        self._ast.types.generate_c_headers(self._header_folder, self._templates_folder)
 
         class_c_definitions: list[str] = []
         function_c_declarations: list[str] = []
