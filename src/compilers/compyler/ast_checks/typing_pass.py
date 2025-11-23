@@ -20,6 +20,7 @@ from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
 from ..statements.if_statement import IfStatement
+from ..statements.list_statement import ListStatement
 from ..statements.print_statement import PrintStatement
 from ..statements.return_statement import ReturnStatement
 from ..statements.statement import Statement
@@ -29,10 +30,12 @@ from ..tokens.number_token import NumberToken
 from ..tokens.string_token import StringToken
 from ..tokens.type_token import TypeToken
 from ..tokens.token_type import TokenType
-from ..types.type import Type
-from ..types.types import Types
+from ..types.class_type import ClassType
+from ..types.list_type import ListType
 from ..types.numeric_type import NumericType
 from ..types.numeric_type_type import NumericTypeType
+from ..types.type import Type
+from ..types.types import Types
 from ..utils.ast import AST
 from ..utils.source_location import SourceLocation
 
@@ -51,6 +54,8 @@ class TypingPass(PassBase):
         self._classes_stack: list[Type] = []
         # store a stack of function return types
         self._function_stack: list[Type] = []
+        # store a stack of identifier types when they have inner identifiers
+        self._identifier_stack: list[Type] = []
 
     def _parse_statement(self, statement: Statement) -> None:
         # TODO: refactor this and _parse_expression to a visitor pattern?
@@ -64,7 +69,7 @@ class TypingPass(PassBase):
                 self._check_types(requested_type, value_type, statement.value.source_location)
             case ClassStatement():
                 # TODO: implement
-                self._classes[statement.name.type_.keyword] = statement
+                self._classes[statement.class_type.keyword] = statement
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -119,6 +124,9 @@ class TypingPass(PassBase):
                     with self._new_scope():
                         for else_statement in else_statements:
                             self.parse_statement(else_statement)
+            case ListStatement():
+                # add the variable declaration to the scope
+                self._add_identifier(statement.name, statement.list_type)
             case PrintStatement():
                 # check the expression
                 self.parse_expression(statement.value)
@@ -206,23 +214,37 @@ class TypingPass(PassBase):
                 elif self._classes_stack:
                     # TODO: implement
                     # return classes[class][function].type
-                    expression.class_name = self._classes[self._classes_stack[-1].keyword].name
+                    expression.class_type = self._classes[self._classes_stack[-1].keyword].class_type
                     return Type("u32")  # self._get_type(identifier_token)
-                else:
-                    source_location: SourceLocation = identifier_token.source_location
-                    self.ast_error(f"identifier '{identifier_token}' is not callable!", source_location)
+                elif self._identifier_stack:
+                    # if there is a list on the identifier stack, we can call certain functions
+                    type_: Type = self._identifier_stack[-1]
+                    if isinstance(type_, ListType):
+                        if identifier_token.value in type_.callable_functions():
+                            return type_
+                        # otherwise it's not callable, add the error
+                        source_location: SourceLocation = identifier_token.source_location
+                        self.ast_error(
+                            f"identifier '{identifier_token}' of a '{type_}' is not callable!", source_location
+                        )
+                source_location: SourceLocation = identifier_token.source_location
+                self.ast_error(f"identifier '{identifier_token}' is not callable!", source_location)
             case IdentifierExpression():
                 # TODO: implement
                 with self._new_scope():
                     type_: Type = self._get_type(expression.identifier_token)
-                    is_class: bool = not type_.is_basic_type
+                    is_class: bool = isinstance(type_, ClassType)
                     if is_class:
                         self._classes_stack.append(type_)
-                        expression.class_name = self._classes[type_.keyword].name
+                        expression.class_type = self._classes[type_.keyword].class_type
+                    self._identifier_stack.append(type_)
+                    if isinstance(type_, ListType):
+                        expression.list_type = type_
                     try:
                         if expression.inner_expression:
                             return self.parse_expression(expression.inner_expression)
                     finally:
+                        self._identifier_stack.pop()
                         if is_class:
                             self._classes_stack.pop()
                 return self._get_type(expression.identifier_token)

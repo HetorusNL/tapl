@@ -7,7 +7,7 @@
 from ..expressions.expression import Expression
 from ..expressions.identifier_expression import IdentifierExpression
 from ..tokens.identifier_token import IdentifierToken
-from ..tokens.type_token import TypeToken
+from ..types.class_type import ClassType
 from ..utils.source_location import SourceLocation
 
 
@@ -16,12 +16,12 @@ class CallExpression(Expression):
         self,
         source_location: SourceLocation,
         expression: IdentifierExpression,
-        class_name: TypeToken | None,
+        class_type: ClassType | None,
         arguments: list[Expression] = [],
     ):
         super().__init__(source_location)
         self.expression: IdentifierExpression = expression
-        self.class_name: TypeToken | None = class_name
+        self.class_type: ClassType | None = class_type
         self.arguments: list[Expression] = arguments
         self.call_consumed: bool = False
 
@@ -42,15 +42,15 @@ class CallExpression(Expression):
         # build the argument list
         arguments: list[str] = []
         # if it's a class method call, prepend the 'this' argument
-        if self.class_name:
+        if self.class_type:
             arguments.append("this")
         for argument in self.arguments:
             arguments.append(argument.c_code())
         arguments_string: str = ", ".join(arguments)
 
         # if it's a class method call, prepend the class name
-        if self.class_name:
-            function_name = f"{self.class_name}_{function_name}"
+        if self.class_type:
+            function_name = f"{self.class_type}_{function_name}"
 
         # construct and return the whole function call
         return f"{function_name}({arguments_string})"

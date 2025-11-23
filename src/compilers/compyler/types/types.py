@@ -6,6 +6,8 @@
 
 from pathlib import Path
 
+from .class_type import ClassType
+from .list_type import ListType
 from .numeric_type import NumericType
 from .numeric_type_type import NumericTypeType
 from .type import Type
@@ -72,16 +74,53 @@ class Types:
 
         return types
 
-    def add(self, keyword: str):
+    def add(self, keyword: str) -> Type:
         """add a new type to the Types collection,
-        does nothing when the type is already present in the collection
+        does nothing when the type is already present in the collection,
+        returns the existing or newly added type
         """
         # check if the type is already in the collection
-        if keyword in self._types:
-            return
-        # create the Type, and add the keyword:Type to the collection
-        type_ = Type(keyword)
-        self._types[keyword] = type_
+        if keyword not in self._types:
+            # create the Type, and add the keyword:Type to the collection
+            type_ = Type(keyword)
+            self._types[keyword] = type_
+
+        # return the existing or newly created type
+        return self._types[keyword]
+
+    def add_class_type(self, keyword: str) -> ClassType:
+        """add a new class type to the Types collection,
+        does nothing when the class type is already present in the collection,
+        returns the existing or newly added class type
+        """
+        # check if the type is already in the collection
+        if keyword not in self._types:
+            # create the Type, and add the keyword:Type to the collection
+            type_ = ClassType(keyword)
+            self._types[keyword] = type_
+
+        # return the existing or newly created class type
+        class_type: Type = self._types[keyword]
+        assert isinstance(class_type, ClassType)
+        return class_type
+
+    def add_list_type(self, inner_type: Type) -> ListType:
+        """add a new list type to the Types collection,
+        does nothing when the list type is already present in the collection,
+        returns the existing or newly added list type
+        """
+        # construct the keyword of the list type
+        keyword: str = f"list[{inner_type.keyword}]"
+        # check if the type is already in the collection
+        if keyword not in self._types:
+            # create the Type, and add the keyword:Type to the collection
+            new_list_type = ListType(inner_type)
+            self._types[keyword] = new_list_type
+
+        # return the existing or newly created list type
+        list_type: Type = self._types[keyword]
+        assert isinstance(list_type, ListType)
+        return list_type
 
     def get(self, keyword: str) -> Type | None:
         """returns the Type with the provided keyword, None if not present"""

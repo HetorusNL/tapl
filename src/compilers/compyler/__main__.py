@@ -20,6 +20,10 @@ from .utils.stream import Stream
 from .ast_checks.ast_check import AstCheck
 
 
+# get to the repo root folder, several levels up
+repo_root: Path = Path(__file__).parents[3].resolve()
+
+
 def argument_parser() -> Path:
     parser = argparse.ArgumentParser()
     parser.add_argument("file")
@@ -57,8 +61,6 @@ def check_ast(ast: AST) -> None:
 
 
 def create_build_folders() -> tuple[Path, Path]:
-    # get to the repo root folder, several levels up
-    repo_root: Path = Path(__file__).parents[3].resolve()
     build_folder: Path = repo_root / "build" / "compyler"
     header_folder: Path = build_folder / "tapl_headers"
     # ensure the build and header folders exists
@@ -71,6 +73,18 @@ def generate_code(ast: AST, build_folder: Path, header_folder: Path) -> Path:
     main_c_file: Path = build_folder / "main.c"
     CodeGenerator(ast, build_folder, header_folder).generate_c(main_c_file)
     return main_c_file
+
+
+def add_stdlib(header_folder: Path) -> None:
+    # TODO: refactor to Path.copy and force >= python 3.14?
+    from shutil import copy
+
+    # add all header files in the standard library folder to the header folder in the build folder
+    stdlib_folder: Path = repo_root / "src" / "stdlib"
+    for file_path in stdlib_folder.glob("*.h"):
+        # this is only supported from python 3.14 :(
+        # file_path.copy(header_folder)
+        copy(file_path, header_folder)
 
 
 def format_files(folder: Path) -> None:
@@ -92,7 +106,7 @@ def compile_c(c_file: Path, build_folder: Path) -> Path:
     system(command)
 
     # directly call the gcc compiler, passing the build folder as additional include path
-    command: str = f"gcc -I{build_folder} -o {executable} {c_file}"
+    command: str = f"gcc -O0 -g3 -I{build_folder} -o {executable} {c_file}"
     print(command)
     if error_code := system(command):
         handle_error(f"gcc returned error code {error_code}")
@@ -146,6 +160,9 @@ def main():
 
     # generate c-code from the AST and write the source files in the build folder
     c_file: Path = generate_code(ast, build_folder, header_folder)
+
+    # add standard library
+    add_stdlib(header_folder)
 
     # format the generated c-code files
     format_files(build_folder)

@@ -98,6 +98,7 @@ class CodeGenerator:
             "// also include the needed TAPL headers\n",
             "#include <tapl_headers/classes.h>\n",
             "#include <tapl_headers/functions.h>\n",
+            "#include <tapl_headers/list.h>\n",
             "#include <tapl_headers/types.h>\n",
             "\n",
             "int main(int argc, char** argv) {\n",

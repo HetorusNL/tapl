@@ -40,7 +40,7 @@ class LifecycleStatement(Statement):
         # create a list of argument type-name pairs, start with the pointer to the instance
         arguments: list[str] = [f"{self.type_.keyword}* this"]
         for argument_type, argument_name in self.arguments:
-            arguments.append(f"{argument_type.type_.keyword} {argument_name.value}")
+            arguments.append(f"{argument_type.type_.keyword} {argument_name}")
         # add the arguments
         code += ", ".join(arguments)
 

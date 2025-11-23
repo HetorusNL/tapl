@@ -33,3 +33,6 @@ class Type:
             return False
 
         return self.keyword == other.keyword
+
+    def __str__(self) -> str:
+        return f"{self.keyword}"

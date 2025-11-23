@@ -19,6 +19,7 @@ from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
 from ..statements.if_statement import IfStatement
+from ..statements.list_statement import ListStatement
 from ..statements.print_statement import PrintStatement
 from ..statements.return_statement import ReturnStatement
 from ..statements.statement import Statement
@@ -87,6 +88,9 @@ class ScopingPass(PassBase):
                     with self._new_scope():
                         for else_statement in else_statements:
                             self.parse_statement(else_statement)
+            case ListStatement():
+                # check the expression also for identifiers
+                self._add_identifier(statement.name, statement.list_type)
             case PrintStatement():
                 # check the expression also for identifiers
                 self.parse_expression(statement.value)

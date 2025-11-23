@@ -34,7 +34,7 @@ class VarDeclStatement(Statement):
         return f"{self.type_token} {self.name};"
 
     def __str__(self) -> str:
-        return f"{self.type_token} {self.name.value}"
+        return f"{self.type_token} {self.name}"
 
     def __repr__(self) -> str:
         return f"<VarDeclStatement: location {self.source_location}, {self.type_token} {self.name}"

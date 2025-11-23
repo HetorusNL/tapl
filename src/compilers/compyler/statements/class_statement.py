@@ -7,18 +7,19 @@
 from .function_statement import FunctionStatement
 from .lifecycle_statement import LifecycleStatement
 from .lifecycle_statement_type import LifecycleStatementType
+from .list_statement import ListStatement
 from .statement import Statement
 from .var_decl_statement import VarDeclStatement
-from ..tokens.type_token import TypeToken
+from ..types.class_type import ClassType
 from ..utils.source_location import SourceLocation
 
 
 class ClassStatement(Statement):
-    def __init__(self, name: TypeToken, source_location: SourceLocation):
+    def __init__(self, class_type: ClassType, source_location: SourceLocation):
         super().__init__(source_location)
-        self.name: TypeToken = name
+        self.class_type: ClassType = class_type
         # store everything that can be in a class statement in the class
-        self.variables: list[VarDeclStatement] = []
+        self.variables: list[VarDeclStatement | ListStatement] = []
         self.functions: list[FunctionStatement] = []
         # start with a default/empty constructor and destructor
         self.constructor: LifecycleStatement | None = None
@@ -27,10 +28,10 @@ class ClassStatement(Statement):
     def c_code(self) -> str:
         """returns the full class as a struct"""
         # start with the typedef
-        code: str = f"typedef struct {self.name}_struct {self.name};\n"
+        code: str = f"typedef struct {self.class_type}_struct {self.class_type};\n"
 
         # add the class name
-        code += f"struct {self.name}_struct {{\n"
+        code += f"struct {self.class_type}_struct {{\n"
 
         # add all variables
         for variable in self.variables:
@@ -41,13 +42,13 @@ class ClassStatement(Statement):
 
         # add the constructor, or an empty constructor if there isn't any
         constructor: LifecycleStatement = self.constructor or LifecycleStatement(
-            LifecycleStatementType.CONSTRUCTOR, self.name.type_, self.source_location
+            LifecycleStatementType.CONSTRUCTOR, self.class_type, self.source_location
         )
         code += f"{constructor.c_code()}\n"
 
         # add the destructor or an empty destructor if there isn't any
         destructor: LifecycleStatement = self.destructor or LifecycleStatement(
-            LifecycleStatementType.DESTRUCTOR, self.name.type_, self.source_location
+            LifecycleStatementType.DESTRUCTOR, self.class_type, self.source_location
         )
         code += f"{destructor.c_code()}\n"
 
@@ -58,7 +59,7 @@ class ClassStatement(Statement):
         return code
 
     def __str__(self) -> str:
-        return f"class {self.name}: ..."
+        return f"class {self.class_type}: ..."
 
     def __repr__(self) -> str:
-        return f"<ClassStatement, location {self.source_location}, class {self.name}>"
+        return f"<ClassStatement, location {self.source_location}, class {self.class_type}>"

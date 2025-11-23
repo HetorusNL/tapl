@@ -28,7 +28,7 @@ class TypeResolver:
                 if token.token_type == TokenType.CLASS:
                     class_name: Token = self._tokens.iter_next()
                     if isinstance(class_name, IdentifierToken):
-                        types.add(class_name.value)
+                        types.add_class_type(class_name.value)
         except StreamError:
             # iterating past the end of the stream, invalid code: don't care
             pass

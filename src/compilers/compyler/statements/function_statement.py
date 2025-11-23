@@ -7,17 +7,18 @@
 from .statement import Statement
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.type_token import TypeToken
+from ..types.class_type import ClassType
 from ..utils.source_location import SourceLocation
 
 
 class FunctionStatement(Statement):
-    def __init__(self, return_type: TypeToken, name: IdentifierToken, class_name: TypeToken | None = None):
+    def __init__(self, return_type: TypeToken, name: IdentifierToken, class_type: ClassType | None = None):
         # store the initial source location, where arguments are added later
         source_location: SourceLocation = return_type.source_location + name.source_location
         super().__init__(source_location)
         self.return_type: TypeToken = return_type
         self.name: IdentifierToken = name
-        self.class_name: TypeToken | None = class_name
+        self.class_type: ClassType | None = class_type
         self.arguments: list[tuple[TypeToken, IdentifierToken]] = []
         self.statements: list[Statement] = []
 
@@ -29,8 +30,8 @@ class FunctionStatement(Statement):
 
     def _function_name(self) -> str:
         """return the function name, dependent on whether it's a class method or not"""
-        if self.class_name:
-            return f"{self.class_name}_{self.name}"
+        if self.class_type:
+            return f"{self.class_type}_{self.name}"
         return f"{self.name}"
 
     def _c_declaration_base(self) -> str:
@@ -41,8 +42,8 @@ class FunctionStatement(Statement):
         # create a list of argument type-name pairs
         arguments: list[str] = []
         # if this is a class, also add the this pointer to the function
-        if self.class_name:
-            arguments.append(f"{self.class_name}* this")
+        if self.class_type:
+            arguments.append(f"{self.class_type}* this")
         # construct the function declaration arguments from the list of arguments
         for argument_type, argument_name in self.arguments:
             arguments.append(f"{argument_type} {argument_name}")

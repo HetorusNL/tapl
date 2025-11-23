@@ -26,6 +26,7 @@ from .statements.function_statement import FunctionStatement
 from .statements.if_statement import IfStatement
 from .statements.lifecycle_statement import LifecycleStatement
 from .statements.lifecycle_statement_type import LifecycleStatementType
+from .statements.list_statement import ListStatement
 from .statements.print_statement import PrintStatement
 from .statements.return_statement import ReturnStatement
 from .statements.statement import Statement
@@ -34,6 +35,8 @@ from .tokens.identifier_token import IdentifierToken
 from .tokens.token import Token
 from .tokens.type_token import TypeToken
 from .tokens.token_type import TokenType
+from .types.class_type import ClassType
+from .types.list_type import ListType
 from .types.type import Type
 from .types.types import Types
 from .utils.ast import AST
@@ -51,7 +54,7 @@ class AstGenerator:
         # some variables to store the state of the ast generator
         self._current_index: int = 0
         self._in_function: bool = False
-        self._class_name: TypeToken | None = None
+        self._class_type: ClassType | None = None
 
     def current(self) -> Token:
         """returns the token at the current location"""
@@ -181,8 +184,38 @@ class AstGenerator:
         # return the finished for-loop statement
         return ForLoopStatement(token, init, check, loop, statements)
 
-    def _type_statement(self, must_end_with_newline: bool) -> FunctionStatement | VarDeclStatement | None:
-        """returns a statement starting with a type, or None otherwise"""
+    def list_statement(self, must_end_with_newline: bool) -> ListStatement | None:
+        # early return if we don't have a list statement
+        token: Token | None = self.match(TokenType.LIST)
+        if not token:
+            return None
+
+        # a list should have a type token between brackets
+        self.expect(TokenType.BRACKET_OPEN)
+        element_type: Token = self.expect(TokenType.TYPE)
+        assert isinstance(element_type, TypeToken)
+        self.expect(TokenType.BRACKET_CLOSE)
+
+        # and end with a variable name
+        name: Token = self.expect(TokenType.IDENTIFIER)
+        assert isinstance(name, IdentifierToken)
+
+        # statements should end with a newline
+        self.expect_newline(must_end_with_newline=must_end_with_newline)
+
+        # add (if not already existing) the list type with this element type
+        list_type: ListType = self._types.add_list_type(element_type.type_)
+
+        # construct and return the ListStatement
+        return ListStatement(token, list_type, name)
+
+    def _type_statement(
+        self, must_end_with_newline: bool
+    ) -> FunctionStatement | ListStatement | VarDeclStatement | None:
+        """returns a statement starting with a type or list, or None otherwise"""
+        # check if it's a list statement
+        if statement := self.list_statement(must_end_with_newline):
+            return statement
         # start with a type
         if self.current().token_type != TokenType.TYPE:
             return None
@@ -225,7 +258,7 @@ class AstGenerator:
         assert type(return_type) == TypeToken
         name: Token = self.consume()
         assert type(name) == IdentifierToken
-        function_statement: FunctionStatement = FunctionStatement(return_type, name, self._class_name)
+        function_statement: FunctionStatement = FunctionStatement(return_type, name, self._class_type)
         self.expect(TokenType.PAREN_OPEN)
 
         # check for a closing parenthesis, then we have a function without arguments
@@ -492,6 +525,8 @@ class AstGenerator:
         # consume the class name (which is a type token)
         name: Token = self.expect(TokenType.TYPE)
         assert type(name) == TypeToken
+        class_type: Type = name.type_
+        assert isinstance(class_type, ClassType)
         source_location += name.source_location
 
         # followed by a colon and newline
@@ -501,13 +536,13 @@ class AstGenerator:
         # check if we have an indented block
         if not self._has_indent():
             # otherwise return an empty class without any statement
-            return ClassStatement(name, source_location)
+            return ClassStatement(class_type, source_location)
 
         # we're in a class, so allow parsing class-specific syntax
-        self._class_name = name  # TODO: make exception-safe
+        self._class_type = class_type  # TODO: make exception-safe
 
         # construct everything we find in the class until we get to a dedent
-        class_statement: ClassStatement = ClassStatement(name, source_location)
+        class_statement: ClassStatement = ClassStatement(class_type, source_location)
         while not self.match(TokenType.DEDENT):
             # check for a var decl or function statement
             if type_statement := self._type_statement(True):
@@ -515,6 +550,9 @@ class AstGenerator:
                     class_statement.functions.append(type_statement)
                     continue
                 elif type(type_statement) == VarDeclStatement:
+                    class_statement.variables.append(type_statement)
+                    continue
+                elif type(type_statement) == ListStatement:
                     class_statement.variables.append(type_statement)
                     continue
                 else:
@@ -542,7 +580,7 @@ class AstGenerator:
             self.ast_error(message)
 
         # finished processing the class, we no longer allow parsing class-specific syntax
-        self._class_name = None
+        self._class_type = None
 
         # return the finished class statement
         return class_statement
@@ -711,7 +749,7 @@ class AstGenerator:
         if this := self.match(TokenType.THIS):
             source_location: SourceLocation = this.source_location
             # check that we're allowed to use this here
-            if self._class_name is None:
+            if self._class_type is None:
                 self.ast_error(f"found 'this' while not in a class!")
             # we expect a dot after this
             self.expect(TokenType.DOT)
@@ -758,7 +796,7 @@ class AstGenerator:
             # calculate the SourceLocation from (outer) identifier expression till paren_close
             source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
             # simply return a call expression without arguments
-            return CallExpression(source_location, identifier_expression, self._class_name)
+            return CallExpression(source_location, identifier_expression, self._class_type)
 
         # otherwise start parsing the arguments
         arguments: list[Expression] = []
@@ -778,7 +816,7 @@ class AstGenerator:
         source_location: SourceLocation = identifier_expression.source_location + paren_close.source_location
 
         # construct and return the call expression
-        return CallExpression(source_location, identifier_expression, self._class_name, arguments)
+        return CallExpression(source_location, identifier_expression, self._class_type, arguments)
 
     def ast_error(self, message: str) -> NoReturn:
         """constructs and raises an AstError"""

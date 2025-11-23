@@ -6,7 +6,8 @@
 
 from .expression import Expression
 from ..tokens.identifier_token import IdentifierToken
-from ..tokens.type_token import TypeToken
+from ..types.class_type import ClassType
+from ..types.list_type import ListType
 from ..utils.source_location import SourceLocation
 
 
@@ -15,7 +16,8 @@ class IdentifierExpression(Expression):
         super().__init__(source_location)
         self.identifier_token: IdentifierToken = identifier_token
         self.inner_expression: Expression | None = None
-        self.class_name: TypeToken | None = None
+        self.class_type: ClassType | None = None
+        self.list_type: ListType | None = None
 
     def inner_function_call(self) -> IdentifierToken | None:
         from .call_expression import CallExpression
@@ -64,11 +66,19 @@ class IdentifierExpression(Expression):
 
     def c_code(self) -> str:
         # if this is a class, check if there is a call expression inside
-        if self.class_name:
+        if self.class_type:
             if name := self.inner_function_call():
                 # we need to create a function call of the outermost function
-                full_name = f"{self.class_name}_{name}"
-                arguments = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
+                full_name: str = f"{self.class_type}_{name}"
+                arguments: str = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
+                return f"{full_name}({arguments})"
+
+        # if this is a list, check if there is a call expression inside
+        if self.list_type:
+            if name := self.inner_function_call():
+                # we need to create a function call of the outermost list
+                full_name: str = f"list_{self.list_type.inner_type}_{name}"
+                arguments: str = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
                 return f"{full_name}({arguments})"
 
         # otherwise simply return the identifier with potential inner expressions
