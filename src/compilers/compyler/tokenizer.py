@@ -10,7 +10,7 @@ from .tokens.token_type import TokenType
 from .tokens.comment_token import CommentToken
 from .tokens.identifier_token import IdentifierToken
 from .tokens.number_token import NumberToken
-from .tokens.string_token import StringToken
+from .tokens.string_chars_token import StringCharsToken
 from .tokens.token import Token
 from .utils.source_location import SourceLocation
 from .utils.stream import Stream
@@ -55,7 +55,7 @@ class Tokenizer:
                     # check if we're in string var parsing mode
                     if self._string_var_parsing:
                         # add the string var end token
-                        self._add_token(TokenType.STRING_VAR_END)
+                        self._add_token(TokenType.STRING_EXPR_END)
                         # reset the flag (as it can be set again in the add string chars)
                         self._string_var_parsing = False
                         # continue parsing string chars
@@ -208,7 +208,7 @@ class Tokenizer:
         length: int = len(value)
         start: int = self._current_index - length
         source_location: SourceLocation = SourceLocation(start, length)
-        string_token: StringToken = StringToken(source_location, value)
+        string_token: StringCharsToken = StringCharsToken(source_location, value)
         self._tokens.add(string_token)
 
     def _add_comment_token(self, token_type: TokenType, value: str) -> None:
@@ -332,7 +332,7 @@ class Tokenizer:
                 self._add_string_token(string)
                 # consume and add the string var start token
                 self._current_index += 1
-                self._add_token(TokenType.STRING_VAR_START)
+                self._add_token(TokenType.STRING_EXPR_START)
                 # transition to string var parsing mode
                 self._string_var_parsing = True
                 return

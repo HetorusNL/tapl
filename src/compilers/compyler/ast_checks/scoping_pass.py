@@ -9,6 +9,7 @@ from ..expressions.binary_expression import BinaryExpression
 from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression
 from ..expressions.identifier_expression import IdentifierExpression
+from ..expressions.string_expression import StringExpression
 from ..expressions.token_expression import TokenExpression
 from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
@@ -129,6 +130,11 @@ class ScopingPass(PassBase):
             case IdentifierExpression():
                 # TODO: implement
                 pass
+            case StringExpression():
+                # parse all inner expression of the string, when they exist
+                for element in expression.string_elements:
+                    if isinstance(element, Expression):
+                        self.parse_expression(element)
             case TokenExpression():
                 # check if it is a token expression
                 if type(expression.token) == IdentifierToken:

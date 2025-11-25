@@ -5,10 +5,9 @@
 # This file is part of compyler, a TAPL compiler.
 
 from ..expressions.expression import Expression
-from ..expressions.token_expression import TokenExpression
+from ..expressions.string_expression import StringExpression
 from .statement import Statement
 from ..tokens.token import Token
-from ..tokens.token_type import TokenType
 from ..utils.source_location import SourceLocation
 
 
@@ -22,10 +21,9 @@ class PrintStatement(Statement):
         expression: str = self.value.c_code()
 
         # check if the value is a string
-        if isinstance(self.value, TokenExpression):
-            if self.value.token.token_type == TokenType.STRING_CHARS:
-                # printn the token as string
-                return f'printf("%s\\n", {expression});'
+        if isinstance(self.value, StringExpression):
+            # print the string expression as string
+            return f'printf("%s\\n", {expression});'
 
         # otherwise we fall back to a signed integer
         return f'printf("%d\\n", {expression});'

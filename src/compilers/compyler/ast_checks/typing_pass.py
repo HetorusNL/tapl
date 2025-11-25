@@ -10,6 +10,7 @@ from ..expressions.call_expression import CallExpression
 from ..expressions.expression import Expression
 from ..expressions.expression_type import ExpressionType
 from ..expressions.identifier_expression import IdentifierExpression
+from ..expressions.string_expression import StringExpression
 from ..expressions.token_expression import TokenExpression
 from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
@@ -27,7 +28,7 @@ from ..statements.statement import Statement
 from ..statements.var_decl_statement import VarDeclStatement
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
-from ..tokens.string_token import StringToken
+from ..tokens.string_chars_token import StringCharsToken
 from ..tokens.type_token import TypeToken
 from ..tokens.token_type import TokenType
 from ..types.class_type import ClassType
@@ -248,12 +249,18 @@ class TypingPass(PassBase):
                         if is_class:
                             self._classes_stack.pop()
                 return self._get_type(expression.identifier_token)
+            case StringExpression():
+                # parse all inner expression of the string, when they exist
+                for element in expression.string_elements:
+                    if isinstance(element, Expression):
+                        self.parse_expression(element)
+                return self._types["string"]
             case TokenExpression():
                 match expression.token:
                     case NumberToken():
                         # no checking happens here so we're going to return a base type
                         return self._types["base"]
-                    case StringToken():
+                    case StringCharsToken():
                         return self._types["string"]
                     case IdentifierToken():
                         # TODO: handle callables differently, this now results in gcc errors

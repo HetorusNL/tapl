@@ -7,7 +7,7 @@
 from .expression import Expression
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
-from ..tokens.string_token import StringToken
+from ..tokens.string_chars_token import StringCharsToken
 from ..tokens.token import Token
 from ..tokens.token_type import TokenType
 from ..utils.source_location import SourceLocation
@@ -25,7 +25,7 @@ class TokenExpression(Expression):
                 assert isinstance(self.token, NumberToken)
                 return str(self.token.value)
             case TokenType.STRING_CHARS:
-                assert isinstance(self.token, StringToken)
+                assert isinstance(self.token, StringCharsToken)
                 return f'"{self.token.value}"'
             case TokenType.IDENTIFIER:
                 assert isinstance(self.token, IdentifierToken)

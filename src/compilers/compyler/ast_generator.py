@@ -13,10 +13,11 @@ from .expressions.binary_expression import BinaryExpression
 from .expressions.call_expression import CallExpression
 from .expressions.expression import Expression
 from .expressions.identifier_expression import IdentifierExpression
-from .expressions.unary_expression import UnaryExpression
+from .expressions.string_expression import StringExpression
 from .expressions.this_expression import ThisExpression
 from .expressions.token_expression import TokenExpression
 from .expressions.type_cast_expression import TypeCastExpression
+from .expressions.unary_expression import UnaryExpression
 from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
 from .statements.class_statement import ClassStatement
@@ -693,38 +694,18 @@ class AstGenerator:
         if token := self.match(TokenType.NUMBER):
             return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.STRING_START):
-            # TODO: temporary construct a single string token again
-            from .tokens.string_token import StringToken
-            from .tokens.number_token import NumberToken
-
-            value: str = ""
-            source_location: SourceLocation = token.source_location
+            # start constructing a string expression
+            string_expression: StringExpression = StringExpression(token)
             while token := self.consume():
-                source_location += token.source_location
-                match token.token_type:
-                    case TokenType.STRING_CHARS:
-                        assert isinstance(token, StringToken)
-                        value += token.value
-                    case TokenType.STRING_VAR_START:
-                        value += "{"
-                    case TokenType.STRING_VAR_END:
-                        value += "}"
-                    case TokenType.STRING_END:
-                        value += ""
-                        break
-                    case TokenType.IDENTIFIER:
-                        assert isinstance(token, IdentifierToken)
-                        value += token.value
-                    case TokenType.NUMBER:
-                        assert isinstance(token, NumberToken)
-                        value += str(token.value)
-                    case _:
-                        value += token.token_type.value
-
-            new_token: StringToken = StringToken(source_location, value)
-            return TokenExpression(new_token.source_location, new_token)
-            # end of temporary construct
-            return TokenExpression(token.source_location, token)
+                # add the token to the string expression
+                string_expression.add_token(token)
+                # check for the end of the string, then we return
+                if token.token_type == TokenType.STRING_END:
+                    break
+                # check for a start of an expression
+                if token.token_type == TokenType.STRING_EXPR_START:
+                    string_expression.add_token(self.expression())
+            return string_expression
 
         # match expressions between parenthesis
         if paren_open := self.match(TokenType.PAREN_OPEN):
