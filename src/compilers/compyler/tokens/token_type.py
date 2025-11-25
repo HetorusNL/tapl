@@ -45,6 +45,13 @@ class TokenType(Enum):
     INLINE_COMMENT = "<INLINE_COMMENT>"
     BLOCK_COMMENT = "<BLOCK_COMMENT>"
 
+    # string-related tokens
+    STRING_START = "<STRING_START>"
+    STRING_CHARS = "<STRING_CHARS>"
+    STRING_VAR_START = "<STRING_VAR_START>"
+    STRING_VAR_END = "<STRING_VAR_END>"
+    STRING_END = "<STRING_END"
+
     # keywords
     CLASS = "class"
     ELSE = "else"

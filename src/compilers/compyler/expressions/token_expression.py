@@ -24,7 +24,7 @@ class TokenExpression(Expression):
             case TokenType.NUMBER:
                 assert isinstance(self.token, NumberToken)
                 return str(self.token.value)
-            case TokenType.STRING:
+            case TokenType.STRING_CHARS:
                 assert isinstance(self.token, StringToken)
                 return f'"{self.token.value}"'
             case TokenType.IDENTIFIER:

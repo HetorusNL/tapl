@@ -29,6 +29,7 @@ class Tokenizer:
         # some variables to store the state of the tokenizer
         self._current_index: int = 0
         self._line: int = 1
+        self._string_var_parsing = False
         # indent and dedent related variables
         self._at_start_of_line: bool = True
         self._current_indent: int = 0  # current number of INDENT_SPACES indentations
@@ -51,7 +52,16 @@ class Tokenizer:
             match char := self._next():
                 # match all single-character tokens
                 case TokenType.BRACE_CLOSE.value:
-                    self._add_token_of_length(TokenType.BRACE_CLOSE)
+                    # check if we're in string var parsing mode
+                    if self._string_var_parsing:
+                        # add the string var end token
+                        self._add_token(TokenType.STRING_VAR_END)
+                        # reset the flag (as it can be set again in the add string chars)
+                        self._string_var_parsing = False
+                        # continue parsing string chars
+                        self._add_string_chars()
+                    else:
+                        self._add_token_of_length(TokenType.BRACE_CLOSE)
                 case TokenType.BRACE_OPEN.value:
                     self._add_token_of_length(TokenType.BRACE_OPEN)
                 case TokenType.BRACKET_CLOSE.value:
@@ -121,7 +131,7 @@ class Tokenizer:
                     # first match a digit, as identifiers can't start with a digit
                     self._add_number(digit)
                 case '"':
-                    self._add_string()
+                    self._start_string()
                 case identifier_char if self._is_identifier_char(char):
                     self._add_identifier(identifier_char)
                 # match whitespaces
@@ -298,13 +308,34 @@ class Tokenizer:
         start: int = self._current_index - length
         self._add_number_token(int(number_str), start, length)
 
-    def _add_string(self) -> None:
+    def _start_string(self) -> None:
+        # store the opening quote
+        self._add_token(TokenType.STRING_START)
+        # then start consuming the string chars
+        self._add_string_chars()
+
+    def _add_string_chars(self) -> None:
+        # consume all chars until a closing quote or string var start is encountered
         string: str = ""
         while char := self._get_char(consume=False):
             # wait until we get a closing quote
             if char == '"':
+                # first add the string until now
+                self._add_string_token(string)
+                # then consume and add the closing quote
                 self._current_index += 1
-                break
+                self._add_token(TokenType.STRING_END)
+                return
+            # if we have a string var start token, add this and continue parsing
+            if char == TokenType.BRACE_OPEN.value:
+                # first add the string until now
+                self._add_string_token(string)
+                # consume and add the string var start token
+                self._current_index += 1
+                self._add_token(TokenType.STRING_VAR_START)
+                # transition to string var parsing mode
+                self._string_var_parsing = True
+                return
             # if we have a newline, then raise an error as the string is unterminated
             if char == "\n":
                 length: int = len(string)
@@ -316,13 +347,11 @@ class Tokenizer:
             string += char
             self._current_index += 1
         # also handle the empty file case
-        if char is None:
-            length: int = len(string)
-            start: int = self._current_index - length
-            print(f'unterminated string "{string}"!')
-            self._add_token(TokenType.ERROR, start, length)
-            return
-        self._add_string_token(string)
+        length: int = len(string)
+        start: int = self._current_index - length
+        print(f'unterminated string "{string}"!')
+        self._add_token(TokenType.ERROR, start, length)
+        return
 
     def _add_keyword(self, identifier: str) -> bool:
         match identifier:

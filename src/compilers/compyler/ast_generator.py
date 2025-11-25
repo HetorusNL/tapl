@@ -692,7 +692,38 @@ class AstGenerator:
         # match literal numbers and strings
         if token := self.match(TokenType.NUMBER):
             return TokenExpression(token.source_location, token)
-        if token := self.match(TokenType.STRING):
+        if token := self.match(TokenType.STRING_START):
+            # TODO: temporary construct a single string token again
+            from .tokens.string_token import StringToken
+            from .tokens.number_token import NumberToken
+
+            value: str = ""
+            source_location: SourceLocation = token.source_location
+            while token := self.consume():
+                source_location += token.source_location
+                match token.token_type:
+                    case TokenType.STRING_CHARS:
+                        assert isinstance(token, StringToken)
+                        value += token.value
+                    case TokenType.STRING_VAR_START:
+                        value += "{"
+                    case TokenType.STRING_VAR_END:
+                        value += "}"
+                    case TokenType.STRING_END:
+                        value += ""
+                        break
+                    case TokenType.IDENTIFIER:
+                        assert isinstance(token, IdentifierToken)
+                        value += token.value
+                    case TokenType.NUMBER:
+                        assert isinstance(token, NumberToken)
+                        value += str(token.value)
+                    case _:
+                        value += token.token_type.value
+
+            new_token: StringToken = StringToken(source_location, value)
+            return TokenExpression(new_token.source_location, new_token)
+            # end of temporary construct
             return TokenExpression(token.source_location, token)
 
         # match expressions between parenthesis

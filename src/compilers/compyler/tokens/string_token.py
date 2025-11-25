@@ -11,7 +11,7 @@ from ..utils.source_location import SourceLocation
 
 class StringToken(Token):
     def __init__(self, source_location: SourceLocation, value: str):
-        super().__init__(TokenType.STRING, source_location)
+        super().__init__(TokenType.STRING_CHARS, source_location)
         # store the additional properties in the class
         self.value: str = value
 

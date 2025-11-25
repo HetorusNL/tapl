@@ -54,8 +54,18 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## TODO
 
-- clean up list implementation
+- string formatting
+  - fix tests
+  - add string class-like thing
+  - resolve variables
+    - something like below for all vars at once?:
+      - sprintf(NULL) for size
+      - malloc char array
+      - in block scope:
+      - sprintf(char array)
 - add list tests
+- add last pointer to list
+- clean up list implementation
 - make SourceLocation also able to 'add' a Token/Expression/Statement('s source_location)
 - refactor identifier expression from TokenExpression to IdentifierExpression
 - allow nested IdentifierExpressions/ThisExpressions

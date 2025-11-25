@@ -213,3 +213,14 @@ charr.add(1)
 print(charr.size())
 print(charr.get(0))
 print(charr.get(1))
+print("bla{charr.get(1)} akfjk")
+
+// example program using buitin variables
+
+u32 variable = 1337
+print("\nvalue of variable is: {variable}")
+
+s32 negative_variable = -1 * 1337
+print("the negative value is: {negative_variable}")
+
+print("calculation can be done in a string! 1 + 1 = {1 + 1}")

@@ -23,7 +23,7 @@ class PrintStatement(Statement):
 
         # check if the value is a string
         if isinstance(self.value, TokenExpression):
-            if self.value.token.token_type == TokenType.STRING:
+            if self.value.token.token_type == TokenType.STRING_CHARS:
                 # printn the token as string
                 return f'printf("%s\\n", {expression});'
 
