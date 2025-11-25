@@ -55,9 +55,9 @@ uv run -m src.compilers.compyler /path/to/file.tim
 ## TODO
 
 - string formatting
-  - fix tests
   - add string class-like thing
-  - resolve variables
+  - populate the thing in the ast generator
+  - resolve variables during code generation
     - something like below for all vars at once?:
       - sprintf(NULL) for size
       - malloc char array

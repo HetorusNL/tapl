@@ -3,7 +3,7 @@
         identifier 1337 "str"
 class else false for if list null print return super this true while
 // 1 inline comment
-"string after the comment"
+"string after the comment with variables {1+1} and {bla} in it"
 /* 1 block comment here
 which is multi-line */
 1337
