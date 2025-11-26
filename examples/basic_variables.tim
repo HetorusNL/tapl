@@ -2,16 +2,16 @@
 
 u32 variable = 0
 variable = 1300 + 37
-print("value of variable is: {variable}\n")
+println("value of variable is: {variable}")
 
 s32 negative_variable = -1
-negative_variable *= 1337
-print("the negative value is: {negative_variable}\n")
+negative_variable *= 1337  // TODO: implement *=
+println("the negative value is: {negative_variable}")
 
-u64 large_variable = 1e15
-print("the large variable is {large_variable}\n")
+u64 large_variable = 1e15  // TODO: implement e
+println("the large variable is {large_variable}")
 
 bool yes = true
 bool no = false
 
-u32* pointer_value = null
+u32* pointer_value = null  // TODO: implement pointer

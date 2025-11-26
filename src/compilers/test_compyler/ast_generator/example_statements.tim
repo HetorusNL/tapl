@@ -1,18 +1,18 @@
 1100 + 150 * 2 + 37 - 100
 1 * 2 + 3 / (4 + true)
-print(1337)
+println(1337)
 u16 var = 10
-print(var)
+println(var)
 u16 test_unary_minus = -1
-print(test_unary_minus)
-print(1337 == 1337)
-print(1337 + 1 != 1337)
+println(test_unary_minus)
+println(1337 == 1337)
+println(1337 + 1 != 1337)
 if 1337:
-    print(1337)
+    println(1337)
 else if 1338:
-    print(1338)
+    println(1338)
 else:
-    print(0)
+    println(0)
 // cast some types around
 u8 small = 123
 u16 big = (u16)small

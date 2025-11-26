@@ -60,6 +60,7 @@ class TokenType(Enum):
     LIST = "list"
     NULL = "null"
     PRINT = "print"
+    PRINTLN = "println"
     RETURN = "return"
     SUPER = "super"
     THIS = "this"

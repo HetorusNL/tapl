@@ -1,7 +1,7 @@
 // parse an if-statement
 if 1337:
 
-    print(1337)
+    println(1337)
         
     
 

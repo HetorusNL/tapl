@@ -102,7 +102,6 @@ class CodeGenerator:
             "#include <tapl_headers/types.h>\n",
             "\n",
             "int main(int argc, char** argv) {\n",
-            'printf("hello world!\\n");\n',
         ]
 
         with open(c_file, "w") as f:

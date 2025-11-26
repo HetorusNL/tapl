@@ -54,7 +54,7 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## TODO
 
-- add print/println
+- add char support (like %c)
 - string formatting
   - add string class-like thing
   - populate the thing in the ast generator

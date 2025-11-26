@@ -346,8 +346,8 @@ class AstGenerator:
         return statement
 
     def print_statement(self) -> PrintStatement | None:
-        # early return if we don't have a print statement
-        token: Token | None = self.match(TokenType.PRINT)
+        # early return if we don't have a print/println statement
+        token: Token | None = self.match(TokenType.PRINT, TokenType.PRINTLN)
         if not token:
             return
 

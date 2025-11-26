@@ -157,6 +157,7 @@ class TestTokenizer(unittest.TestCase):
             TokenType.LIST,
             TokenType.NULL,
             TokenType.PRINT,
+            TokenType.PRINTLN,
             TokenType.RETURN,
             TokenType.SUPER,
             TokenType.THIS,

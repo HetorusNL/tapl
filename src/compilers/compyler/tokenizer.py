@@ -371,6 +371,8 @@ class Tokenizer:
                 self._add_token_of_length(TokenType.NULL)
             case TokenType.PRINT.value:
                 self._add_token_of_length(TokenType.PRINT)
+            case TokenType.PRINTLN.value:
+                self._add_token_of_length(TokenType.PRINTLN)
             case TokenType.RETURN.value:
                 self._add_token_of_length(TokenType.RETURN)
             case TokenType.SUPER.value:

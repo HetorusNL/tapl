@@ -1,15 +1,15 @@
-print("basic print functionality")
-print(1100 + 150 * 2 + 37 - 100)
-print(1 * 2 + 3 / (4 + true))
-print(1 + 1 - 1)
+println("basic print functionality")
+println(1100 + 150 * 2 + 37 - 100)
+println(1 * 2 + 3 / (4 + true))
+println(1 + 1 - 1)
 
-print("\nvariables and printing of variables")
+println("\nvariables and printing of variables")
 u16 bla
-print(bla)
+println(bla)  // TODO: fix that I'm not 0 (initial value of type)
 u16 bla2 = 1337
-print(bla2)
+println(bla2)
 
-print("\ntesting types")
+println("\ntesting types")
 u1 _u1 = 1
 u8 _u8 = 12
 u16 _u16 = 1234
@@ -22,96 +22,100 @@ s64 _s64 = -12345678
 f32 _f32 = -12345678
 f64 _f64 = -12345678
 
-print("\nprinting types")
-print(_u1)
-print(_u8)
-print(_u16)
-print(_u32)
-print(_u64)
-print(_s8)
-print(_s16)
-print(_s32)
-print(_s64)
-print(_f32)
-print(_f64)
+println("\nprinting types")
+println(_u1)
+println(_u8)
+println(_u16)
+println(_u32)
+println(_u64)
+println(_s8)
+println(_s16)
+println(_s32)
+println(_s64)
+println(_f32)
+println(_f64)
 
-print("\nboolean expressions")
-print(1 == 1)
-print(1 == 2)
-print(2 > 1)
-print(1 > 2)
-print(2 >= 1)
-print(1 >= 1)
-print(1 >= 2)
-print(1 < 2)
-print(2 < 1)
-print(1 <= 2)
-print(1 <= 1)
-print(2 <= 1)
-print(1337 != 1338)
-print(1337 != 1337)
+println("\nboolean expressions")
+println(1 == 1)
+println(1 == 2)
+println(2 > 1)
+println(1 > 2)
+println(2 >= 1)
+println(1 >= 1)
+println(1 >= 2)
+println(1 < 2)
+println(2 < 1)
+println(1 <= 2)
+println(1 <= 1)
+println(2 <= 1)
+println(1337 != 1338)
+println(1337 != 1337)
 
-print("\nparse an if-statement")
+println("\nparse an if-statement")
 if 1337:
-    print(1337)
+    println(1337)
 else if 1338:
-    print(1338)
+    println(1338)
 else:
-    print(0)
+    println(0)
 
-print("\ntesting pre and post increment/decrement")
+println("\ntesting pre and post increment/decrement")
 u8 index = 0
-print(index++)
-print(index++)
+println(index++)
+println(index++)
 u8 other_index = 0
-print(++other_index)
-print(--other_index)
+println(++other_index)
+println(--other_index)
 
-print("\nparsing a for-loop statement")
+println("\nparsing a for-loop statement")
 for u8 i = 0; i < 10; i++:
     i++
+    println(i)
+println("also test printing everything on a single line")
+for u8 i = 0; i < 10; i++:
     print(i)
-print("and parsing a while-loop statement")
+println("")  // TODO: fix that I need an empty string here :D
+println("and parsing a while-loop statement")
 u8 idx = 0
 while idx++ < 10:
     idx++
-    print(idx)
+    println(idx)
 
-print("\nparsing function statements")
+println("\nparsing function statements")
 u8 func1(u8 argument):
-    print(argument)
+    println(argument)
     u8 local = 1
     local++
-    print(local)
+    println(local)
     return argument + local
 u8 func2():  // u8 as we don't support pointers (yet) :s
-    print(1337)
+    println(1337)
     return null
 void func3(u8 a, u8 b, u8 c):
-    print(a + b + c)
+    println(a + b + c)
     return
-print("and call the functions")
-print("func1:")
+println("and call the functions")
+println("func1:")
 u8 ret1 = func1(10)
-print("return1: {ret1}")
-print("func2:")
+println("return1: {ret1}")
+println("func2:")
 u8 ret2 = func2()
-print("return2: {ret2}")
-print("func3:")
+println("return2: {ret2}")
+println("func3:")
 func3(1, 2, 3)
-print("func3 returns void")
+println("func3 returns void")
 
-print("\ntype-cast a value around")
+println("\ntype-cast a value around")
 u8 small = 123
-print(small)
+println(small)
 u16 big = (u16)small + 1337 // this is gonna be big
-print(big)
+println(big)
 u8 small_again = (u8)big // this is not able to hold the big number
-print(small_again)
+println(small_again)
 
-print("\ndo we support 0xe stuff??")
-print("print(0xe+1): {0xe+1}")
-print("yes we do!")
+println("\ndo we support 0xe stuff??")
+println("println(0xe+1): {0xe+1}")
+println("yes we do!")
 
 // example classes
 
@@ -152,8 +156,8 @@ class ExampleClass:
         return this.get_value() + value
 
 ExampleClass instance
-print("result(): {instance.result()}")
-print("add(1337): {instance.add(1337)}")
+println("result(): {instance.result()}")
+println("add(1337): {instance.add(1337)}")
 
 /*
 // single class function
@@ -181,36 +185,36 @@ c2.c1.func()
 -> C1_func(&c2.c1);
 */
 
-print("example usage of 'list' collection")
+println("example usage of 'list' collection")
 
-print("create an instance of a list, which has a size of 0")
+println("create an instance of a list, which has a size of 0")
 list[u32] some_list
 
-print("some functions to be called on the list")
-print("\nreturns the size, should be initialized as 0: {some_list.size()}")
+println("some functions to be called on the list")
+println("\nreturns the size, should be initialized as 0: {some_list.size()}")
 some_list.add(1337)
-print("\nadds an element, 1, to the list, size: {some_list.size()}")
-print("\ngets the 0th element (or 0/crash when not there): {some_list.get(0)}")
-print("\nremoves the 0th element, return true on success, false/crash on failure: {some_list.del(0)}")
-print("\ninserts 10 at location 0, return true on success, false/crash on failure: {some_list.insert(0, 10)}")
-print("\nsize of the list now: {some_list.size()}")
-print("\ngets the 0th element (or 0/crash when not there) {some_list.get(0)}")
+println("\nadds an element, 1, to the list, size: {some_list.size()}")
+println("\ngets the 0th element (or 0/crash when not there): {some_list.get(0)}")
+println("\nremoves the 0th element, return true on success, false/crash on failure: {some_list.del(0)}")
+println("\ninserts 10 at location 0, return true on success, false/crash on failure: {some_list.insert(0, 10)}")
+println("\nsize of the list now: {some_list.size()}")
+println("\ngets the 0th element (or 0/crash when not there) {some_list.get(0)}")
 list[f64] doublee
 list[u1] boool
 list[s8] charr
 charr.add(0)
 charr.add(1)
-print(charr.size())
-print(charr.get(0))
-print(charr.get(1))
-print("value of charr.get(1): {charr.get(1)}, woohoo")
+println(charr.size())
+println(charr.get(0))
+println(charr.get(1))
+println("value of charr.get(1): {charr.get(1)}, woohoo")
 
 // example program using buitin variables
 
 u32 variable = 1337
-print("\nvalue of variable is: {variable}")
+println("\nvalue of variable is: {variable}")
 
 s32 negative_variable = -1 * 1337
-print("the negative value is: {negative_variable}")
+println("the negative value is: {negative_variable}")
 
-print("calculation can be done in a string! 1 + 1 = {1 + 1}")
+println("calculation can be done in a string! 1 + 1 = {1 + 1}")

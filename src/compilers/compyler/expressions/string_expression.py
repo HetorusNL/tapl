@@ -16,6 +16,8 @@ class StringExpression(Expression):
         source_location: SourceLocation = string_start.source_location
         super().__init__(source_location)
         self.string_elements: list[Token | Expression] = [string_start]
+        # the line end is updated to '\n' when it's inside a println
+        self.line_end: str = ""
 
     def add_token(self, element: Token | Expression) -> None:
         self.source_location += element.source_location
@@ -62,7 +64,7 @@ class StringExpression(Expression):
             if token.token_type == TokenType.STRING_START:
                 format_string += '"'
             elif token.token_type == TokenType.STRING_END:
-                format_string += "\\n"  # TODO: remove and combine with above
+                format_string += self.line_end
                 format_string += '"'
             elif token.token_type == TokenType.STRING_CHARS:
                 assert isinstance(token, StringCharsToken)

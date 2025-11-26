@@ -1,7 +1,10 @@
 // parse a for-loop statement
 for u8 i = 0; i < 10; i++:
-    print(i)
+    println(i)
 // also parse a while-loop statement
 u8 idx = 0
 while idx++ < 10:
-    print(idx)
+    println(idx)
+// also test the print function (next to the println)
+for u8 i = 0; i < 10; i++:
+    print(i)
