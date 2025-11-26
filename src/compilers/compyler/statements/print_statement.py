@@ -23,7 +23,7 @@ class PrintStatement(Statement):
         # check if the value is a string
         if isinstance(self.value, StringExpression):
             # print the string expression as string
-            return f'printf("%s\\n", {expression});'
+            return f"printf({expression});"
 
         # otherwise we fall back to a signed integer
         return f'printf("%d\\n", {expression});'

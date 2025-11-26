@@ -93,12 +93,10 @@ void func3(u8 a, u8 b, u8 c):
 print("and call the functions")
 print("func1:")
 u8 ret1 = func1(10)
-print("return1:")
-print(ret1)
+print("return1: {ret1}")
 print("func2:")
 u8 ret2 = func2()
-print("return2:")
-print(ret2)
+print("return2: {ret2}")
 print("func3:")
 func3(1, 2, 3)
 print("func3 returns void")
@@ -112,8 +110,7 @@ u8 small_again = (u8)big // this is not able to hold the big number
 print(small_again)
 
 print("\ndo we support 0xe stuff??")
-print("print(0xe+1):")
-print(0xe+1)
+print("print(0xe+1): {0xe+1}")
 print("yes we do!")
 
 // example classes
@@ -155,8 +152,8 @@ class ExampleClass:
         return this.get_value() + value
 
 ExampleClass instance
-print(instance.result())
-print(instance.add(1337))
+print("result(): {instance.result()}")
+print("add(1337): {instance.add(1337)}")
 
 /*
 // single class function
@@ -190,21 +187,14 @@ print("create an instance of a list, which has a size of 0")
 list[u32] some_list
 
 print("some functions to be called on the list")
-print("\nreturns the size, currently 0")
-print(some_list.size())
-print("\nadds an element, 1, to the list, size:")
+print("\nreturns the size, should be initialized as 0: {some_list.size()}")
 some_list.add(1337)
-print(some_list.size())
-print("\ngets the 0th element (or 0/crash when not there)")
-print(some_list.get(0))
-print("\nremoves the 0th element, return true on success, false/crash on failure")
-print(some_list.del(0))
-print("\ninserts 10 at location 0, return true on success, false/crash on failure")
-print(some_list.insert(0, 10))
-print("\nsize:")
-print(some_list.size())
-print("\ngets the 0th element (or 0/crash when not there)")
-print(some_list.get(0))
+print("\nadds an element, 1, to the list, size: {some_list.size()}")
+print("\ngets the 0th element (or 0/crash when not there): {some_list.get(0)}")
+print("\nremoves the 0th element, return true on success, false/crash on failure: {some_list.del(0)}")
+print("\ninserts 10 at location 0, return true on success, false/crash on failure: {some_list.insert(0, 10)}")
+print("\nsize of the list now: {some_list.size()}")
+print("\ngets the 0th element (or 0/crash when not there) {some_list.get(0)}")
 list[f64] doublee
 list[u1] boool
 list[s8] charr
@@ -213,7 +203,7 @@ charr.add(1)
 print(charr.size())
 print(charr.get(0))
 print(charr.get(1))
-print("bla{charr.get(1)} akfjk")
+print("value of charr.get(1): {charr.get(1)}, woohoo")
 
 // example program using buitin variables
 

@@ -47,8 +47,29 @@ class StringExpression(Expression):
         return string
 
     def c_code(self) -> str:
-        # TODO: implement
-        return self._raw_string()
+        # TODO: support more than only print statements
+        format_string: str = ""
+        arguments: list[str] = []
+
+        for element in self.string_elements:
+            # check if the element is an expression, if so add its c_code as argument
+            if isinstance(element, Expression):
+                format_string += f"%d"  # TODO: extract from the expression
+                arguments.append(element.c_code())
+                continue
+            # otherwise it's a string-related token, process it
+            token: Token = element
+            if token.token_type == TokenType.STRING_START:
+                format_string += '"'
+            elif token.token_type == TokenType.STRING_END:
+                format_string += "\\n"  # TODO: remove and combine with above
+                format_string += '"'
+            elif token.token_type == TokenType.STRING_CHARS:
+                assert isinstance(token, StringCharsToken)
+                format_string += token.value
+
+        print_string: str = ", ".join([format_string, *arguments])
+        return print_string
 
     def __str__(self) -> str:
         return self._raw_string()
