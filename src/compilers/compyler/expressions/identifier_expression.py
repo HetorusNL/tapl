@@ -80,6 +80,8 @@ class IdentifierExpression(Expression):
                 full_name: str = f"list_{self.list_type.inner_type}_{name}"
                 arguments: str = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
                 return f"{full_name}({arguments})"
+            # pass the address of the list type, not by value
+            return f"&{self._inner_c_code()}"
 
         # otherwise simply return the identifier with potential inner expressions
         return self._inner_c_code()

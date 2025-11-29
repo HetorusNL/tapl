@@ -47,15 +47,12 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## Needed before AoC
 
-- classes
-- collections: list/hmap
-- file input (/ output)
-- string formatting
+- add char support (like %c)
+- collections: ~~list~~ / hmap
 
 ## TODO
 
-- add char support (like %c)
-- string formatting
+- modifiable strings
   - add string class-like thing
   - populate the thing in the ast generator
   - resolve variables during code generation

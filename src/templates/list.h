@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+//
+// This file is part of compyler, a TAPL compiler.
+
 // declare the 'single element' of the list
 typedef struct list_TYPE_element_struct list_TYPE_element;
 struct list_TYPE_element_struct {

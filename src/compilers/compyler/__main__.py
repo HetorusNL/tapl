@@ -22,6 +22,7 @@ from .ast_checks.ast_check import AstCheck
 
 # get to the repo root folder, several levels up
 repo_root: Path = Path(__file__).parents[3].resolve()
+stdlib_folder: Path = repo_root / "src" / "stdlib"
 templates_folder: Path = repo_root / "src" / "templates"
 
 
@@ -74,6 +75,13 @@ def generate_code(ast: AST, build_folder: Path, header_folder: Path, templates_f
     main_c_file: Path = build_folder / "main.c"
     CodeGenerator(ast, build_folder, header_folder, templates_folder).generate_c(main_c_file)
     return main_c_file
+
+
+def copy_stdlib(header_folder: Path, stdlib_folder: Path) -> None:
+    # recursively copy all header files to the header folder
+    # using the neat Path.copy_into function, available since python 3.14
+    for header in stdlib_folder.glob("*.h"):
+        header.copy_into(header_folder)
 
 
 def format_files(folder: Path) -> None:
@@ -149,6 +157,9 @@ def main():
 
     # generate c-code from the AST and write the source files in the build folder
     c_file: Path = generate_code(ast, build_folder, header_folder, templates_folder)
+
+    # copy the files in the standard library to the header folder
+    copy_stdlib(header_folder, stdlib_folder)
 
     # format the generated c-code files
     format_files(build_folder)

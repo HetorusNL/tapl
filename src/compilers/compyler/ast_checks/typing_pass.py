@@ -60,6 +60,43 @@ class TypingPass(PassBase):
         # store a stack of identifier types when they have inner identifiers
         self._identifier_stack: list[Type] = []
 
+        # add the functions from the standard library to the functions list
+        dummy_location: SourceLocation = SourceLocation(0, 0)
+        # add a bool type token
+        bool_type: Type | None = self._types.get("bool")
+        assert bool_type
+        bool_type_token: TypeToken = TypeToken(dummy_location, bool_type)
+        # add a string type token and filename identifier
+        string_type: Type | None = self._types.get("string")
+        assert string_type
+        string_type_token: TypeToken = TypeToken(dummy_location, string_type)
+        filename_identifier: IdentifierToken = IdentifierToken(dummy_location, "filename")
+        # add a list[u8] type token and list identifier
+        list_u8_type: Type | None = self._types.get("list[u8]")
+        assert list_u8_type
+        list_u8_type_token: TypeToken = TypeToken(dummy_location, list_u8_type)
+        list_identifier: IdentifierToken = IdentifierToken(dummy_location, "list")
+
+        # add the read_file function from the standard library
+        read_file_identifier: IdentifierToken = IdentifierToken(dummy_location, "read_file")
+        read_file_function: FunctionStatement = FunctionStatement(bool_type_token, read_file_identifier)
+        read_file_function.add_argument(string_type_token, filename_identifier)
+        read_file_function.add_argument(list_u8_type_token, list_identifier)
+        # add the function name to the surrounding scope
+        self._add_identifier(read_file_function.name, read_file_function.return_type.type_)
+        # add the function to the function list
+        self._functions[read_file_function.name.value] = read_file_function
+
+        # add the write_file function from the standard library
+        write_file_identifier: IdentifierToken = IdentifierToken(dummy_location, "write_file")
+        write_file_function: FunctionStatement = FunctionStatement(bool_type_token, write_file_identifier)
+        write_file_function.add_argument(string_type_token, filename_identifier)
+        write_file_function.add_argument(list_u8_type_token, list_identifier)
+        # add the function name to the surrounding scope
+        self._add_identifier(write_file_function.name, write_file_function.return_type.type_)
+        # add the function to the function list
+        self._functions[write_file_function.name.value] = write_file_function
+
     def _parse_statement(self, statement: Statement) -> None:
         # TODO: refactor this and _parse_expression to a visitor pattern?
         match statement:
@@ -263,8 +300,9 @@ class TypingPass(PassBase):
                         for argument in expression.arguments:
                             self.parse_expression(argument)
                         if identifier_token.value in type_.callable_functions():
-                            expression.type_ = type_
-                            expression.expression.type_ = expression.type_
+                            return_value_type: Type = self._types[type_.callable_functions()[identifier_token.value]]
+                            expression.type_ = return_value_type
+                            expression.expression.type_ = return_value_type
                             return
                         # otherwise it's not callable, add the error
                         source_location: SourceLocation = identifier_token.source_location

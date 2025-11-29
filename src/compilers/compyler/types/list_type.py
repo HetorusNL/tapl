@@ -15,5 +15,12 @@ class ListType(Type):
         # store the inner type
         self.inner_type: Type = inner_type
 
-    def callable_functions(self) -> list[str]:
-        return ["size", "add", "get", "del", "insert"]
+    def callable_functions(self) -> dict[str, str]:
+        """a dictionary of callable functions returning pairs of: <name - return value keyword>"""
+        return {
+            "size": "u64",
+            "add": "void",
+            "get": self.inner_type.keyword,
+            "del": "bool",
+            "insert": "bool",
+        }
