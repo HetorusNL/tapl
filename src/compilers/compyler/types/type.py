@@ -6,10 +6,21 @@
 
 
 class Type:
+    _unknown: Type | None = None
+
     def __init__(self, keyword: str, syntactic_sugar: list[str] = [], underlying_type: str | None = None):
         self.keyword: str = keyword
         self.syntactic_sugar: list[str] = syntactic_sugar
         self.underlying_type: str | None = underlying_type
+
+    @classmethod
+    def unknown(cls):
+        """function to get a reference to to a default-unknown Type"""
+        # check if the unknown type has been created before, otherwise one
+        if cls._unknown is None:
+            cls._unknown = Type("unknown")
+        # return the created unknown Type
+        return cls._unknown
 
     @property
     def all_keywords(self) -> list[str]:

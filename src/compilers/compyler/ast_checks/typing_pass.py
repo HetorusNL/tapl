@@ -11,6 +11,7 @@ from ..expressions.expression import Expression
 from ..expressions.expression_type import ExpressionType
 from ..expressions.identifier_expression import IdentifierExpression
 from ..expressions.string_expression import StringExpression
+from ..expressions.this_expression import ThisExpression
 from ..expressions.token_expression import TokenExpression
 from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
@@ -21,6 +22,7 @@ from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
 from ..statements.if_statement import IfStatement
+from ..statements.lifecycle_statement import LifecycleStatement
 from ..statements.list_statement import ListStatement
 from ..statements.print_statement import PrintStatement
 from ..statements.return_statement import ReturnStatement
@@ -63,14 +65,27 @@ class TypingPass(PassBase):
         match statement:
             case AssignmentStatement():
                 # get the identifier token type
-                requested_type: Type = self.parse_expression(statement.expression)
+                self.parse_expression(statement.expression)
+                requested_type: Type = statement.expression.type_
                 # check that the expression is of this type
-                value_type: Type = self.parse_expression(statement.value)
+                self.parse_expression(statement.value)
+                value_type: Type = statement.value.type_
                 # check that returned type and requested are valid
                 self._check_types(requested_type, value_type, statement.value.source_location)
             case ClassStatement():
                 # TODO: implement
                 self._classes[statement.class_type.keyword] = statement
+                # parse the variables in the class
+                for variable in statement.variables:
+                    self.parse_statement(variable)
+                # parse the statements in the lifecycle functions
+                if statement.constructor:
+                    self.parse_statement(statement.constructor)
+                if statement.destructor:
+                    self.parse_statement(statement.destructor)
+                for function in statement.functions:
+                    # TODO: fix assert that happens when using undeclared variables in functions
+                    self.parse_statement(function)
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -125,6 +140,20 @@ class TypingPass(PassBase):
                     with self._new_scope():
                         for else_statement in else_statements:
                             self.parse_statement(else_statement)
+            case LifecycleStatement():
+                # create a new scope for the lifecycle statement arguments and body statements
+                with self._new_scope():
+                    # add the return type (void) to the function return type stack
+                    self._function_stack.append(self._types["void"])
+                    try:
+                        # add the arguments to the newly created scope
+                        for type_token, identifier_token in statement.arguments:
+                            self._add_identifier(identifier_token, type_token.type_)
+                        # check the statements inside the function
+                        for body_statement in statement.statements:
+                            self.parse_statement(body_statement)
+                    finally:
+                        self._function_stack.pop()
             case ListStatement():
                 # add the variable declaration to the scope
                 self._add_identifier(statement.name, statement.list_type)
@@ -144,7 +173,8 @@ class TypingPass(PassBase):
                     source_location: SourceLocation = statement.value.source_location
                     self.ast_error(message, source_location)
                 if statement.value:
-                    return_value_type: Type = self.parse_expression(statement.value)
+                    self.parse_expression(statement.value)
+                    return_value_type: Type = statement.value.type_
                     source_location: SourceLocation = statement.value.source_location
                     try:
                         # perform type checking on the requested return type and provided return value,
@@ -163,21 +193,24 @@ class TypingPass(PassBase):
                     # get the identifier token type
                     requested_type: Type = self._get_type(statement.name)
                     # check that the expression is of this type
-                    value_type: Type = self.parse_expression(initial_value)
+                    self.parse_expression(initial_value)
                     # check that returned type and requested are valid
-                    self._check_types(requested_type, value_type, initial_value.source_location)
+                    self._check_types(requested_type, initial_value.type_, initial_value.source_location)
             case _:
                 assert False, f"internal compiler error, {type(statement)} not handled!"
 
-    def parse_expression(self, expression: Expression) -> Type:
+    def parse_expression(self, expression: Expression) -> None:
         """parse an expression, where exceptions are thrown toward the surrounding statement"""
         # parse all types of expressions
         match expression:
             case BinaryExpression():
+                left: Expression = expression.left
+                right: Expression = expression.right
                 # check the left and right expression of the binary expression
-                type_left: Type = self.parse_expression(expression.left)
-                type_right: Type = self.parse_expression(expression.right)
-                return self._check_types(type_left, type_right, expression.source_location)
+                self.parse_expression(left)
+                self.parse_expression(right)
+                # TODO: when binary expression results in a bool, return bool type
+                expression.type_ = self._check_types(left.type_, right.type_, expression.source_location)
             case CallExpression():
                 # assert that we don't have an inner expression in the identifier expression
                 assert expression.expression.inner_expression is None
@@ -198,31 +231,41 @@ class TypingPass(PassBase):
                         required_argument_type: Type = required_argument_type_token.type_
                         # get the type of the passed argument
                         passed_argument: Expression = expression.arguments[arg_index]
-                        passed_argument_type: Type = self.parse_expression(passed_argument)
+                        self.parse_expression(passed_argument)
                         source_location: SourceLocation = passed_argument.source_location
                         # check that the types are correct
                         try:
                             # perform the type check, and catch an exception if it occurs
-                            self._check_types(required_argument_type, passed_argument_type, source_location)
+                            self._check_types(required_argument_type, passed_argument.type_, source_location)
                         except TaplError:
                             # the type check failed, formulate a nice error for the user
                             message: str = f"expected 'argument {arg_index+1}' of type "
                             message += f"'{required_argument_type.keyword}', "
-                            message += f"but found '{passed_argument_type.keyword}'!"
+                            message += f"but found '{passed_argument.type_.keyword}'!"
                             self.ast_error(message, source_location)
-                    # return the return type of the function
-                    return self._get_type(identifier_token)
+                    # set the return type of the function as expression type
+                    expression.type_ = self._get_type(identifier_token)
+                    expression.expression.type_ = expression.type_
+                    return
                 elif self._classes_stack:
                     # TODO: implement
                     # return classes[class][function].type
                     expression.class_type = self._classes[self._classes_stack[-1].keyword].class_type
-                    return Type("u32")  # self._get_type(identifier_token)
+                    expression.type_ = Type("u32")  # TODO: self._get_type(identifier_token)
+                    expression.expression.type_ = expression.type_
+                    return
                 elif self._identifier_stack:
                     # if there is a list on the identifier stack, we can call certain functions
                     type_: Type = self._identifier_stack[-1]
                     if isinstance(type_, ListType):
+                        # check the arguments
+                        # TODO: add type and number of arguments checking to arguments of list functions
+                        for argument in expression.arguments:
+                            self.parse_expression(argument)
                         if identifier_token.value in type_.callable_functions():
-                            return type_
+                            expression.type_ = type_
+                            expression.expression.type_ = expression.type_
+                            return
                         # otherwise it's not callable, add the error
                         source_location: SourceLocation = identifier_token.source_location
                         self.ast_error(
@@ -243,63 +286,73 @@ class TypingPass(PassBase):
                         expression.list_type = type_
                     try:
                         if expression.inner_expression:
-                            return self.parse_expression(expression.inner_expression)
+                            self.parse_expression(expression.inner_expression)
+                            expression.type_ = expression.inner_expression.type_
+                            return
                     finally:
                         self._identifier_stack.pop()
                         if is_class:
                             self._classes_stack.pop()
-                return self._get_type(expression.identifier_token)
+                expression.type_ = self._get_type(expression.identifier_token)
             case StringExpression():
                 # parse all inner expression of the string, when they exist
                 for element in expression.string_elements:
                     if isinstance(element, Expression):
                         self.parse_expression(element)
-                return self._types["string"]
+                expression.type_ = self._types["string"]
+            case ThisExpression():
+                self.parse_expression(expression.inner_expression)
+                # TODO: should be class type, as it is an instance?
+                expression.type_ = expression.inner_expression.type_
             case TokenExpression():
                 match expression.token:
                     case NumberToken():
                         # no checking happens here so we're going to return a base type
-                        return self._types["base"]
+                        expression.type_ = self._types["base"]
                     case StringCharsToken():
-                        return self._types["string"]
+                        expression.type_ = self._types["string"]
                     case IdentifierToken():
                         # TODO: handle callables differently, this now results in gcc errors
                         # get the type from the identifier
-                        return self._get_type(expression.token)
+                        expression.type_ = self._get_type(expression.token)
                     case _:
                         match expression.token.token_type:
                             # TODO: refactor true/false to special booleans
                             case TokenType.TRUE:
-                                return self._types["base"]
+                                expression.type_ = self._types["base"]
                             case TokenType.FALSE:
-                                return self._types["base"]
+                                expression.type_ = self._types["base"]
                             case TokenType.NULL:
                                 # TODO: refactor when ptr implemented
-                                return self._types["base"]
+                                expression.type_ = self._types["base"]
                             case _:
                                 assert False, "TODO: process generic token thing"
             case TypeCastExpression():
                 # get the type of the inner expression
-                inner_type = self.parse_expression(expression.expression)
+                self.parse_expression(expression.expression)
+                inner_type = expression.expression.type_
                 cast_to_type: Type = expression.cast_to.type_
                 # we allow any NumericType to be type casted, otherwise we fail
                 if isinstance(cast_to_type, NumericType) and isinstance(inner_type, NumericType):
-                    return cast_to_type
+                    expression.type_ = cast_to_type
                 else:
                     message: str = f"cannot type cast from '{inner_type.keyword}' to '{cast_to_type.keyword}'!"
                     self.ast_error(message, expression.source_location)
             case UnaryExpression():
-                inner_type: Type = self.parse_expression(expression.expression)
+                # first parse the inner expression, and get its type
+                self.parse_expression(expression.expression)
+                inner_type: Type = expression.expression.type_
                 if expression.expression_type == ExpressionType.GROUPING:
-                    # if it's a grouping, anything goes, return the inner type
-                    return inner_type
+                    # if it's a grouping, anything goes, our type is the inner type
+                    expression.type_ = inner_type
                 else:
                     # otherwise it must be a numeric type
                     if not isinstance(inner_type, NumericType):
                         message: str = f"expected numeric type for unary expression '{expression.expression_type.name}'"
                         message += f", found '{inner_type.keyword}'!"
                         self.ast_error(message, expression.expression.source_location)
-                    return inner_type
+                    expression.type_ = inner_type
+                    # TODO: NOT should end up with a bool type
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
 
@@ -373,3 +426,96 @@ class TypingPass(PassBase):
 
         # all checks passed, return the requested type
         return requested_type
+
+    def verify_types(self) -> None:
+        # TODO: refactor this to a list in a statement/expression,
+        # that contains all child statements/expressions, to easily recurse everything
+        # ensure that all expressions have a type
+        for statement in self._ast.statements.iter():
+            self._check_statement(statement)
+
+    def _check_statement(self, statement: Statement) -> None:
+        match statement:
+            case AssignmentStatement():
+                self._check_expression(statement.expression)
+                self._check_expression(statement.value)
+            case ClassStatement():
+                if statement.constructor:
+                    self._check_statement(statement.constructor)
+                if statement.destructor:
+                    self._check_statement(statement.destructor)
+                for function in statement.functions:
+                    self._check_statement(function)
+                for variable in statement.variables:
+                    self._check_statement(variable)
+            case ExpressionStatement():
+                self._check_expression(statement.expression)
+            case ForLoopStatement():
+                if statement.check:
+                    self._check_expression(statement.check)
+                if statement.init:
+                    self._check_statement(statement.init)
+                if statement.loop:
+                    self._check_expression(statement.loop)
+                for stm in statement.statements:
+                    self._check_statement(stm)
+            case FunctionStatement():
+                for stm in statement.statements:
+                    self._check_statement(stm)
+            case IfStatement():
+                for expression, stmlist in statement.else_if_statement_blocks:
+                    self._check_expression(expression)
+                    for stm in stmlist:
+                        self._check_statement(stm)
+                if statement.else_statements:
+                    for stm in statement.else_statements:
+                        self._check_statement(stm)
+                self._check_expression(statement.expression)
+                for stm in statement.statements:
+                    self._check_statement(stm)
+            case LifecycleStatement():
+                for stm in statement.statements:
+                    self._check_statement(stm)
+            case ListStatement():
+                pass  # nothing to check in a ListStatement
+            case PrintStatement():
+                self._check_expression(statement.value)
+            case ReturnStatement():
+                if statement.value:
+                    self._check_expression(statement.value)
+            case VarDeclStatement():
+                if statement.initial_value:
+                    self._check_expression(statement.initial_value)
+
+            case _:
+                assert False, f"internal compiler error, {type(statement)} not handled!"
+
+    def _check_expression(self, expression: Expression) -> None:
+        if expression.type_ == Type.unknown():
+            print(f"FAILURE: {expression}.type_ == Type.unknown()")
+        assert expression.type_ != Type.unknown()
+        match expression:
+            case BinaryExpression():
+                self._check_expression(expression.left)
+                self._check_expression(expression.right)
+            case CallExpression():
+                self._check_expression(expression.expression)
+                for argument in expression.arguments:
+                    self._check_expression(argument)
+            case IdentifierExpression():
+                if expression.inner_expression:
+                    self._check_expression(expression.inner_expression)
+            case StringExpression():
+                for element in expression.string_elements:
+                    if isinstance(element, Expression):
+                        self._check_expression(element)
+            case ThisExpression():
+                self._check_expression(expression.inner_expression)
+            case TokenExpression():
+                pass  # nothing to check in a TokenExpression
+            case TypeCastExpression():
+                self._check_expression(expression.expression)
+            case UnaryExpression():
+                self._check_expression(expression.expression)
+            case _:
+                assert False, f"internal compiler error, {type(expression)} not handled!"

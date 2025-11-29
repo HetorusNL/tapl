@@ -4,12 +4,14 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from ..types.type import Type
 from ..utils.source_location import SourceLocation
 
 
 class Expression:
     def __init__(self, source_location: SourceLocation):
         self.source_location: SourceLocation = source_location
+        self.type_: Type = Type.unknown()
 
     def c_code(self) -> str:
         assert False, f"we can't generate code for a {type(self)}!"

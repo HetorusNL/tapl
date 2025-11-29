@@ -19,3 +19,5 @@ class AstCheck:
         ScopingPass(self._ast).run()
         # check and apply types to the variables, including type 'upscaling'
         TypingPass(self._ast).run()
+        # check that all expressions have a type
+        TypingPass(self._ast).verify_types()

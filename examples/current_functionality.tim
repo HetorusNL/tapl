@@ -8,6 +8,9 @@ u16 bla
 println(bla)  // TODO: fix that I'm not 0 (initial value of type)
 u16 bla2 = 1337
 println(bla2)
+u8 value = 0
+value = 1
+print("value of value after assignment: {value}")
 
 println("\ntesting types")
 u1 _u1 = 1
@@ -123,7 +126,7 @@ class ExampleClass:
     // first we define the variables that the class contain (like entries of a struct)
     u32 variable1
     u8 variable2
-    bool is_true
+    bool _is_true
 
     // then we have functions of the class (and constructor/destructor if present)
 
@@ -134,17 +137,17 @@ class ExampleClass:
         iets = 1
         iets = 2
         this.variable2 = 10
-        this.is_true = false
+        this._is_true = false
 
     ~ExampleClass():
         // destruction can happen here
 
     u32 get_value():
         u32 offset = 5
-        return this.variable1 + this.variable2 + offset
+        return this.variable1 + (u32)this.variable2 + offset
 
     bool is_true():
-        return this.is_true
+        return this._is_true
 
     u32 result():
         if this.is_true():

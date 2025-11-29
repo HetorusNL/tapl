@@ -16,7 +16,7 @@ class TypeCastExpression(Expression):
         self.expression: Expression = expression
 
     def c_code(self) -> str:
-        return f"(({self.cast_to}){self.expression})"
+        return f"(({self.cast_to}){self.expression.c_code()})"
 
     def __str__(self) -> str:
         return f"({self.cast_to}){self.expression}"
