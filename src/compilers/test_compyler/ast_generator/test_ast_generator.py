@@ -16,6 +16,7 @@ from compyler.types.type_resolver import TypeResolver
 from compyler.types.types import Types
 from compyler.utils.ast import AST
 from compyler.utils.stream import Stream
+from compyler.ast_checks.ast_check import AstCheck
 
 
 class TestAstGenerator(unittest.TestCase):
@@ -48,6 +49,7 @@ class TestAstGenerator(unittest.TestCase):
         type_applier.apply(tokens)
         # generate the ast and resulting statements to verify
         ast: AST = AstGenerator(example_file, tokens, types).generate()
+        AstCheck(ast).run()
         ast_statements: list[Statement] = ast.statements.objects
         print(*ast_statements, sep="\n")
 

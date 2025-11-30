@@ -1,5 +1,5 @@
 u8 func(u8 argument) {
-printf("%d\n", argument);
+printf("%u\n", argument);
 return argument;
 }
 s16 func2() {
@@ -7,7 +7,7 @@ printf("%d\n", 1337);
 return 1337;
 }
 void func3(u8 a, u8 b, u8 c) {
-printf("%d\n", ((a + b) + c));
+printf("%u\n", ((a + b) + c));
 return;
 }
 func(10);
