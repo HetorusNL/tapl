@@ -204,7 +204,7 @@ println("\nsize of the list now: {some_list.size()}")
 println("\ngets the 0th element (or 0/crash when not there) {some_list.get(0)}")
 list[f64] doublee
 list[u1] boool
-list[s8] charr
+list[char] charr
 charr.add(0)
 charr.add(1)
 println(charr.size())

@@ -18,8 +18,8 @@ class Types:
     def __init__(self):
         self._types: dict[str, Type] = self.builtin_types()
 
-        # make sure also the list[u8] exists for the file stdlib functions
-        self.add_list_type(self._types["u8"])
+        # make sure also the list[char] exists for the file stdlib functions
+        self.add_list_type(self._types["char"])
 
     def builtin_types(self) -> dict[str, Type]:
         """returns the builtin types of the language as a dictionary:

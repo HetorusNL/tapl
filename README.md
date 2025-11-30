@@ -51,6 +51,7 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## TODO
 
+- char type should be generated as u8, not char
 - add error message to the error token and print that instead of "found 'TokenType.ERROR'!"
 - modifiable strings
   - add string class-like thing

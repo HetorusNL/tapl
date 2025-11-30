@@ -1,5 +1,5 @@
 // create a nice buffer to hold our chars of the file
-list[u8] buffer
+list[char] buffer
 
 // call the stdlib function to read a file into a buffer
 read_file("README.md", buffer)

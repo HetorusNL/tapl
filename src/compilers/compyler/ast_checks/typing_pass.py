@@ -73,17 +73,17 @@ class TypingPass(PassBase):
         assert string_type
         string_type_token: TypeToken = TypeToken(dummy_location, string_type)
         filename_identifier: IdentifierToken = IdentifierToken(dummy_location, "filename")
-        # add a list[u8] type token and list identifier
-        list_u8_type: Type | None = self._types.get("list[u8]")
-        assert list_u8_type
-        list_u8_type_token: TypeToken = TypeToken(dummy_location, list_u8_type)
+        # add a list[char] type token and list identifier
+        list_char_type: Type | None = self._types.get("list[char]")
+        assert list_char_type
+        list_char_type_token: TypeToken = TypeToken(dummy_location, list_char_type)
         list_identifier: IdentifierToken = IdentifierToken(dummy_location, "list")
 
         # add the read_file function from the standard library
         read_file_identifier: IdentifierToken = IdentifierToken(dummy_location, "read_file")
         read_file_function: FunctionStatement = FunctionStatement(bool_type_token, read_file_identifier)
         read_file_function.add_argument(string_type_token, filename_identifier)
-        read_file_function.add_argument(list_u8_type_token, list_identifier)
+        read_file_function.add_argument(list_char_type_token, list_identifier)
         # add the function name to the surrounding scope
         self._add_identifier(read_file_function.name, read_file_function.return_type.type_)
         # add the function to the function list
@@ -93,7 +93,7 @@ class TypingPass(PassBase):
         write_file_identifier: IdentifierToken = IdentifierToken(dummy_location, "write_file")
         write_file_function: FunctionStatement = FunctionStatement(bool_type_token, write_file_identifier)
         write_file_function.add_argument(string_type_token, filename_identifier)
-        write_file_function.add_argument(list_u8_type_token, list_identifier)
+        write_file_function.add_argument(list_char_type_token, list_identifier)
         # add the function name to the surrounding scope
         self._add_identifier(write_file_function.name, write_file_function.return_type.type_)
         # add the function to the function list
