@@ -10,6 +10,7 @@ from .statement import Statement
 from ..tokens.token import Token
 from ..tokens.token_type import TokenType
 from ..utils.source_location import SourceLocation
+from ..utils.utils import Utils
 
 
 class PrintStatement(Statement):
@@ -20,16 +21,15 @@ class PrintStatement(Statement):
         self.value: Expression = value
 
     def c_code(self) -> str:
-        # check if the value is a string
+        # handle the special case of a stringexpression
         if isinstance(self.value, StringExpression):
             # pass the line_end on to the string expression
             self.value.line_end = self.line_end
             # print the string expression as string
             return f"printf({self.value.c_code()});"
 
-        # TODO: get the type from the expression
-        # otherwise we fall back to a signed integer
-        return f'printf("%d{self.line_end}", {self.value.c_code()});'
+        type_format_string: str = Utils.get_type_format_string(self.value.type_)
+        return f'printf("{type_format_string}{self.line_end}", {self.value.c_code()});'
 
     def __str__(self) -> str:
         return f"print({self.value.__str__()})"

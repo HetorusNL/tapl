@@ -8,6 +8,10 @@ from pathlib import Path
 
 from .colors import Colors
 from .source_location import SourceLocation
+from ..types.character_type import CharacterType
+from ..types.numeric_type import NumericType
+from ..types.numeric_type_type import NumericTypeType
+from ..types.type import Type
 
 
 class Utils:
@@ -48,3 +52,19 @@ class Utils:
         else:
             error = f"[ internal compiler error! (line {line} not found in source) ]"
             return f"{Colors.BOLD}{Colors.RED}{error}{Colors.RESET} {no_source}"
+
+    @classmethod
+    def get_type_format_string(cls, type_: Type):
+        match type_:
+            case CharacterType():
+                return f"%c"
+            case NumericType():
+                match type_.numeric_type_type:
+                    case NumericTypeType.SIGNED:
+                        return f"%d"
+                    case NumericTypeType.UNSIGNED:
+                        return f"%u"
+                    case NumericTypeType.FLOATING_POINT:
+                        return f"%f"
+            case _:
+                assert False, f"internal compiler error, {type(type_)} not handled!"

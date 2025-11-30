@@ -47,11 +47,11 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 ## Needed before AoC
 
-- add char support (like %c)
 - collections: ~~list~~ / hmap
 
 ## TODO
 
+- add error message to the error token and print that instead of "found 'TokenType.ERROR'!"
 - modifiable strings
   - add string class-like thing
   - populate the thing in the ast generator

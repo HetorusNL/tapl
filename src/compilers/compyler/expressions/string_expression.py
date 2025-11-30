@@ -9,6 +9,7 @@ from ..tokens.string_chars_token import StringCharsToken
 from ..tokens.token import Token
 from ..tokens.token_type import TokenType
 from ..utils.source_location import SourceLocation
+from ..utils.utils import Utils
 
 
 class StringExpression(Expression):
@@ -56,7 +57,7 @@ class StringExpression(Expression):
         for element in self.string_elements:
             # check if the element is an expression, if so add its c_code as argument
             if isinstance(element, Expression):
-                format_string += f"%d"  # TODO: extract from the expression
+                format_string += Utils.get_type_format_string(element.type_)
                 arguments.append(element.c_code())
                 continue
             # otherwise it's a string-related token, process it

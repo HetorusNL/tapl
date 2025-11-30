@@ -24,7 +24,7 @@ class BinaryExpression(TokenExpression):
         return f"({left_code} {token_code} {right_code})"
 
     def __str__(self) -> str:
-        return f"({self.left} {self.token.token_type.value} {self.right})"
+        return f"({self.left} {self.token.token_type} {self.right})"
 
     def __repr__(self) -> str:
         return f"<BinaryExpression: location {self.source_location}, {self.left} {self.token.token_type} {self.right}>"

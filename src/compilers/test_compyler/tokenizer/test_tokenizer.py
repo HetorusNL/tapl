@@ -143,6 +143,7 @@ class TestTokenizer(unittest.TestCase):
             TokenType.INDENT,
             TokenType.IDENTIFIER,
             TokenType.NUMBER,
+            TokenType.CHARACTER,
             TokenType.STRING_START,
             TokenType.STRING_CHARS,
             TokenType.STRING_END,

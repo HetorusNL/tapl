@@ -681,7 +681,7 @@ class AstGenerator:
         return expression
 
     def primary(self) -> Expression:
-        """returns a primary expression: primary keywords or number/string"""
+        """returns a primary expression: primary keywords or character/number/string"""
         # match the primary keywords
         if token := self.match(TokenType.FALSE):
             return TokenExpression(token.source_location, token)
@@ -690,7 +690,9 @@ class AstGenerator:
         if token := self.match(TokenType.TRUE):
             return TokenExpression(token.source_location, token)
 
-        # match literal numbers and strings
+        # match literal characters, numbers and strings
+        if token := self.match(TokenType.CHARACTER):
+            return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.NUMBER):
             return TokenExpression(token.source_location, token)
         if token := self.match(TokenType.STRING_START):

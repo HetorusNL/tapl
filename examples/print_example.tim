@@ -5,3 +5,6 @@ print(" (don't forget to add a line terminator, as this is not done in the langu
 println(" (unless you use a println keyword instead of print obviously)")
 u32 variable = 10
 println("constants and variables can be printed using curly braces like this: {1}, {2} and {variable}")
+
+char c = 'c'
+println("we also support characters, they are printed like: {c} (with numeric value: {(u8)c})")

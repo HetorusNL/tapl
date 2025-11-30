@@ -40,6 +40,7 @@ class TokenType(Enum):
     # literals
     IDENTIFIER = "<IDENTIFIER>"
     TYPE = "<TYPE>"
+    CHARACTER = "<CHARACTER>"
     NUMBER = "<NUMBER>"
     INLINE_COMMENT = "<INLINE_COMMENT>"
     BLOCK_COMMENT = "<BLOCK_COMMENT>"

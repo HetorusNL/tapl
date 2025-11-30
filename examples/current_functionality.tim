@@ -221,3 +221,7 @@ s32 negative_variable = -1 * 1337
 println("the negative value is: {negative_variable}")
 
 println("calculation can be done in a string! 1 + 1 = {1 + 1}")
+
+println("\nwe also support characters, like char c = 'c'")
+char c = 'c'
+println("the character is printed as: {c} (with numeric value: {(u8)c})")

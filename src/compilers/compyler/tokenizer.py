@@ -7,6 +7,7 @@
 from pathlib import Path
 
 from .tokens.token_type import TokenType
+from .tokens.character_token import CharacterToken
 from .tokens.comment_token import CommentToken
 from .tokens.identifier_token import IdentifierToken
 from .tokens.number_token import NumberToken
@@ -126,7 +127,9 @@ class Tokenizer:
                 case None:
                     self._add_token(TokenType.EOF)
                     break
-                # match numbers and strings
+                # match characters, numbers and strings
+                case "'":
+                    self._add_character()
                 case digit if self._isdigit(char):
                     # first match a digit, as identifiers can't start with a digit
                     self._add_number(digit)
@@ -192,6 +195,11 @@ class Tokenizer:
     def _is_identifier_char(self, char: str) -> bool:
         return self._isdigit(char) or self._isalpha(char) or char == "_"
 
+    def _add_character_token(self, value: str, start: int, length: int) -> None:
+        source_location: SourceLocation = SourceLocation(start, length)
+        character_token: CharacterToken = CharacterToken(source_location, value)
+        self._tokens.add(character_token)
+
     def _add_identifier_token(self, value: str) -> None:
         length: int = len(value)
         start: int = self._current_index - length
@@ -225,8 +233,8 @@ class Tokenizer:
 
     def _add_token(self, token_type: TokenType, start: int | None = None, length: int | None = None) -> None:
         """Adds a token at the current (consumed) position with length of 1 (unless different start-length is passed)"""
-        start = start or self._current_index - 1
-        length = length or 1
+        start = self._current_index - 1 if start is None else start
+        length = 1 if length is None else length
         token: Token = Token(token_type, SourceLocation(start, length))
         self._tokens.add(token)
 
@@ -275,6 +283,24 @@ class Tokenizer:
             self._add_token(TokenType.ERROR, start, length)
         else:
             self._add_number_token(int(hexadecimal_str, 16), start, length)
+
+    def _add_character(self) -> None:
+        # the opening quote is already consumed, add the character itself
+        character: str | None = self._next()
+        if not character:
+            print("unterminated character!")
+            return self._add_token(TokenType.ERROR, self._current_index - 1, 1)
+
+        closing_quote: str | None = self._next()
+        if closing_quote == "'":
+            # we found a character, create the token and return
+            return self._add_character_token(character, self._current_index - 3, 3)
+        # handle the errors: no character and invalid character
+        if not closing_quote:
+            print("unterminated character!")
+            return self._add_token(TokenType.ERROR, self._current_index - 2, 2)
+        print("expected ''' after character")
+        return self._add_token(TokenType.ERROR, self._current_index - 3, 3)
 
     def _add_number(self, first_char: str) -> None:
         # TODO: add distinction between int and float/double

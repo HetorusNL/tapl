@@ -28,11 +28,13 @@ from ..statements.print_statement import PrintStatement
 from ..statements.return_statement import ReturnStatement
 from ..statements.statement import Statement
 from ..statements.var_decl_statement import VarDeclStatement
+from ..tokens.character_token import CharacterToken
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
 from ..tokens.string_chars_token import StringCharsToken
 from ..tokens.type_token import TypeToken
 from ..tokens.token_type import TokenType
+from ..types.character_type import CharacterType
 from ..types.class_type import ClassType
 from ..types.list_type import ListType
 from ..types.numeric_type import NumericType
@@ -344,6 +346,8 @@ class TypingPass(PassBase):
                 expression.type_ = expression.inner_expression.type_
             case TokenExpression():
                 match expression.token:
+                    case CharacterToken():
+                        expression.type_ = self._types["char"]
                     case NumberToken():
                         # no checking happens here so we're going to return a base type
                         expression.type_ = self._types["base"]
@@ -364,14 +368,20 @@ class TypingPass(PassBase):
                                 # TODO: refactor when ptr implemented
                                 expression.type_ = self._types["base"]
                             case _:
-                                assert False, "TODO: process generic token thing"
+                                token: str = str(type(expression.token))
+                                token_type: str = expression.token.token_type.value
+                                message: str = f"token {token} with TokenType {token_type} not handled!"
+                                assert False, f"internal compiler error, {message}"
             case TypeCastExpression():
                 # get the type of the inner expression
                 self.parse_expression(expression.expression)
                 inner_type = expression.expression.type_
                 cast_to_type: Type = expression.cast_to.type_
-                # we allow any NumericType to be type casted, otherwise we fail
-                if isinstance(cast_to_type, NumericType) and isinstance(inner_type, NumericType):
+                # check that both are castable
+                inner_type_castable: bool = isinstance(inner_type, (CharacterType, NumericType))
+                cast_to_type_castable: bool = isinstance(cast_to_type, (CharacterType, NumericType))
+                # we allow any NumericType and CharacterType to be type casted, otherwise we fail
+                if inner_type_castable and cast_to_type_castable:
                     expression.type_ = cast_to_type
                 else:
                     message: str = f"cannot type cast from '{inner_type.keyword}' to '{cast_to_type.keyword}'!"

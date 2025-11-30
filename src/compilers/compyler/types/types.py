@@ -6,6 +6,7 @@
 
 from pathlib import Path
 
+from .character_type import CharacterType
 from .class_type import ClassType
 from .list_type import ListType
 from .numeric_type import NumericType
@@ -40,6 +41,7 @@ class Types:
             NumericType("f32", NumericTypeType.FLOATING_POINT, 32, underlying_type="float"),
             NumericType("f64", NumericTypeType.FLOATING_POINT, 64, underlying_type="double"),
             NumericType("base", NumericTypeType.SIGNED, 64),  # base type for non-determined integer values
+            CharacterType(),
             Type("string"),
         ]
         types: dict[str, Type] = {}

@@ -5,6 +5,7 @@
 # This file is part of compyler, a TAPL compiler.
 
 from .expression import Expression
+from ..tokens.character_token import CharacterToken
 from ..tokens.identifier_token import IdentifierToken
 from ..tokens.number_token import NumberToken
 from ..tokens.string_chars_token import StringCharsToken
@@ -21,15 +22,18 @@ class TokenExpression(Expression):
     def c_code(self) -> str:
         match self.token.token_type:
             # handle the special cases
+            case TokenType.CHARACTER:
+                assert isinstance(self.token, CharacterToken)
+                return f"'{self.token}'"
             case TokenType.NUMBER:
                 assert isinstance(self.token, NumberToken)
-                return str(self.token.value)
+                return f"{self.token}"
             case TokenType.STRING_CHARS:
                 assert isinstance(self.token, StringCharsToken)
-                return f'"{self.token.value}"'
+                return f'"{self.token}"'
             case TokenType.IDENTIFIER:
                 assert isinstance(self.token, IdentifierToken)
-                return self.token.value
+                return f"{self.token}"
             case TokenType.NULL:
                 # TODO: refactor to NULL when we support pointers
                 return f"0"

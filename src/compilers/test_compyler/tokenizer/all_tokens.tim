@@ -1,6 +1,6 @@
 {}[]:,.-()+;~++--
     = == > >= < <= ! != / *
-        identifier 1337 "str"
+        identifier 1337 'c' "str"
 class else false for if list null print println return super this true while
 // 1 inline comment
 "string after the comment with variables {1+1} and {bla} in it"
