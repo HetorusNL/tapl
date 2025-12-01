@@ -225,3 +225,9 @@ println("calculation can be done in a string! 1 + 1 = {1 + 1}")
 println("\nwe also support characters, like char c = 'c'")
 char c = 'c'
 println("the character is printed as: {c} (with numeric value: {(u8)c})")
+
+println("")
+if 1 == 1 && 2 == 2:
+    println("we support '&&'!")
+if 1 == 2 || 2 == 2:
+    println("we also support '||'!")

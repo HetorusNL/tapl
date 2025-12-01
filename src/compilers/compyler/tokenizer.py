@@ -123,6 +123,16 @@ class Tokenizer:
                         self._add_token_of_length(TokenType.SLASH)
                 case TokenType.STAR.value:
                     self._add_token_of_length(TokenType.STAR)
+                case TokenType.AND.value:
+                    if self._consume(TokenType.AND.value):
+                        self._add_token_of_length(TokenType.AND_AND)
+                    else:
+                        self._add_token_of_length(TokenType.AND)
+                case TokenType.OR.value:
+                    if self._consume(TokenType.OR.value):
+                        self._add_token_of_length(TokenType.OR_OR)
+                    else:
+                        self._add_token_of_length(TokenType.OR)
                 # match special EOF case, we parsed the whole file
                 case None:
                     self._add_token(TokenType.EOF)

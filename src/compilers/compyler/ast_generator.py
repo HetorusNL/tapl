@@ -635,6 +635,19 @@ class AstGenerator:
 
     def boolean(self) -> Expression:
         """returns a boolean expression, or a higher precedence level expression"""
+        expression: Expression = self.comparison()
+
+        and_or_tokens: tuple[TokenType, ...] = (TokenType.AND_AND, TokenType.OR_OR)
+        while token := self.match(*and_or_tokens):
+            # we found a boolean expression token, go up the precedence list to get another expression
+            right: Expression = self.comparison()
+            expression = BinaryExpression(expression, token, right)
+
+        # otherwise return the expression found at the beginning
+        return expression
+
+    def comparison(self) -> Expression:
+        """returns a comparison expression, or a higher precedence level expression"""
         # go up the precedence list to get the left hand side expression
         expression: Expression = self.additive()
 
@@ -647,7 +660,7 @@ class AstGenerator:
             TokenType.NOT_EQUAL,
         )
         while token := self.match(*boolean_expression_tokens):
-            # we found a boolean expression token, go up the precedence list go get another expression
+            # we found a comparison expression token, go up the precedence list to get another expression
             right: Expression = self.additive()
             expression = BinaryExpression(expression, token, right)
 
@@ -730,7 +743,7 @@ class AstGenerator:
             source_location: SourceLocation = paren_open.source_location + paren_close.source_location
             return UnaryExpression(source_location, ExpressionType.GROUPING, expression)
 
-        # match boolean not expression
+        # match comparison not expression
         if not_token := self.match(TokenType.NOT):
             expression: Expression = self.primary()
             source_location: SourceLocation = not_token.source_location + expression.source_location

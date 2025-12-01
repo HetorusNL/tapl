@@ -36,6 +36,10 @@ class TokenType(Enum):
     STAR = "*"
     INCREMENT = "++"
     DECREMENT = "--"
+    AND = "&"
+    AND_AND = "&&"
+    OR = "|"
+    OR_OR = "||"
 
     # literals
     IDENTIFIER = "<IDENTIFIER>"
