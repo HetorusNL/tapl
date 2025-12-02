@@ -59,12 +59,14 @@ class Utils:
             case CharacterType():
                 return f"%c"
             case NumericType():
+                # depending on the size of the type, add 'l' to the format
+                long: str = "l" if type_.num_bits > 32 else ""
                 match type_.numeric_type_type:
                     case NumericTypeType.SIGNED:
-                        return f"%d"
+                        return f"%{long}d"
                     case NumericTypeType.UNSIGNED:
-                        return f"%u"
+                        return f"%{long}u"
                     case NumericTypeType.FLOATING_POINT:
-                        return f"%f"
+                        return f"%{long}f"
             case _:
                 assert False, f"internal compiler error, {type(type_)} not handled!"

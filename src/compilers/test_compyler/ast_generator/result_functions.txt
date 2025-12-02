@@ -3,7 +3,7 @@ printf("%u\n", argument);
 return argument;
 }
 s16 func2() {
-printf("%d\n", 1337);
+printf("%ld\n", 1337);
 return 1337;
 }
 void func3(u8 a, u8 b, u8 c) {

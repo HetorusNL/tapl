@@ -22,7 +22,11 @@ class ListStatement(Statement):
         self.name: IdentifierToken = name
 
     def c_code(self) -> str:
-        return f"list_{self.list_type.inner_type} {self.name};"
+        # create the list declaration
+        code: str = f"list_{self.list_type.inner_type} {self.name};"
+        # also initialize the list to zero
+        code += f"{self.name}.list = 0;"
+        return code
 
     def __str__(self) -> str:
         return f"{self.list_type.keyword} {self.name}"
