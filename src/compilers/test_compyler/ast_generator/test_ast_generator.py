@@ -45,7 +45,7 @@ class TestAstGenerator(unittest.TestCase):
         type_resolver: TypeResolver = TypeResolver(tokens)
         types: Types = type_resolver.resolve()
         # apply the types to the tokens in the stream
-        type_applier: TypeApplier = TypeApplier(types)
+        type_applier: TypeApplier = TypeApplier(example_file, types)
         type_applier.apply(tokens)
         # generate the ast and resulting statements to verify
         ast: AST = AstGenerator(example_file, tokens, types).generate()

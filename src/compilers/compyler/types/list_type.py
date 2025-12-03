@@ -24,3 +24,7 @@ class ListType(Type):
             "del": "bool",
             "insert": "bool",
         }
+
+    def c_code(self) -> str:
+        inner_type_code: str = self.inner_type.c_code()
+        return f"list_{inner_type_code}"

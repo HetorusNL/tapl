@@ -12,3 +12,11 @@ println("\nremoves the 0th element, return true on success, false/crash on failu
 println("\ninserts 10 at location 0, return true on success, false/crash on failure: {some_list.insert(0, 10)}")
 println("\nsize of the list now: {some_list.size()}")
 println("\ngets the 0th element (or 0/crash when not there) {some_list.get(0)}")
+
+/*
+list[u8] buffer
+void add_list(list[u8] l, u8 value):
+    l.append(value)
+
+add_list(buffer, 10)
+*/

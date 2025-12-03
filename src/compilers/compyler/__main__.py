@@ -40,12 +40,12 @@ def tokenize(file: Path) -> Stream[Token]:
     return tokens
 
 
-def typing_passes(tokens: Stream[Token]) -> Types:
+def typing_passes(filename: Path, tokens: Stream[Token]) -> Types:
     # resolve the types in the file
     type_resolver: TypeResolver = TypeResolver(tokens)
     types: Types = type_resolver.resolve()
     # apply the types to the tokens in the stream (in place)
-    type_applier: TypeApplier = TypeApplier(types)
+    type_applier: TypeApplier = TypeApplier(filename, types)
     type_applier.apply(tokens)
     # return the processed tokens
     return types
@@ -144,7 +144,7 @@ def main():
     tokens: Stream[Token] = tokenize(file)
 
     # apply the two typing passes to the token stream
-    types: Types = typing_passes(tokens)
+    types: Types = typing_passes(file, tokens)
 
     # generate an AST from the tokens
     ast: AST = generate_ast(file, tokens, types)

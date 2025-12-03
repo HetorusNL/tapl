@@ -37,7 +37,7 @@ class FunctionStatement(Statement):
     def _c_declaration_base(self) -> str:
         """returns the function declaration line, without anything after the closing paren"""
         # start with the function return type and name
-        code: str = f"{self.return_type} {self._function_name()}("
+        code: str = f"{self.return_type.c_code()} {self._function_name()}("
 
         # create a list of argument type-name pairs
         arguments: list[str] = []
@@ -46,7 +46,7 @@ class FunctionStatement(Statement):
             arguments.append(f"{self.class_type}* this")
         # construct the function declaration arguments from the list of arguments
         for argument_type, argument_name in self.arguments:
-            arguments.append(f"{argument_type} {argument_name}")
+            arguments.append(f"{argument_type.c_code()} {argument_name}")
         # add comma separated list of the argument type-name pairs
         code += ", ".join(arguments)
         code += f")"

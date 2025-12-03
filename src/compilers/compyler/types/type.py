@@ -38,6 +38,9 @@ class Type:
         """returns whether the type is not of type void"""
         return self.keyword != "void"
 
+    def c_code(self) -> str:
+        return self.keyword
+
     def __eq__(self, other: object) -> bool:
         """two types are equal when they have the same keyword"""
         if not isinstance(other, Type):

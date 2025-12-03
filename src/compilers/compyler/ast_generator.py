@@ -185,38 +185,10 @@ class AstGenerator:
         # return the finished for-loop statement
         return ForLoopStatement(token, init, check, loop, statements)
 
-    def list_statement(self, must_end_with_newline: bool) -> ListStatement | None:
-        # early return if we don't have a list statement
-        token: Token | None = self.match(TokenType.LIST)
-        if not token:
-            return None
-
-        # a list should have a type token between brackets
-        self.expect(TokenType.BRACKET_OPEN)
-        element_type: Token = self.expect(TokenType.TYPE)
-        assert isinstance(element_type, TypeToken)
-        self.expect(TokenType.BRACKET_CLOSE)
-
-        # and end with a variable name
-        name: Token = self.expect(TokenType.IDENTIFIER)
-        assert isinstance(name, IdentifierToken)
-
-        # statements should end with a newline
-        self.expect_newline(must_end_with_newline=must_end_with_newline)
-
-        # add (if not already existing) the list type with this element type
-        list_type: ListType = self._types.add_list_type(element_type.type_)
-
-        # construct and return the ListStatement
-        return ListStatement(token, list_type, name)
-
     def _type_statement(
         self, must_end_with_newline: bool
     ) -> FunctionStatement | ListStatement | VarDeclStatement | None:
         """returns a statement starting with a type or list, or None otherwise"""
-        # check if it's a list statement
-        if statement := self.list_statement(must_end_with_newline):
-            return statement
         # start with a type
         if self.current().token_type != TokenType.TYPE:
             return None
@@ -384,7 +356,7 @@ class AstGenerator:
 
         return ReturnStatement(token, expression)
 
-    def var_decl_statement(self, must_end_with_newline: bool) -> VarDeclStatement | None:
+    def var_decl_statement(self, must_end_with_newline: bool) -> ListStatement | VarDeclStatement:
         # the _type_statement function already checked the tokens for us
         # so we can start consuming here
         type_token: Token = self.consume()
@@ -399,6 +371,11 @@ class AstGenerator:
 
         # statements should end with a newline
         self.expect_newline(must_end_with_newline=must_end_with_newline)
+
+        # check if the type is a list type or a different type
+        if isinstance(type_token.type_, ListType):
+            # return a list statement
+            return ListStatement(type_token, name)
 
         return VarDeclStatement(type_token, name, initial_value)
 

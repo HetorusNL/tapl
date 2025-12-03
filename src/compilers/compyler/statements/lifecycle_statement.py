@@ -33,14 +33,14 @@ class LifecycleStatement(Statement):
         # add the declaration
         match self.statement_type:
             case LifecycleStatementType.CONSTRUCTOR:
-                code += f"void {self.type_.keyword}_constructor("
+                code += f"void {self.type_.c_code()}_constructor("
             case LifecycleStatementType.DESTRUCTOR:
-                code += f"void {self.type_.keyword}_destructor("
+                code += f"void {self.type_.c_code()}_destructor("
 
         # create a list of argument type-name pairs, start with the pointer to the instance
-        arguments: list[str] = [f"{self.type_.keyword}* this"]
+        arguments: list[str] = [f"{self.type_.c_code()}* this"]
         for argument_type, argument_name in self.arguments:
-            arguments.append(f"{argument_type.type_.keyword} {argument_name}")
+            arguments.append(f"{argument_type.type_.c_code()} {argument_name}")
         # add the arguments
         code += ", ".join(arguments)
 

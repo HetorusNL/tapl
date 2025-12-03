@@ -13,8 +13,11 @@ from ..utils.source_location import SourceLocation
 class TypeToken(Token):
     def __init__(self, source_location: SourceLocation, type_: Type):
         super().__init__(TokenType.TYPE, source_location)
-        # sstore the additional properties in the class
+        # store the additional properties in the class
         self.type_: Type = type_
+
+    def c_code(self) -> str:
+        return self.type_.c_code()
 
     def __str__(self) -> str:
         return f"{self.type_.keyword}"

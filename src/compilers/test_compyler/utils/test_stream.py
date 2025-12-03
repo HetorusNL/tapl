@@ -57,13 +57,15 @@ class TestStream(unittest.TestCase):
         with self.assertRaises(StreamError):
             self.stream.iter_next()
 
-        # add 2 items to the stream
-        self.stream.add(1, 2)
+        # add 4 items to the stream
+        self.stream.add(1, 2, 3, 4)
 
-        # consume the first and let iter_next return the second
+        # consume the first and let iter_next return the second till the fourth
         for value in self.stream.iter():
             self.assertEqual(value, 1)
             self.assertEqual(self.stream.iter_next(), 2)
+            self.assertEqual(self.stream.iter_next(1), 3)
+            self.assertEqual(self.stream.iter_next(2), 4)
             break
 
     def test_replace_negative_count(self):

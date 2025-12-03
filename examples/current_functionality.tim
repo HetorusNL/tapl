@@ -231,3 +231,11 @@ if 1 == 1 && 2 == 2:
     println("we support '&&'!")
 if 1 == 2 || 2 == 2:
     println("we also support '||'!")
+
+/*
+list[u8] buffer
+void add_list(list[u8] l, u8 value):
+    l.append(value)
+
+add_list(buffer, 10)
+*/

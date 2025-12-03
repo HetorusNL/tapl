@@ -30,7 +30,7 @@ class TestTypeApplier(unittest.TestCase):
         types: Types = type_resolver.resolve()
 
         # run the TypeApplier to create the TypeToken tokens
-        type_applier: TypeApplier = TypeApplier(types)
+        type_applier: TypeApplier = TypeApplier(example_file, types)
         tokens = type_applier.apply(tokens)
 
         # extract the variable TypeToken tokens and keywords

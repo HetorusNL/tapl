@@ -28,7 +28,7 @@ class VarDeclStatement(Statement):
         # if we have an initial value, also generate code for that
         if self.initial_value:
             initial_value: str = self.initial_value.c_code()
-            return f"{self.type_token} {self.name} = {initial_value};"
+            return f"{self.type_token.c_code()} {self.name} = {initial_value};"
 
         # otherwise it's a default initialized variable
         return f"{self.type_token} {self.name};"

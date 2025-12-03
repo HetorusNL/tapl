@@ -43,13 +43,14 @@ class Stream[T]:
             self._index += 1
             yield self.objects[self._index - 1]
 
-    def iter_next(self) -> T:
-        """returns the object after the last object returned by the iterator,
+    def iter_next(self, offset: int = 0) -> T:
+        """returns the object with offset after the last object returned by the iterator,
         initially the index is set to 0, so the first object is returned.
         raises a StreamError if there is no next object
         """
-        if self._index < len(self.objects):
-            return self.objects[self._index]
+        position: int = self._index + offset
+        if position < len(self.objects):
+            return self.objects[position]
         raise StreamError("outside of stream's objects!")
 
     def replace(self, count: int, replacement: T) -> None:

@@ -6,24 +6,25 @@
 
 from .statement import Statement
 from ..tokens.identifier_token import IdentifierToken
-from ..tokens.token import Token
+from ..tokens.type_token import TypeToken
 from ..types.list_type import ListType
 from ..utils.source_location import SourceLocation
 
 
 class ListStatement(Statement):
-    def __init__(self, list_token: Token, list_type: ListType, name: IdentifierToken):
+    def __init__(self, type_token: TypeToken, name: IdentifierToken):
         # formulate the source location from the list statement from list till name
-        source_location: SourceLocation = list_token.source_location + name.source_location
+        source_location: SourceLocation = type_token.source_location + name.source_location
         super().__init__(source_location)
 
         # store the rest of the variables in the class
-        self.list_type: ListType = list_type
+        assert isinstance(type_token.type_, ListType)
+        self.list_type: ListType = type_token.type_
         self.name: IdentifierToken = name
 
     def c_code(self) -> str:
         # create the list declaration
-        code: str = f"list_{self.list_type.inner_type} {self.name};"
+        code: str = f"{self.list_type.c_code()} {self.name};"
         # also initialize the list to zero
         code += f"{self.name}.list = 0;"
         return code
