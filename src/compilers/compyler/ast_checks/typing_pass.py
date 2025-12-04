@@ -56,7 +56,6 @@ class TypingPass(PassBase):
         # TODO: classes should be usable from everywhere
 
         # store a scope per class
-        self._classes: dict[str, ClassStatement] = {}
         self._class_scopes: dict[str, ScopeWrapper] = {}
         # store a stack of function return types
         self._function_stack: list[Type] = []
@@ -117,7 +116,6 @@ class TypingPass(PassBase):
                 # check that returned type and requested are valid
                 self._check_types(requested_type, value_type, statement.value.source_location)
             case ClassStatement():
-                self._classes[statement.class_type.keyword] = statement
                 with self._clean_scope() as class_scope:
                     self._class_scopes[statement.class_type.keyword] = class_scope
                     # add the stdlib functions to the class scope
@@ -275,51 +273,21 @@ class TypingPass(PassBase):
                             expression.type_ = return_value_type
                             expression.expression.type_ = return_value_type
                             return
-                        # otherwise it's not callable, add the error
-                        source_location: SourceLocation = identifier_token.source_location
-                        self.ast_error(
-                            f"identifier '{identifier_token}' of a '{type_}' is not callable!", source_location
-                        )
                     if isinstance(type_, ClassType):
-                        # TODO: implement
                         class_keyword: str = type_.keyword
                         function_name: str = identifier_token.value
-                        # check the arguments
-                        for argument in expression.arguments:
-                            self.parse_expression(argument)
-                        # get the class type from the identifier stack
-                        expression.class_type = self._classes[class_keyword].class_type
+                        # add the identifier stack class type to the expression
+                        expression.class_type = type_
                         if function := self._class_scopes[class_keyword].scope.get_function(function_name):
+                            self._check_function(function, expression)
                             expression.type_ = function.return_type.type_
                             expression.expression.type_ = expression.type_
                             return
+                    # otherwise it's not callable, add the error
+                    source_location: SourceLocation = identifier_token.source_location
+                    self.ast_error(f"identifier '{identifier_token}' of a '{type_}' is not callable!", source_location)
                 elif function := self._scope_wrapper.scope.get_function(identifier_token.value):
-                    # check that the amount of arguments are correct
-                    required_arguments: int = len(function.arguments)
-                    passed_arguments: int = len(expression.arguments)
-                    if len(function.arguments) != len(expression.arguments):
-                        message: str = f"'{identifier_token}' expected {required_arguments} argument(s), "
-                        message += f"but {passed_arguments} were passed!"
-                        self.ast_error(message, expression.source_location)
-                    # for all arguments, check the types
-                    for arg_index in range(required_arguments):
-                        # get the type of the required argument
-                        required_argument_type_token: TypeToken = function.arguments[arg_index][0]
-                        required_argument_type: Type = required_argument_type_token.type_
-                        # get the type of the passed argument
-                        passed_argument: Expression = expression.arguments[arg_index]
-                        self.parse_expression(passed_argument)
-                        source_location: SourceLocation = passed_argument.source_location
-                        # check that the types are correct
-                        try:
-                            # perform the type check, and catch an exception if it occurs
-                            self._check_types(required_argument_type, passed_argument.type_, source_location)
-                        except TaplError:
-                            # the type check failed, formulate a nice error for the user
-                            message: str = f"expected 'argument {arg_index+1}' of type "
-                            message += f"'{required_argument_type.keyword}', "
-                            message += f"but found '{passed_argument.type_.keyword}'!"
-                            self.ast_error(message, source_location)
+                    self._check_function(function, expression)
                     # set the return type of the function as expression type
                     expression.type_ = self._get_identifier_type(identifier_token)
                     expression.expression.type_ = expression.type_
@@ -332,7 +300,7 @@ class TypingPass(PassBase):
                     type_: Type = self._get_identifier_type(expression.identifier_token)
                     is_class: bool = isinstance(type_, ClassType)
                     if is_class:
-                        expression.class_type = self._classes[type_.keyword].class_type
+                        expression.class_type = type_
                     self._identifier_stack.append(type_)
                     if isinstance(type_, ListType):
                         expression.list_type = type_
@@ -413,6 +381,35 @@ class TypingPass(PassBase):
                     # TODO: NOT should end up with a bool type
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
+
+    def _check_function(self, function: FunctionStatement, expression: CallExpression) -> None:
+        identifier_token: IdentifierToken = expression.expression.identifier_token
+        # check that the amount of arguments are correct
+        required_arguments: int = len(function.arguments)
+        passed_arguments: int = len(expression.arguments)
+        if len(function.arguments) != len(expression.arguments):
+            message: str = f"'{identifier_token}' expected {required_arguments} argument(s), "
+            message += f"but {passed_arguments} were passed!"
+            self.ast_error(message, expression.source_location)
+        # for all arguments, check the types
+        for arg_index in range(required_arguments):
+            # get the type of the required argument
+            required_argument_type_token: TypeToken = function.arguments[arg_index][0]
+            required_argument_type: Type = required_argument_type_token.type_
+            # get the type of the passed argument
+            passed_argument: Expression = expression.arguments[arg_index]
+            self.parse_expression(passed_argument)
+            source_location: SourceLocation = passed_argument.source_location
+            # check that the types are correct
+            try:
+                # perform the type check, and catch an exception if it occurs
+                self._check_types(required_argument_type, passed_argument.type_, source_location)
+            except TaplError:
+                # the type check failed, formulate a nice error for the user
+                message: str = f"expected 'argument {arg_index+1}' of type "
+                message += f"'{required_argument_type.keyword}', "
+                message += f"but found '{passed_argument.type_.keyword}'!"
+                self.ast_error(message, source_location)
 
     def _check_identifier(self, identifier_token: IdentifierToken, target_type: Type) -> None:
         identifier_type: Type = self._get_identifier_type(identifier_token)
