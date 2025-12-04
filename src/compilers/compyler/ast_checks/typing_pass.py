@@ -43,6 +43,7 @@ from ..types.type import Type
 from ..types.types import Types
 from ..utils.ast import AST
 from ..utils.source_location import SourceLocation
+from .scope_wrapper import ScopeWrapper
 
 
 class TypingPass(PassBase):
@@ -50,18 +51,22 @@ class TypingPass(PassBase):
         super().__init__(ast)
         # extract the types as determined during the type resolving pass
         self._types: Types = ast.types
-        # store a list of functions
+
         # TODO: functions should be callable from everywhere
-        self._functions: dict[str, FunctionStatement] = {}
         # TODO: classes should be usable from everywhere
+
+        # store a scope per class
         self._classes: dict[str, ClassStatement] = {}
-        # store a stack of class types of variables
-        self._classes_stack: list[Type] = []
+        self._class_scopes: dict[str, ScopeWrapper] = {}
         # store a stack of function return types
         self._function_stack: list[Type] = []
         # store a stack of identifier types when they have inner identifiers
         self._identifier_stack: list[Type] = []
+        # add the stdlib functions to the global scope
+        self.add_stdlib_functions()
 
+    def add_stdlib_functions(self) -> None:
+        # TODO: do this only once, not for every class scope
         # add the functions from the standard library to the functions list
         dummy_location: SourceLocation = SourceLocation(0, 0)
         # add a bool type token
@@ -87,7 +92,7 @@ class TypingPass(PassBase):
         # add the function name to the surrounding scope
         self._add_identifier(read_file_function.name, read_file_function.return_type.type_)
         # add the function to the function list
-        self._functions[read_file_function.name.value] = read_file_function
+        self._scope_wrapper.scope.add_function(read_file_function.name.value, read_file_function)
 
         # add the write_file function from the standard library
         write_file_identifier: IdentifierToken = IdentifierToken(dummy_location, "write_file")
@@ -97,7 +102,7 @@ class TypingPass(PassBase):
         # add the function name to the surrounding scope
         self._add_identifier(write_file_function.name, write_file_function.return_type.type_)
         # add the function to the function list
-        self._functions[write_file_function.name.value] = write_file_function
+        self._scope_wrapper.scope.add_function(write_file_function.name.value, write_file_function)
 
     def _parse_statement(self, statement: Statement) -> None:
         # TODO: refactor this and _parse_expression to a visitor pattern?
@@ -112,19 +117,22 @@ class TypingPass(PassBase):
                 # check that returned type and requested are valid
                 self._check_types(requested_type, value_type, statement.value.source_location)
             case ClassStatement():
-                # TODO: implement
                 self._classes[statement.class_type.keyword] = statement
-                # parse the variables in the class
-                for variable in statement.variables:
-                    self.parse_statement(variable)
-                # parse the statements in the lifecycle functions
-                if statement.constructor:
-                    self.parse_statement(statement.constructor)
-                if statement.destructor:
-                    self.parse_statement(statement.destructor)
-                for function in statement.functions:
-                    # TODO: fix assert that happens when using undeclared variables in functions
-                    self.parse_statement(function)
+                with self._clean_scope() as class_scope:
+                    self._class_scopes[statement.class_type.keyword] = class_scope
+                    # add the stdlib functions to the class scope
+                    self.add_stdlib_functions()
+                    # parse the variables in the class
+                    for variable in statement.variables:
+                        self.parse_statement(variable)
+                    # parse the statements in the lifecycle functions
+                    if statement.constructor:
+                        self.parse_statement(statement.constructor)
+                    if statement.destructor:
+                        self.parse_statement(statement.destructor)
+                    for function in statement.functions:
+                        # TODO: fix assert that happens when using undeclared variables in functions
+                        self.parse_statement(function)
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -143,8 +151,8 @@ class TypingPass(PassBase):
             case FunctionStatement():
                 # add the function name to the surrounding scope
                 self._add_identifier(statement.name, statement.return_type.type_)
-                # add the function to the function list
-                self._functions[statement.name.value] = statement
+                # add the function statement also to the scope
+                self._scope_wrapper.scope.add_function(statement.name.value, statement)
                 # create a new scope for the function arguments and body statements
                 with self._new_scope():
                     # add the return type to the function return type stack
@@ -230,7 +238,7 @@ class TypingPass(PassBase):
                 # get the type of the initial value
                 if initial_value := statement.initial_value:
                     # get the identifier token type
-                    requested_type: Type = self._get_type(statement.name)
+                    requested_type: Type = self._get_identifier_type(statement.name)
                     # check that the expression is of this type
                     self.parse_expression(initial_value)
                     # check that returned type and requested are valid
@@ -254,8 +262,38 @@ class TypingPass(PassBase):
                 # assert that we don't have an inner expression in the identifier expression
                 assert expression.expression.inner_expression is None
                 identifier_token: IdentifierToken = expression.expression.identifier_token
-                # check that the expression is callable
-                if function := self._functions.get(identifier_token.value):
+                if self._identifier_stack:
+                    # if there is a list on the identifier stack, we can call certain functions
+                    type_: Type = self._identifier_stack[-1]
+                    if isinstance(type_, ListType):
+                        # check the arguments
+                        # TODO: add type and number of arguments checking to arguments of list functions
+                        for argument in expression.arguments:
+                            self.parse_expression(argument)
+                        if identifier_token.value in type_.callable_functions():
+                            return_value_type: Type = self._types[type_.callable_functions()[identifier_token.value]]
+                            expression.type_ = return_value_type
+                            expression.expression.type_ = return_value_type
+                            return
+                        # otherwise it's not callable, add the error
+                        source_location: SourceLocation = identifier_token.source_location
+                        self.ast_error(
+                            f"identifier '{identifier_token}' of a '{type_}' is not callable!", source_location
+                        )
+                    if isinstance(type_, ClassType):
+                        # TODO: implement
+                        class_keyword: str = type_.keyword
+                        function_name: str = identifier_token.value
+                        # check the arguments
+                        for argument in expression.arguments:
+                            self.parse_expression(argument)
+                        # get the class type from the identifier stack
+                        expression.class_type = self._classes[class_keyword].class_type
+                        if function := self._class_scopes[class_keyword].scope.get_function(function_name):
+                            expression.type_ = function.return_type.type_
+                            expression.expression.type_ = expression.type_
+                            return
+                elif function := self._scope_wrapper.scope.get_function(identifier_token.value):
                     # check that the amount of arguments are correct
                     required_arguments: int = len(function.arguments)
                     passed_arguments: int = len(expression.arguments)
@@ -283,43 +321,17 @@ class TypingPass(PassBase):
                             message += f"but found '{passed_argument.type_.keyword}'!"
                             self.ast_error(message, source_location)
                     # set the return type of the function as expression type
-                    expression.type_ = self._get_type(identifier_token)
+                    expression.type_ = self._get_identifier_type(identifier_token)
                     expression.expression.type_ = expression.type_
                     return
-                elif self._classes_stack:
-                    # TODO: implement
-                    # return classes[class][function].type
-                    expression.class_type = self._classes[self._classes_stack[-1].keyword].class_type
-                    expression.type_ = Type("u32")  # TODO: self._get_type(identifier_token)
-                    expression.expression.type_ = expression.type_
-                    return
-                elif self._identifier_stack:
-                    # if there is a list on the identifier stack, we can call certain functions
-                    type_: Type = self._identifier_stack[-1]
-                    if isinstance(type_, ListType):
-                        # check the arguments
-                        # TODO: add type and number of arguments checking to arguments of list functions
-                        for argument in expression.arguments:
-                            self.parse_expression(argument)
-                        if identifier_token.value in type_.callable_functions():
-                            return_value_type: Type = self._types[type_.callable_functions()[identifier_token.value]]
-                            expression.type_ = return_value_type
-                            expression.expression.type_ = return_value_type
-                            return
-                        # otherwise it's not callable, add the error
-                        source_location: SourceLocation = identifier_token.source_location
-                        self.ast_error(
-                            f"identifier '{identifier_token}' of a '{type_}' is not callable!", source_location
-                        )
                 source_location: SourceLocation = identifier_token.source_location
                 self.ast_error(f"identifier '{identifier_token}' is not callable!", source_location)
             case IdentifierExpression():
                 # TODO: implement
                 with self._new_scope():
-                    type_: Type = self._get_type(expression.identifier_token)
+                    type_: Type = self._get_identifier_type(expression.identifier_token)
                     is_class: bool = isinstance(type_, ClassType)
                     if is_class:
-                        self._classes_stack.append(type_)
                         expression.class_type = self._classes[type_.keyword].class_type
                     self._identifier_stack.append(type_)
                     if isinstance(type_, ListType):
@@ -331,9 +343,7 @@ class TypingPass(PassBase):
                             return
                     finally:
                         self._identifier_stack.pop()
-                        if is_class:
-                            self._classes_stack.pop()
-                expression.type_ = self._get_type(expression.identifier_token)
+                expression.type_ = self._get_identifier_type(expression.identifier_token)
             case StringExpression():
                 # parse all inner expression of the string, when they exist
                 for element in expression.string_elements:
@@ -356,7 +366,7 @@ class TypingPass(PassBase):
                     case IdentifierToken():
                         # TODO: handle callables differently, this now results in gcc errors
                         # get the type from the identifier
-                        expression.type_ = self._get_type(expression.token)
+                        expression.type_ = self._get_identifier_type(expression.token)
                     case _:
                         match expression.token.token_type:
                             # TODO: refactor true/false to special booleans
@@ -405,20 +415,11 @@ class TypingPass(PassBase):
                 assert False, f"internal compiler error, {type(expression)} not handled!"
 
     def _check_identifier(self, identifier_token: IdentifierToken, target_type: Type) -> None:
-        identifier_type: Type = self._get_type(identifier_token)
+        identifier_type: Type = self._get_identifier_type(identifier_token)
         if identifier_type != target_type:
             message: str = f"identifier {identifier_token.value} is of type {identifier_type.keyword}, "
             message += f"cannot assign value of type {target_type.keyword}!"
             self.ast_error(message, identifier_token.source_location)
-
-    def _get_type(self, identifier_token: IdentifierToken) -> Type:
-        """checks that the type of the identifier_token matches the type provided"""
-        identifier: str = identifier_token.value
-        # go through the scopes in reverse order, and get the type
-        for scope in reversed(self._scopes):
-            if identifier_type := scope.get(identifier):
-                return identifier_type
-        assert False, f"internal compiler error, {identifier} not found in scopes!"
 
     def _check_types(self, left: Type, right: Type, source_location: SourceLocation) -> Type:
         # TODO: we should check the size of a base type if the other side is no base type with _check_number_token(...)

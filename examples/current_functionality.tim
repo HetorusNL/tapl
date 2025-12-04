@@ -234,12 +234,12 @@ if 1 == 2 || 2 == 2:
 
 // test the list del and insert functionality
 println("\ntesting list del and insert functionality")
-list[u32] test_list  // TODO: fix that this cannot be u8
-for u32 value = 0; value < 10; value++:  // TODO: FIX!
+list[u8] test_list
+for u8 value = 0; value < 10; value++:
     // add values 0-9 to the list
     test_list.add(value)
 
-for u32 value = 0; value < 10; value++:  // TODO: FIX!
+for u8 value = 0; value < 10; value++:
     // remove the values from the positions
     print("del ")
     test_list.del(value)
@@ -260,3 +260,13 @@ void add_list(list[u8] l, u8 value):
 
 add_list(buffer, 10)
 */
+
+println("\ncheck that we can read a file, e.g. README.md")
+// create a nice buffer to hold our chars of the file
+list[char] buffer
+
+// call the stdlib function to read a file into a buffer
+read_file("README.md", buffer)
+
+// done! let's see how many items there are
+println("success, number of chars in the file/buffer: {buffer.size()}")

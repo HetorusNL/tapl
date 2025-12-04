@@ -11,11 +11,13 @@ from typing import NoReturn
 
 from ..errors.ast_error import AstError
 from ..errors.tapl_error import TaplError
+from ..statements.function_statement import FunctionStatement
 from ..statements.statement import Statement
 from ..tokens.identifier_token import IdentifierToken
 from ..types.type import Type
 from ..utils.ast import AST
 from ..utils.source_location import SourceLocation
+from .scope_wrapper import ScopeWrapper
 
 
 class PassBase:
@@ -23,9 +25,10 @@ class PassBase:
 
     def __init__(self, ast: AST):
         self._ast: AST = ast
-        # store a list of scopes that stores the variable name and its type
-        # pre-populate the scopes list with the (empty) outer scope
-        self._scopes: list[dict[str, Type]] = [{}]
+        # store a linked list of scopes inside a wrapper that stores the functions and variables
+        self._scope_wrapper: ScopeWrapper = ScopeWrapper()
+        # also create a scope stash to move the scope aside for a clean one
+        self._scope_wrapper_stash: ScopeWrapper = ScopeWrapper()
         # store a list of errors during this pass, if they occur
         self._errors: list[TaplError] = []
 
@@ -33,8 +36,11 @@ class PassBase:
         for statement in self._ast.statements.iter():
             self.parse_statement(statement)
 
-        # ensure that we have only the global scope left
-        assert len(self._scopes) == 1, f"internal compiler error, more scopes than the global scope left!"
+        # ensure that we have the global scope and only the global scope left
+        error: str = f"internal compiler error"
+        assert self._scope_wrapper.scope.parent is None, f"{error}, more scopes than the global scope left!"
+        # ensure that we have no scope stash left
+        assert self._scope_wrapper_stash.empty, f"{error}, scope stash is not empty!"
 
         # if we found errors, print them and exit with exit code 1
         if self._errors:
@@ -56,26 +62,64 @@ class PassBase:
         """first checks if the identifier already exists in innermost scope, otherwise adds identifier"""
         identifier: str = identifier_token.value
         # check in the innermost scope if the identifier already exists
-        if identifier in self._scopes[-1]:
+        if identifier in self._scope_wrapper.scope.identifiers:
             self.ast_error(f"identifier '{identifier}' already exists!", identifier_token.source_location)
 
         # otherwise add the identifier in the innermost scope
-        self._scopes[-1][identifier] = type_
+        self._scope_wrapper.scope.add_identifier(identifier, type_)
+
+    def _add_function(self, name: str, function_statement: FunctionStatement):
+        """first checks if the function already exists in innermost scope, otherwise adds function"""
+        # check in the innermost scope if the function already exists
+        if name in self._scope_wrapper.scope.functions:
+            self.ast_error(f"function '{name}' already exists!", function_statement.source_location)
+
+        # otherwise add the identifier in the innermost scope
+        self._scope_wrapper.scope.add_function(name, function_statement)
+
+    def _get_identifier_type(self, identifier_token: IdentifierToken) -> Type:
+        """checks that the identifier exists in current or inner scopes, and return its type"""
+        identifier: str = identifier_token.value
+        if type_ := self._scope_wrapper.scope.get_identifier(identifier):
+            return type_
+
+        # the identifier doesn't exist, raise an error
+        self.ast_error(f"unknown identifier '{identifier}'!", identifier_token.source_location)
 
     @contextmanager
     def _new_scope(self) -> Generator[None]:
-        """enter a scope for the content in the 'with' statement"""
+        """enter a new outer scope for the content in the 'with' statement"""
         try:
-            # first enter the scope by adding a new inner scope to the list
-            self._scopes.append({})
+            # first enter the scope by adding a new outer scope
+            self._scope_wrapper.add_scope()
             # then give control to the caller
             yield
         finally:
-            # no matter if there is an exception, leave the scope
-            # remove the innermost scope, making sure that a scope exists
-            assert len(self._scopes) > 1, "internal compiler error, trying to leave outermost scope!"
-            print(f"leaving scope with identifiers: {{{', '.join(self._scopes[-1].keys())}}}")
-            del self._scopes[-1]
+            # no matter if there is an exception, leave the outer scope
+            print(f"leaving scope with identifiers: {{{', '.join(self._scope_wrapper.scope.identifiers.keys())}}}")
+            self._scope_wrapper.remove_scope()
+
+    @contextmanager
+    def _clean_scope(self) -> Generator[ScopeWrapper]:
+        """create a new clean scope for the content in the 'with' statement"""
+        try:
+            # make sure the scope stash is currently empty
+            assert self._scope_wrapper_stash.empty, "internal compiler error, clean scope already active!"
+            # move the scope to the stash and create an empty scope list
+            self._scope_wrapper_stash: ScopeWrapper = self._scope_wrapper
+            self._scope_wrapper: ScopeWrapper = ScopeWrapper()
+            # then give control to the caller
+            yield self._scope_wrapper
+        finally:
+            # no matter if there is an exception, restore the scope from the stash
+            # create a reference to the clean scope to return
+            clean_scope: ScopeWrapper = self._scope_wrapper
+            # restore the scope from the stash
+            assert not self._scope_wrapper_stash.empty, "internal compiler error, no scope stash found!"
+            self._scope_wrapper: ScopeWrapper = self._scope_wrapper_stash
+            # create a new empty scope stash
+            self._scope_wrapper_stash = ScopeWrapper()
+            print(f"returning scope with identifiers: {{{', '.join(clean_scope.scope.all_identifiers)}}}")
 
     def ast_error(self, message: str, source_location: SourceLocation) -> NoReturn:
         """constructs and raises an AStError"""

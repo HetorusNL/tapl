@@ -26,7 +26,6 @@ from ..statements.return_statement import ReturnStatement
 from ..statements.statement import Statement
 from ..statements.var_decl_statement import VarDeclStatement
 from ..tokens.identifier_token import IdentifierToken
-from ..types.type import Type
 from ..utils.ast import AST
 
 
@@ -139,7 +138,7 @@ class ScopingPass(PassBase):
                 # check if it is a token expression
                 if type(expression.token) == IdentifierToken:
                     # check that the identifier exists in the current or outer scopes
-                    self._ensure_exists(expression.token)
+                    self._get_identifier_type(expression.token)
             case TypeCastExpression():
                 # check the expression being type-casted
                 self.parse_expression(expression.expression)
@@ -148,14 +147,3 @@ class ScopingPass(PassBase):
                 self.parse_expression(expression.expression)
             case _:
                 assert False, f"internal compiler error, {type(expression)} not handled!"
-
-    def _ensure_exists(self, identifier_token: IdentifierToken) -> Type:
-        """checks that the identifier exists in current or outer scopes, and return its type"""
-        identifier: str = identifier_token.value
-        # go through the scopes in reverse order, and return the type if it exists
-        for scope in reversed(self._scopes):
-            if identifier_type := scope.get(identifier):
-                return identifier_type
-
-        # the identifier doesn't exist, raise an error
-        self.ast_error(f"unknown identifier '{identifier}'!", identifier_token.source_location)
