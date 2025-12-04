@@ -110,6 +110,9 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
         return true;
     }
 
+    // as we add after the element found, reduce the index by one
+    index--;
+
     // traverse to the Xth element (if it exists)
     list_TYPE_element* element = this->list;
     while (element != NULL && index > 0) {
