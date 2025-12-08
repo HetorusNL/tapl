@@ -23,11 +23,11 @@ class ListStatement(Statement):
         self.name: IdentifierToken = name
 
     def c_code(self) -> str:
+        list_base: str = self.list_type.c_code()
         # create the list declaration
-        code: str = f"{self.list_type.c_code()} {self.name};"
-        # also initialize the head and tail pointers to null
-        code += f"{self.name}.head = NULL;"
-        code += f"{self.name}.tail = NULL;"
+        code: str = f"{list_base} {self.name};"
+        # call the constructor of the list
+        code += f"{list_base}_constructor(&{self.name});"
         return code
 
     def __str__(self) -> str:

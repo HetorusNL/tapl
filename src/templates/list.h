@@ -11,26 +11,42 @@ struct list_TYPE_element_struct {
 // declare the list type itself
 typedef struct list_TYPE_struct list_TYPE;
 struct list_TYPE_struct {
+    // the pointers to the first and last element
     list_TYPE_element* head;
     list_TYPE_element* tail;
+
+    // a cache keeping track of the last accessed index, and the corresponding pointer
+    bool cache_valid;
+    u64 cache_index;
+    list_TYPE_element* cache_element;
+
+    // store the size of the list
+    u64 size;
 };
-// TODO: constructor and destructor
+void list_TYPE_constructor(list_TYPE* this) {
+    // initialize the list pointers
+    this->head = NULL;
+    this->tail = NULL;
+    // initialize the cache as invalid
+    this->cache_valid = false;
+    this->cache_index = 0;
+    this->cache_element = NULL;
+    // initialize the list size
+    this->size = 0;
+}
+// TODO: destructor
+void list_TYPE_cache_invalidate(list_TYPE* this) {
+    // clear the cache valid flag
+    this->cache_valid = false;
+}
 // get the size of a list
 u64 list_TYPE_size(list_TYPE* this) {
-    u64 size = 0;
-    // simple case if the list is empty
-    if (this->head == NULL)
-        return 0;
-    // otherwise traverse the list till we got the size
-    list_TYPE_element* element = this->head;
-    while (element != NULL) {
-        size++;
-        element = element->next;
-    }
-    return size;
+    // return the size from the struct directly
+    return this->size;
 }
 // add an element to the back of the list
 void list_TYPE_add(list_TYPE* this, TYPE value) {
+    list_TYPE_cache_invalidate(this);
     // construct the new element
     list_TYPE_element* new_element = malloc(sizeof(list_TYPE_element));
     new_element->value = value;
@@ -40,17 +56,30 @@ void list_TYPE_add(list_TYPE* this, TYPE value) {
     if (this->head == NULL) {
         this->head = new_element;
         this->tail = new_element;
+        this->size++;
         return;
     }
 
     // otherwise add it to the tail, and update the tail pointer
     this->tail->next = new_element;
     this->tail = new_element;
+    this->size++;
 }
 // gets the Xth element from the list, return 0/crash when it's not there
 TYPE list_TYPE_get(list_TYPE* this, u64 index) {
-    // traverse to the Xth element (if it exists)
+    // remember the requested index for caching
+    u64 requested_index = index;
+
     list_TYPE_element* element = this->head;
+
+    // check if we can use the cache
+    if (this->cache_valid && index >= this->cache_index) {
+        // start from the cached element
+        element = this->cache_element;
+        index -= this->cache_index;
+    }
+
+    // traverse to the Xth element (if it exists)
     while (element != NULL && index > 0) {
         element = element->next;
         index--;
@@ -61,12 +90,17 @@ TYPE list_TYPE_get(list_TYPE* this, u64 index) {
     if (index > 0 || element == NULL)
         return 0;
 
-    // otherwise we have found the element, return the value
+    // otherwise we have found the element, update the cache and return the value
+    this->cache_valid = true;
+    this->cache_index = requested_index;
+    this->cache_element = element;
+
     return element->value;
 }
 // deletes the Xth element from the list, neatly reconnecting the respective pointer(s)
 // return true on success, false/crash when it's not there
 bool list_TYPE_del(list_TYPE* this, u64 index) {
+    list_TYPE_cache_invalidate(this);
     // handle the case when it's the first element
     if (index == 0) {
         // check if it exists
@@ -77,6 +111,7 @@ bool list_TYPE_del(list_TYPE* this, u64 index) {
         list_TYPE_element* inner = this->head->next;
         free(this->head);
         this->head = inner;
+        this->size--;
 
         // check if we deleted the only element, reset the tail pointer
         if (inner == NULL)
@@ -105,11 +140,14 @@ bool list_TYPE_del(list_TYPE* this, u64 index) {
     if (inner == NULL)
         this->tail = element;
 
+    this->size--;
+
     return true;
 }
 // inserts a value at the Xth position in the list, neatly connecting the respective pointer(s)
 // returns true on success, false/crash when it's not possible
 bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
+    list_TYPE_cache_invalidate(this);
     // handle the case when it's the first element
     if (index == 0) {
         // add the element to the list and move the current list value to the next pointer
@@ -117,6 +155,7 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
         new_element->value = value;
         new_element->next = this->head;
         this->head = new_element;
+        this->size++;
         return true;
     }
 
@@ -144,6 +183,8 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
     // check if we inserted at the last location, if so, update the tail pointer
     if (new_element->next == NULL)
         this->tail = new_element;
+
+    this->size++;
 
     return true;
 }
