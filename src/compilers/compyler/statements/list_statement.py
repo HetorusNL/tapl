@@ -25,8 +25,9 @@ class ListStatement(Statement):
     def c_code(self) -> str:
         # create the list declaration
         code: str = f"{self.list_type.c_code()} {self.name};"
-        # also initialize the list to zero
-        code += f"{self.name}.list = 0;"
+        # also initialize the head and tail pointers to null
+        code += f"{self.name}.head = NULL;"
+        code += f"{self.name}.tail = NULL;"
         return code
 
     def __str__(self) -> str:

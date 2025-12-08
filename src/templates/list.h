@@ -11,17 +11,18 @@ struct list_TYPE_element_struct {
 // declare the list type itself
 typedef struct list_TYPE_struct list_TYPE;
 struct list_TYPE_struct {
-    list_TYPE_element* list;
+    list_TYPE_element* head;
+    list_TYPE_element* tail;
 };
 // TODO: constructor and destructor
 // get the size of a list
 u64 list_TYPE_size(list_TYPE* this) {
     u64 size = 0;
     // simple case if the list is empty
-    if (this->list == NULL)
+    if (this->head == NULL)
         return 0;
     // otherwise traverse the list till we got the size
-    list_TYPE_element* element = this->list;
+    list_TYPE_element* element = this->head;
     while (element != NULL) {
         size++;
         element = element->next;
@@ -36,22 +37,20 @@ void list_TYPE_add(list_TYPE* this, TYPE value) {
     new_element->next = NULL;
 
     // handle the empty list case
-    if (this->list == NULL) {
-        this->list = new_element;
+    if (this->head == NULL) {
+        this->head = new_element;
+        this->tail = new_element;
         return;
     }
 
-    // otherwise traverse to the end of the list
-    list_TYPE_element* element = this->list;
-    while (element->next != NULL)
-        element = element->next;
-    //  end found, add the new element
-    element->next = new_element;
+    // otherwise add it to the tail, and update the tail pointer
+    this->tail->next = new_element;
+    this->tail = new_element;
 }
 // gets the Xth element from the list, return 0/crash when it's not there
 TYPE list_TYPE_get(list_TYPE* this, u64 index) {
     // traverse to the Xth element (if it exists)
-    list_TYPE_element* element = this->list;
+    list_TYPE_element* element = this->head;
     while (element != NULL && index > 0) {
         element = element->next;
         index--;
@@ -71,17 +70,22 @@ bool list_TYPE_del(list_TYPE* this, u64 index) {
     // handle the case when it's the first element
     if (index == 0) {
         // check if it exists
-        if (this->list == NULL)
+        if (this->head == NULL)
             return false;
 
         // otherise delete the element and connect the list to the inner element
-        list_TYPE_element* inner = this->list->next;
-        free(this->list);
-        this->list = inner;
+        list_TYPE_element* inner = this->head->next;
+        free(this->head);
+        this->head = inner;
+
+        // check if we deleted the only element, reset the tail pointer
+        if (inner == NULL)
+            this->tail = NULL;
+
         return true;
     }
     // traverse to the X-1th element (if it exists)
-    list_TYPE_element* element = this->list;
+    list_TYPE_element* element = this->head;
     while (element != NULL && index > 1) {
         element = element->next;
         index--;
@@ -96,6 +100,12 @@ bool list_TYPE_del(list_TYPE* this, u64 index) {
     list_TYPE_element* inner = element->next->next;
     free(element->next);
     element->next = inner;
+
+    // check if we deleted the last element, if so, update the tail pointer
+    if (inner == NULL)
+        this->tail = element;
+
+    return true;
 }
 // inserts a value at the Xth position in the list, neatly connecting the respective pointer(s)
 // returns true on success, false/crash when it's not possible
@@ -105,8 +115,8 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
         // add the element to the list and move the current list value to the next pointer
         list_TYPE_element* new_element = malloc(sizeof(list_TYPE_element));
         new_element->value = value;
-        new_element->next = this->list;
-        this->list = new_element;
+        new_element->next = this->head;
+        this->head = new_element;
         return true;
     }
 
@@ -114,7 +124,7 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
     index--;
 
     // traverse to the Xth element (if it exists)
-    list_TYPE_element* element = this->list;
+    list_TYPE_element* element = this->head;
     while (element != NULL && index > 0) {
         element = element->next;
         index--;
@@ -130,5 +140,10 @@ bool list_TYPE_insert(list_TYPE* this, u64 index, TYPE value) {
     new_element->value = value;
     new_element->next = element->next;
     element->next = new_element;
+
+    // check if we inserted at the last location, if so, update the tail pointer
+    if (new_element->next == NULL)
+        this->tail = new_element;
+
     return true;
 }
