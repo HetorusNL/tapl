@@ -28,7 +28,7 @@ class PrintStatement(Statement):
             # print the string expression as string
             return f"printf({self.value.c_code()});"
 
-        type_format_string: str = Utils.get_type_format_string(self.value.type_)
+        type_format_string: str = Utils.get_type_format_string(self.value)
         return f'printf("{type_format_string}{self.line_end}", {self.value.c_code()});'
 
     def __str__(self) -> str:

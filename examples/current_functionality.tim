@@ -253,14 +253,6 @@ for u8 value = 0; value < 10; value++:
         print("{test_list.get(index)} ")
     println("")
 
-/*
-list[u8] buffer
-void add_list(list[u8] l, u8 value):
-    l.append(value)
-
-add_list(buffer, 10)
-*/
-
 println("\ncheck that we can read a file, e.g. README.md")
 // create a nice buffer to hold our chars of the file
 list[char] buffer
@@ -270,3 +262,16 @@ read_file("README.md", buffer)
 
 // done! let's see how many items there are
 println("success, number of chars in the file/buffer: {buffer.size()}")
+
+list[u8] func_list
+void add_list2(list[u8] input_list, u8 value):
+    input_list.add(value * 2)
+void add_list1(list[u8] input_list, u8 value):
+    input_list.add(value)
+    add_list2(input_list, value)
+
+// we should be able to (nestedly) call functions with lists
+add_list1(func_list, 10)
+
+for u64 index = 0; index < func_list.size(); index++:
+    println("index: {index}, value: {func_list.get(index)}")

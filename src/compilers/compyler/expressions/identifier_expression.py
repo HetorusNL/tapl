@@ -55,14 +55,20 @@ class IdentifierExpression(Expression):
         # add the arguments
         return arguments
 
+    def _join(self) -> str:
+        return "->" if self.type_.is_reference else "."
+
     def _inner_c_code(self) -> str:
         # only if we have an inner expression that has not been consumed, return it
         if self.inner_expression:
             inner_code: str = self.inner_expression.c_code()
             if inner_code:
-                return f"{self.identifier_token}.{self.inner_expression.c_code()}"
+                return f"{self.identifier_token}{self._join()}{self.inner_expression.c_code()}"
 
         return f"{self.identifier_token}"
+
+    def dereference(self) -> str:
+        return f"" if self.type_.is_reference else f"&"
 
     def c_code(self) -> str:
         # if this is a class, check if there is a call expression inside
@@ -70,7 +76,7 @@ class IdentifierExpression(Expression):
             if name := self.inner_function_call():
                 # we need to create a function call of the outermost function
                 full_name: str = f"{self.class_type}_{name}"
-                arguments: str = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
+                arguments: str = ", ".join([f"{self.dereference()}{self._inner_c_code()}", *self.get_arguments()])
                 return f"{full_name}({arguments})"
 
         # if this is a list, check if there is a call expression inside
@@ -78,10 +84,10 @@ class IdentifierExpression(Expression):
             if name := self.inner_function_call():
                 # we need to create a function call of the outermost list
                 full_name: str = f"list_{self.list_type.inner_type}_{name}"
-                arguments: str = ", ".join([f"&{self._inner_c_code()}", *self.get_arguments()])
+                arguments: str = ", ".join([f"{self.dereference()}{self._inner_c_code()}", *self.get_arguments()])
                 return f"{full_name}({arguments})"
             # pass the address of the list type, not by value
-            return f"&{self._inner_c_code()}"
+            return f"{self.dereference()}{self._inner_c_code()}"
 
         # otherwise simply return the identifier with potential inner expressions
         return self._inner_c_code()
@@ -95,6 +101,6 @@ class IdentifierExpression(Expression):
     def __repr__(self) -> str:
         string: str = f"<IdentifierExpression: location {self.source_location}, {self.identifier_token}"
         if self.inner_expression:
-            string = f"{string}.{self.inner_expression}"
+            string = f"{string}{self._join()}{self.inner_expression}"
         string = f"{string}>"
         return string

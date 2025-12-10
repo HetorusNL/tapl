@@ -12,6 +12,7 @@ class Type:
         self.keyword: str = keyword
         self.syntactic_sugar: list[str] = syntactic_sugar
         self.underlying_type: str | None = underlying_type
+        self.is_reference: bool = False
 
     @classmethod
     def unknown(cls):
@@ -21,6 +22,9 @@ class Type:
             cls._unknown = Type("unknown")
         # return the created unknown Type
         return cls._unknown
+
+    def reference(self) -> str:
+        return f"*" if self.is_reference else f""
 
     @property
     def all_keywords(self) -> list[str]:

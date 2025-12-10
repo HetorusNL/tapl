@@ -57,7 +57,7 @@ class StringExpression(Expression):
         for element in self.string_elements:
             # check if the element is an expression, if so add its c_code as argument
             if isinstance(element, Expression):
-                format_string += Utils.get_type_format_string(element.type_)
+                format_string += Utils.get_type_format_string(element)
                 arguments.append(element.c_code())
                 continue
             # otherwise it's a string-related token, process it

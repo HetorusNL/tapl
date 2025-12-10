@@ -43,6 +43,7 @@ from ..types.type import Type
 from ..types.types import Types
 from ..utils.ast import AST
 from ..utils.source_location import SourceLocation
+from ..utils.utils import Utils
 from .scope_wrapper import ScopeWrapper
 
 
@@ -109,12 +110,10 @@ class TypingPass(PassBase):
             case AssignmentStatement():
                 # get the identifier token type
                 self.parse_expression(statement.expression)
-                requested_type: Type = statement.expression.type_
                 # check that the expression is of this type
                 self.parse_expression(statement.value)
-                value_type: Type = statement.value.type_
                 # check that returned type and requested are valid
-                self._check_types(requested_type, value_type, statement.value.source_location)
+                self._check_expression_types(statement.expression, statement.value, statement.value.source_location)
             case ClassStatement():
                 with self._clean_scope() as class_scope:
                     self._class_scopes[statement.class_type.keyword] = class_scope
@@ -158,6 +157,9 @@ class TypingPass(PassBase):
                     try:
                         # add the arguments to the newly created scope
                         for type_token, identifier_token in statement.arguments:
+                            # set the type to be a reference
+                            type_token.type_.is_reference = True
+                            # add the argument to the scope
                             self._add_identifier(identifier_token, type_token.type_)
                         # check the statements inside the function
                         for body_statement in statement.statements:
@@ -219,7 +221,7 @@ class TypingPass(PassBase):
                     self.ast_error(message, source_location)
                 if statement.value:
                     self.parse_expression(statement.value)
-                    return_value_type: Type = statement.value.type_
+                    return_value_type: Type = Utils.get_expression_type(statement.value)
                     source_location: SourceLocation = statement.value.source_location
                     try:
                         # perform type checking on the requested return type and provided return value,
@@ -240,7 +242,8 @@ class TypingPass(PassBase):
                     # check that the expression is of this type
                     self.parse_expression(initial_value)
                     # check that returned type and requested are valid
-                    self._check_types(requested_type, initial_value.type_, initial_value.source_location)
+                    initial_value_type: Type = Utils.get_expression_type(initial_value)
+                    self._check_types(requested_type, initial_value_type, initial_value.source_location)
             case _:
                 assert False, f"internal compiler error, {type(statement)} not handled!"
 
@@ -255,7 +258,7 @@ class TypingPass(PassBase):
                 self.parse_expression(left)
                 self.parse_expression(right)
                 # TODO: when binary expression results in a bool, return bool type
-                expression.type_ = self._check_types(left.type_, right.type_, expression.source_location)
+                expression.type_ = self._check_expression_types(left, right, expression.source_location)
             case CallExpression():
                 # assert that we don't have an inner expression in the identifier expression
                 assert expression.expression.inner_expression is None
@@ -307,7 +310,7 @@ class TypingPass(PassBase):
                     try:
                         if expression.inner_expression:
                             self.parse_expression(expression.inner_expression)
-                            expression.type_ = expression.inner_expression.type_
+                            expression.type_ = type_
                             return
                     finally:
                         self._identifier_stack.pop()
@@ -353,7 +356,7 @@ class TypingPass(PassBase):
             case TypeCastExpression():
                 # get the type of the inner expression
                 self.parse_expression(expression.expression)
-                inner_type = expression.expression.type_
+                inner_type: Type = Utils.get_expression_type(expression.expression)
                 cast_to_type: Type = expression.cast_to.type_
                 # check that both are castable
                 inner_type_castable: bool = isinstance(inner_type, (CharacterType, NumericType))
@@ -367,7 +370,7 @@ class TypingPass(PassBase):
             case UnaryExpression():
                 # first parse the inner expression, and get its type
                 self.parse_expression(expression.expression)
-                inner_type: Type = expression.expression.type_
+                inner_type: Type = Utils.get_expression_type(expression.expression)
                 if expression.expression_type == ExpressionType.GROUPING:
                     # if it's a grouping, anything goes, our type is the inner type
                     expression.type_ = inner_type
@@ -403,7 +406,8 @@ class TypingPass(PassBase):
             # check that the types are correct
             try:
                 # perform the type check, and catch an exception if it occurs
-                self._check_types(required_argument_type, passed_argument.type_, source_location)
+                passed_argument_type: Type = Utils.get_expression_type(passed_argument)
+                self._check_types(required_argument_type, passed_argument_type, source_location)
             except TaplError:
                 # the type check failed, formulate a nice error for the user
                 message: str = f"expected 'argument {arg_index+1}' of type "
@@ -441,6 +445,11 @@ class TypingPass(PassBase):
         # otherwise we have conflicting types, generate an error
         message: str = f"invalid types provided, '{left.keyword}' and '{right.keyword}' can't be used together!"
         self.ast_error(message, source_location)
+
+    def _check_expression_types(self, left: Expression, right: Expression, source_location: SourceLocation) -> Type:
+        left_type = Utils.get_expression_type(left)
+        right_type = Utils.get_expression_type(right)
+        return self._check_types(left_type, right_type, source_location)
 
     def _check_number_token(self, requested_type: Type, expression: TokenExpression) -> Type:
         # TODO: add num bits to the token itself, instead of calculating it here

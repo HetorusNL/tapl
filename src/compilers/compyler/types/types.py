@@ -4,6 +4,7 @@
 #
 # This file is part of compyler, a TAPL compiler.
 
+from copy import deepcopy
 from pathlib import Path
 
 from .character_type import CharacterType
@@ -90,7 +91,7 @@ class Types:
             self._types[keyword] = type_
 
         # return the existing or newly created type
-        return self._types[keyword]
+        return self[keyword]
 
     def add_class_type(self, keyword: str) -> ClassType:
         """add a new class type to the Types collection,
@@ -104,7 +105,7 @@ class Types:
             self._types[keyword] = type_
 
         # return the existing or newly created class type
-        class_type: Type = self._types[keyword]
+        class_type: Type = self[keyword]
         assert isinstance(class_type, ClassType)
         return class_type
 
@@ -122,13 +123,17 @@ class Types:
             self._types[keyword] = new_list_type
 
         # return the existing or newly created list type
-        list_type: Type = self._types[keyword]
+        list_type: Type = self[keyword]
         assert isinstance(list_type, ListType)
         return list_type
 
     def get(self, keyword: str) -> Type | None:
         """returns the Type with the provided keyword, None if not present"""
-        return self._types.get(keyword)
+        type_: Type | None = self._types.get(keyword)
+        if type_:
+            # always return a copy, as types can be modified
+            type_ = deepcopy(type_)
+        return type_
 
     def __getitem__(self, keyword: str) -> Type:
         keyword_type: Type | None = self.get(keyword)

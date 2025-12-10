@@ -7,6 +7,8 @@
 from pathlib import Path
 
 from .colors import Colors
+from ..expressions.expression import Expression
+from ..expressions.identifier_expression import IdentifierExpression
 from .source_location import SourceLocation
 from ..types.character_type import CharacterType
 from ..types.numeric_type import NumericType
@@ -54,7 +56,17 @@ class Utils:
             return f"{Colors.BOLD}{Colors.RED}{error}{Colors.RESET} {no_source}"
 
     @classmethod
-    def get_type_format_string(cls, type_: Type):
+    def get_expression_type(cls, expression: Expression) -> Type:
+        # checks if the type has an inner type, then return the inner type
+        if isinstance(expression, IdentifierExpression):
+            if expression.inner_expression:
+                return cls.get_expression_type(expression.inner_expression)
+        # otherwise return the type of the expression
+        return expression.type_
+
+    @classmethod
+    def get_type_format_string(cls, expression: Expression) -> str:
+        type_: Type = cls.get_expression_type(expression)
         match type_:
             case CharacterType():
                 return f"%c"
