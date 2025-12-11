@@ -50,10 +50,10 @@ class ScopingPass(PassBase):
             case ForLoopStatement():
                 # create a new scope for the for loop definition and body statements
                 with self._new_scope():
-                    # check the statement and expressions that make up the for loop definition
+                    # check the statements and expression that make up the for loop definition
                     self.parse_statement(statement.init)
                     self.parse_expression(statement.check)
-                    self.parse_expression(statement.loop)
+                    self.parse_statement(statement.loop)
                     # check all statements inside the body of the for loop
                     for body_statement in statement.statements:
                         self.parse_statement(body_statement)

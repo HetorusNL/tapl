@@ -170,10 +170,10 @@ class AstGenerator:
             check: Expression | None = self.expression()
             self.expect(TokenType.SEMICOLON)
 
-        # parse the loop expression (if it exists)
-        loop: Expression | None = None
+        # parse the loop statement (if it exists)
+        loop: Statement | None = None
         if not self.match(TokenType.COLON):
-            loop: Expression | None = self.expression()
+            loop: Statement | None = self.statement(must_end_with_newline=False)
             self.expect(TokenType.COLON)
 
         # followed by a newline
@@ -601,7 +601,7 @@ class AstGenerator:
         if statement := self.assignment_statement(expression, must_end_with_newline):
             return statement
 
-        self.expect_newline("expression")
+        self.expect_newline("expression", must_end_with_newline)
 
         return ExpressionStatement(expression)
 

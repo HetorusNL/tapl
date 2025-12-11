@@ -21,7 +21,7 @@ class ForLoopStatement(Statement):
         token: Token,
         init: Statement | None,
         check: Expression | None,
-        loop: Expression | None,
+        loop: Statement | None,
         statements: list[Statement],
     ):
         # formulate the source location of the for loop
@@ -39,7 +39,7 @@ class ForLoopStatement(Statement):
         # store the rest of the variables in the class
         self.init: Statement | None = init
         self.check: Expression | None = check
-        self.loop: Expression | None = loop
+        self.loop: Statement | None = loop
         self.statements: list[Statement] = statements
 
     def c_code(self) -> str:
@@ -48,8 +48,9 @@ class ForLoopStatement(Statement):
         check_code: str = self.check.c_code() if self.check else ""
         loop_code: str = self.loop.c_code() if self.loop else ""
 
-        # strip the ';' if it is already in the init_code
+        # strip the ';' if it is already in the init_code and loop_code
         init_code = init_code.removesuffix(";")
+        loop_code = loop_code.removesuffix(";")
 
         # add the for-loop statement itself
         code: str = f"for ({init_code}; {check_code}; {loop_code}) {{\n"

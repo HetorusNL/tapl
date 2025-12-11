@@ -275,3 +275,8 @@ add_list1(func_list, 10)
 
 for u64 index = 0; index < func_list.size(); index++:
     println("index: {index}, value: {func_list.get(index)}")
+
+// we also support for-loops with a statement in the loop position
+println("counting from 0 to <9 in steps of 3")
+for u64 index = 0; index < 9; index = index + 3:
+    println(index)

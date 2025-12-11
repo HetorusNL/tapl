@@ -136,12 +136,12 @@ class TypingPass(PassBase):
             case ForLoopStatement():
                 # create a new scope for the for loop definition and body statements
                 with self._new_scope():
-                    # check the statement and expressions that make up the for loop definition
+                    # check the statements and expression that make up the for loop definition
                     self.parse_statement(statement.init)
                     if statement.check:
                         self.parse_expression(statement.check)
                     if statement.loop:
-                        self.parse_expression(statement.loop)
+                        self.parse_statement(statement.loop)
                     # check all statements inside the body of the for loop
                     for body_statement in statement.statements:
                         self.parse_statement(body_statement)
@@ -511,7 +511,7 @@ class TypingPass(PassBase):
                 if statement.init:
                     self._check_statement(statement.init)
                 if statement.loop:
-                    self._check_expression(statement.loop)
+                    self._check_statement(statement.loop)
                 for stm in statement.statements:
                     self._check_statement(stm)
             case FunctionStatement():
