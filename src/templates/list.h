@@ -97,6 +97,40 @@ TYPE list_TYPE_get(list_TYPE* this, u64 index) {
 
     return element->value;
 }
+// sets the Xth element in the list to value
+// return true on success, false/crash when it's not there
+bool list_TYPE_set(list_TYPE* this, u64 index, TYPE value) {
+    // remember the requested index for caching
+    u64 requested_index = index;
+
+    list_TYPE_element* element = this->head;
+
+    // check if we can use the cache
+    if (this->cache_valid && index >= this->cache_index) {
+        // start from the cached element
+        element = this->cache_element;
+        index -= this->cache_index;
+    }
+
+    // traverse to the Xth element (if it exists)
+    while (element != NULL && index > 0) {
+        element = element->next;
+        index--;
+    }
+
+    // if the item is not found, or the element is NULL, return 0
+    // TODO: or should we crash?
+    if (index > 0 || element == NULL)
+        return false;
+
+    // otherwise we have found the element, update the cache and update the value
+    this->cache_valid = true;
+    this->cache_index = requested_index;
+    this->cache_element = element;
+
+    element->value = value;
+    return true;
+}
 // deletes the Xth element from the list, neatly reconnecting the respective pointer(s)
 // return true on success, false/crash when it's not there
 bool list_TYPE_del(list_TYPE* this, u64 index) {

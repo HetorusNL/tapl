@@ -21,6 +21,7 @@ class ListType(Type):
             "size": "u64",
             "add": "void",
             "get": self.inner_type.keyword,
+            "set": "bool",
             "del": "bool",
             "insert": "bool",
         }
