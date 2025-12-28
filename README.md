@@ -53,16 +53,11 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 the following 'features' were found during AoC solving, and should be fixed
 
-- internal compiler error on variable typo
-- add && and || boolean operators
 - make char and base/u16-related types be used together
 - add double character tokens ending in 'equal'
-- line numbers are off by one
 - add characters with '\', e.g. '\n'
 - add break/continue in loops
-- add list argument to function
 - python IndexError in unterminated string on the last line
-- add .set(index, value) to the list collection
 - add abort/exit/panic -like functionality
 - fix type checking after boolean operators (e.g. "(value1 >= value2) && !flag" should end up as "bool && bool" and eventually "bool")
 - implement a list of class instances
