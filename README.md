@@ -49,6 +49,30 @@ uv run -m src.compilers.compyler /path/to/file.tim
 
 - collections: ~~list~~ / hmap
 
+## 'Issues' found during AoC
+
+the following 'features' were found during AoC solving, and should be fixed
+
+- internal compiler error on variable typo
+- add && and || boolean operators
+- make char and base/u16-related types be used together
+- add double character tokens ending in 'equal'
+- line numbers are off by one
+- add characters with '\', e.g. '\n'
+- add break/continue in loops
+- add list argument to function
+- python IndexError in unterminated string on the last line
+- add .set(index, value) to the list collection
+- add abort/exit/panic -like functionality
+- fix type checking after boolean operators (e.g. "(value1 >= value2) && !flag" should end up as "bool && bool" and eventually "bool")
+- implement a list of class instances
+- invalid list operations should crash instead of silently ignore the error
+- same symbols multiple times defined should show the correct error, also with functions and lists
+- list.add() should support a function call as 'argument'
+- add (fancy) enumeration type (that also has something like a to_string() function)
+- parsing in f-string-like function skips everything including and after ':'
+- string parsing results in errors when the terminating '"' is within the f-string-like section
+
 ## TODO
 
 - add warning for unused variables
