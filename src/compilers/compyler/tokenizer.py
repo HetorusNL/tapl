@@ -301,6 +301,14 @@ class Tokenizer:
             print("unterminated character!")
             return self._add_token(TokenType.ERROR, self._current_index - 1, 1)
 
+        if character == "\\":
+            # handle escape sequences
+            escape_char: str | None = self._next()
+            if not escape_char or escape_char not in ["n", "r", "t", "'", "\\"]:  # valid escape sequences
+                print(f"unknown escape sequence '{character}{escape_char}'!")
+                return self._add_token(TokenType.ERROR, self._current_index - 2, 2)
+            character = character + escape_char
+
         closing_quote: str | None = self._next()
         if closing_quote == "'":
             # we found a character, create the token and return

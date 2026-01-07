@@ -55,7 +55,6 @@ the following 'features' were found during AoC solving, and should be fixed
 
 - make char and base/u16-related types be used together
 - add double character tokens ending in 'equal'
-- add characters with '\', e.g. '\n'
 - add break/continue in loops
 - python IndexError in unterminated string on the last line
 - add abort/exit/panic -like functionality

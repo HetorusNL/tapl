@@ -296,3 +296,31 @@ for u64 index = 0; index < func_list.size(); index++:
 println("counting from 0 to <9 in steps of 3")
 for u64 index = 0; index < 9; index = index + 3:
     println(index)
+
+// test the escape sequences for characters
+char c1 = 'a'
+char c2 = '\n'
+char c3 = '\r'
+char c4 = '\t'
+char c5 = '\\'
+char c6 = '\''
+println("\ntesting parsing character escape sequences:")
+println("we got these character values:")
+println("'a' ->\n'{c1}'")
+println("'\\n' ->\n'{c2}'")
+println("'\\r' ->\n'{c3}'")
+println("'\\t' ->\n'{c4}'")
+println("'\\\\' ->\n'{c5}'")
+println("'\\'' ->\n'{c6}'")
+
+println("\nlet's print the content of README.md[:256] as '.' chars with newlines:")
+u64 max_chars = buffer.size()
+if max_chars > 256:
+    max_chars = 256
+for u64 index = 0; index < max_chars; index++:
+    char c = buffer.get(index)
+    if c == '\n':
+        println("")
+    else:
+        print(".")
+println("")
