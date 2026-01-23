@@ -143,4 +143,4 @@ Statement statement():
 
 ## License
 
-MIT License, Copyright (c) 2025 Tim Klein Nijenhuis <tim@hetorus.nl>
+MIT License, Copyright (c) 2026 Tim Klein Nijenhuis <tim@hetorus.nl>
