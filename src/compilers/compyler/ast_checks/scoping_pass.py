@@ -15,7 +15,10 @@ from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
 from .pass_base import PassBase
 from ..statements.assignment_statement import AssignmentStatement
+from ..statements.break_statement import BreakStatement
+from ..statements.breakall_statement import BreakallStatement
 from ..statements.class_statement import ClassStatement
+from ..statements.continue_statement import ContinueStatement
 from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
@@ -41,9 +44,15 @@ class ScopingPass(PassBase):
                 self.parse_expression(statement.expression)
                 # check the value (expression) also for identifiers
                 self.parse_expression(statement.value)
+            case BreakStatement():
+                pass  # nothing to check in a BreakStatement
+            case BreakallStatement():
+                pass  # nothing to check in a BreakallStatement
             case ClassStatement():
                 # TODO: implement
                 pass
+            case ContinueStatement():
+                pass  # nothing to check in a ContinueStatement
             case ExpressionStatement():
                 # check the expression also for identifiers
                 self.parse_expression(statement.expression)

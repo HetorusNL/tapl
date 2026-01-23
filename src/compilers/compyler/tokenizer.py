@@ -408,8 +408,14 @@ class Tokenizer:
 
     def _add_keyword(self, identifier: str) -> bool:
         match identifier:
+            case TokenType.BREAK.value:
+                self._add_token_of_length(TokenType.BREAK)
+            case TokenType.BREAKALL.value:
+                self._add_token_of_length(TokenType.BREAKALL)
             case TokenType.CLASS.value:
                 self._add_token_of_length(TokenType.CLASS)
+            case TokenType.CONTINUE.value:
+                self._add_token_of_length(TokenType.CONTINUE)
             case TokenType.ELSE.value:
                 self._add_token_of_length(TokenType.ELSE)
             case TokenType.FALSE.value:

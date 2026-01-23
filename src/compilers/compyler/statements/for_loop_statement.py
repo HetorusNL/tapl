@@ -19,6 +19,7 @@ class ForLoopStatement(Statement):
     def __init__(
         self,
         token: Token,
+        breakall_label: str | None,
         init: Statement | None,
         check: Expression | None,
         loop: Statement | None,
@@ -37,6 +38,7 @@ class ForLoopStatement(Statement):
         super().__init__(source_location)
 
         # store the rest of the variables in the class
+        self.breakall_label: str | None = breakall_label
         self.init: Statement | None = init
         self.check: Expression | None = check
         self.loop: Statement | None = loop
@@ -61,6 +63,11 @@ class ForLoopStatement(Statement):
 
         # and end with the closing brace
         code += f"}}"
+
+        # if this is the outer loop, add a breakall label here where a 'breakall' jumps to
+        if self.breakall_label:
+            code += f"\n{self.breakall_label}:;"
+
         return code
 
     def __str__(self) -> str:

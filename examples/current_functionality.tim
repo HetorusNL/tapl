@@ -338,3 +338,36 @@ test_value *= 10
 println("25 *= 10 = {test_value}")
 test_value /= 10
 println("250 /= 10 = {test_value}")
+
+println("\nwe can now break from loops, no more infinite unbreakable loops!")
+while true:
+    println("inside the while true")
+    break
+println("outside the while true!")
+for u64 outer = 0; outer < 10; outer++:
+    println("inside the outer for loop")
+    for u64 inner = 0; inner < 10; inner++:
+        println("inside the inner for loop, we can use break")
+        break
+    for u64 inner = 0; inner < 2; inner++:
+        println("inside another inner for loop, we can use continue (and go again)")
+        if inner == 0:
+            continue
+        println("I'm not printed the first time...")
+    println("even outside the inner for loops, we're allowed to use break")
+    break
+println("and we're done!")
+
+println("\nwe can also break from nested loops!")
+while true:
+    for u64 inner = 0; inner < 10; inner++:
+        println("inner loop (loops 10 times) but breaks from everything")
+        breakall
+    println("I'm not printed..")
+for u64 outer = 0; outer < 10; outer++:
+    while true:
+        while true:
+            println("also multiple breakall's can exist in a single function")
+            breakall
+    println("I'm not printed..")
+println("cool stuff indeed")

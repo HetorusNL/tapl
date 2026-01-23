@@ -17,7 +17,10 @@ from ..expressions.type_cast_expression import TypeCastExpression
 from ..expressions.unary_expression import UnaryExpression
 from .pass_base import PassBase
 from ..statements.assignment_statement import AssignmentStatement
+from ..statements.break_statement import BreakStatement
+from ..statements.breakall_statement import BreakallStatement
 from ..statements.class_statement import ClassStatement
+from ..statements.continue_statement import ContinueStatement
 from ..statements.expression_statement import ExpressionStatement
 from ..statements.for_loop_statement import ForLoopStatement
 from ..statements.function_statement import FunctionStatement
@@ -114,6 +117,10 @@ class TypingPass(PassBase):
                 self.parse_expression(statement.value)
                 # check that returned type and requested are valid
                 self._check_expression_types(statement.expression, statement.value, statement.value.source_location)
+            case BreakStatement():
+                pass  # nothing to check in a BreakStatement
+            case BreakallStatement():
+                pass  # nothing to check in a BreakallStatement
             case ClassStatement():
                 with self._clean_scope() as class_scope:
                     self._class_scopes[statement.class_type.keyword] = class_scope
@@ -130,6 +137,8 @@ class TypingPass(PassBase):
                     for function in statement.functions:
                         # TODO: fix assert that happens when using undeclared variables in functions
                         self.parse_statement(function)
+            case ContinueStatement():
+                pass  # nothing to check in a ContinueStatement
             case ExpressionStatement():
                 # check the expression
                 self.parse_expression(statement.expression)
@@ -494,6 +503,10 @@ class TypingPass(PassBase):
             case AssignmentStatement():
                 self._check_expression(statement.expression)
                 self._check_expression(statement.value)
+            case BreakStatement():
+                pass  # nothing to check in a BreakStatement
+            case BreakallStatement():
+                pass  # nothing to check in a BreakallStatement
             case ClassStatement():
                 if statement.constructor:
                     self._check_statement(statement.constructor)
@@ -503,6 +516,8 @@ class TypingPass(PassBase):
                     self._check_statement(function)
                 for variable in statement.variables:
                     self._check_statement(variable)
+            case ContinueStatement():
+                pass  # nothing to check in a ContinueStatement
             case ExpressionStatement():
                 self._check_expression(statement.expression)
             case ForLoopStatement():

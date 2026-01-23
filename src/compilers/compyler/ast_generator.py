@@ -20,7 +20,10 @@ from .expressions.type_cast_expression import TypeCastExpression
 from .expressions.unary_expression import UnaryExpression
 from .expressions.expression_type import ExpressionType
 from .statements.assignment_statement import AssignmentStatement
+from .statements.break_statement import BreakStatement
+from .statements.breakall_statement import BreakallStatement
 from .statements.class_statement import ClassStatement
+from .statements.continue_statement import ContinueStatement
 from .statements.expression_statement import ExpressionStatement
 from .statements.for_loop_statement import ForLoopStatement
 from .statements.function_statement import FunctionStatement
@@ -55,6 +58,8 @@ class AstGenerator:
         # some variables to store the state of the ast generator
         self._current_index: int = 0
         self._in_function: bool = False
+        self._loop_count: int = 0
+        self._breakall_label: str = "breakall"
         self._class_type: ClassType | None = None
 
     def current(self) -> Token:
@@ -118,6 +123,31 @@ class AstGenerator:
         # if the next token is an indent, consume it
         return self.match(TokenType.INDENT) is not None
 
+    def _get_breakall_label(self) -> str | None:
+        # if this is the outer loop, return the breakall label that's set, otherwise None
+        if self._loop_count == 0:
+            return self._breakall_label
+        return None
+
+    def _set_breakall_label(self, loop_token: Token) -> None:
+        # if this is the outer loop, set the breakall label to the loop start location
+        if self._loop_count == 0:
+            self._breakall_label = f"breakall_{loop_token.source_location.start}"
+
+    def _statement_block_in_loop(self) -> list[Statement]:
+        # allow for break, breakall and continue statements inside the loop
+        # increment the loop count
+        self._loop_count += 1
+
+        try:
+            # get the statements in the body of the loop
+            statements: list[Statement] = self._statement_block()
+        finally:
+            # after parsing the statements or an exception, decrement the loop count again
+            self._loop_count -= 1
+
+        return statements
+
     def _statement_block(self) -> list[Statement]:
         """returns a list of statements in the block, list is empty if there is no indent"""
         # we can either have an empty block or we must have an indent
@@ -157,6 +187,9 @@ class AstGenerator:
         if not token:
             return None
 
+        # set the breakall label if this is the outer loop
+        self._set_breakall_label(token)
+
         # otherwise we have an (already consumed) for-loop statement
         # start parsing the initial value statement (if it exists)
         init: Statement | None = None
@@ -180,10 +213,10 @@ class AstGenerator:
         self.expect_newline()
 
         # continue with the body of the for-loop statement
-        statements: list[Statement] = self._statement_block()
+        statements: list[Statement] = self._statement_block_in_loop()
 
         # return the finished for-loop statement
-        return ForLoopStatement(token, init, check, loop, statements)
+        return ForLoopStatement(token, self._get_breakall_label(), init, check, loop, statements)
 
     def _type_statement(
         self, must_end_with_newline: bool
@@ -386,6 +419,9 @@ class AstGenerator:
         if not token:
             return None
 
+        # set the breakall label if this is the outer loop
+        self._set_breakall_label(token)
+
         # otherwise we have an (already consumed) while-loop statement
         # parse the condition (to be placed in the check expression of the for-loop statement)
         check: Expression = self.expression()
@@ -395,10 +431,10 @@ class AstGenerator:
         self.expect_newline()
 
         # continue with the body of the while-loop statement
-        statements: list[Statement] = self._statement_block()
+        statements: list[Statement] = self._statement_block_in_loop()
 
         # return the finished while-loop as a for-loop statement
-        return ForLoopStatement(token, None, check, None, statements)
+        return ForLoopStatement(token, self._get_breakall_label(), None, check, None, statements)
 
     def _finish_lifecycle_statement(self, lifecycle_statement: LifecycleStatement) -> LifecycleStatement:
         # after the lifecycle statement definition itself, we expect a colon
@@ -563,6 +599,28 @@ class AstGenerator:
         # return the finished class statement
         return class_statement
 
+    def loop_control_statement(self) -> Statement | None:
+        # early return if we're not inside a loop
+        if self._loop_count == 0:
+            return None
+
+        # check for a break statement
+        if token := self.match(TokenType.BREAK):
+            self.expect_newline("break")
+            return BreakStatement(token.source_location)
+
+        # check for a breakall statement
+        if token := self.match(TokenType.BREAKALL):
+            self.expect_newline("breakall")
+            return BreakallStatement(token.source_location, self._breakall_label)
+
+        # check for a continue statement
+        if token := self.match(TokenType.CONTINUE):
+            self.expect_newline("continue")
+            return ContinueStatement(token.source_location)
+
+        return None
+
     def statement(self, must_end_with_newline: bool = True) -> Statement:
         """returns a statement of some kind"""
         # check for a statement starting with a type
@@ -592,6 +650,10 @@ class AstGenerator:
 
         # check for a class 'statement'
         if statement := self.class_statement():
+            return statement
+
+        # if we're inside a loop, check for break, breakall, continue statements
+        if statement := self.loop_control_statement():
             return statement
 
         # fall back to a bare expression statement

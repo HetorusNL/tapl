@@ -61,7 +61,10 @@ class TokenType(Enum):
     STRING_END = "<STRING_END"
 
     # keywords
+    BREAK = "break"
+    BREAKALL = "breakall"
     CLASS = "class"
+    CONTINUE = "continue"
     ELSE = "else"
     FALSE = "false"
     FOR = "for"
