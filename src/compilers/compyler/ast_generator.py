@@ -135,12 +135,12 @@ class AstGenerator:
         # check that we have a ThisExpression or an identifier expression (return otherwise)
         if not isinstance(expression, (ThisExpression, IdentifierExpression)):
             return
-        # check, but not consume, if there is an assignment
-        if self.current().token_type != TokenType.EQUAL:
+        # check if there is a form of assignment, return if not
+        if not AssignmentStatement.is_assignment_form_token(self.current()):
             return
 
-        # consume the equal
-        self.expect(TokenType.EQUAL)
+        # consume the form of assignment ending in equal
+        assignment_token: Token = self.expect(self.current().token_type)
 
         # then consume the expression
         value: Expression = self.expression()
@@ -149,7 +149,7 @@ class AstGenerator:
         self.expect_newline(must_end_with_newline=must_end_with_newline)
 
         # return the assignment statement
-        return AssignmentStatement(expression, value)
+        return AssignmentStatement(expression, assignment_token, value)
 
     def for_loop_statement(self) -> ForLoopStatement | None:
         # early return if we don't have a for-loop statement

@@ -8,21 +8,37 @@ from ..expressions.expression import Expression
 from ..expressions.identifier_expression import IdentifierExpression
 from ..expressions.this_expression import ThisExpression
 from .statement import Statement
+from ..tokens.token import Token
+from ..tokens.token_type import TokenType
 from ..utils.source_location import SourceLocation
 
 
 class AssignmentStatement(Statement):
-    def __init__(self, expression: ThisExpression | IdentifierExpression, value: Expression):
+    @classmethod
+    def is_assignment_form_token(cls, token: Token) -> bool:
+        return token.token_type and token.token_type in {
+            TokenType.EQUAL,
+            TokenType.PLUS_EQUAL,
+            TokenType.MINUS_EQUAL,
+            TokenType.SLASH_EQUAL,
+            TokenType.STAR_EQUAL,
+        }
+
+    def __init__(self, expression: ThisExpression | IdentifierExpression, assignment_token: Token, value: Expression):
         source_location: SourceLocation = expression.source_location + value.source_location
         super().__init__(source_location)
         self.expression: ThisExpression | IdentifierExpression = expression
+        message: str = f"internal compiler error, expected assignment form token, got {assignment_token.token_type}"
+        assert AssignmentStatement.is_assignment_form_token(assignment_token), message
+        self.assignment_token: Token = assignment_token
         self.value: Expression = value
 
     def c_code(self) -> str:
         identifier: str = self.expression.c_code()
+        assignment_form: str = self.assignment_token.token_type.value
         value: str = self.value.c_code()
 
-        return f"{identifier} = {value};"
+        return f"{identifier} {assignment_form} {value};"
 
     def __str__(self) -> str:
         identifier: str = self.expression.__str__()

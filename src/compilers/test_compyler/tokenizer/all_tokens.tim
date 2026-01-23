@@ -1,5 +1,5 @@
-{}[]:,.-()+;~++--
-    = == > >= < <= ! != / * & && | ||
+{}[]:,.();~++--
+    = == > >= < <= - -= ! != + += / /= * *= & && | ||
         identifier 1337 'c' "str"
 class else false for if list null print println return super this true while
 // 1 inline comment

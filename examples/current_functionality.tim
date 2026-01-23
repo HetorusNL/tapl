@@ -293,8 +293,11 @@ for u64 index = 0; index < func_list.size(); index++:
     println("index: {index}, value: {func_list.get(index)}")
 
 // we also support for-loops with a statement in the loop position
-println("counting from 0 to <9 in steps of 3")
+println("counting from 0 to <9 in steps of 3 in the form of 'index = index + 3'")
 for u64 index = 0; index < 9; index = index + 3:
+    println(index)
+println("and shorthand using 'index += 3'")
+for u64 index = 0; index < 9; index += 3:
     println(index)
 
 // test the escape sequences for characters
@@ -324,3 +327,14 @@ for u64 index = 0; index < max_chars; index++:
     else:
         print(".")
 println("")
+
+println("\nlet's test the double-character tokens ending in '='")
+u64 test_value = 25
+test_value += 10
+println("25 += 10 = {test_value}")
+test_value -= 10
+println("35 -= 10 = {test_value}")
+test_value *= 10
+println("25 *= 10 = {test_value}")
+test_value /= 10
+println("250 /= 10 = {test_value}")

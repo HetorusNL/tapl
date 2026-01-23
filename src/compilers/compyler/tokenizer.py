@@ -75,20 +75,10 @@ class Tokenizer:
                     self._add_token_of_length(TokenType.COMMA)
                 case TokenType.DOT.value:
                     self._add_token_of_length(TokenType.DOT)
-                case TokenType.MINUS.value:
-                    if self._consume(TokenType.MINUS.value):
-                        self._add_token_of_length(TokenType.DECREMENT)
-                    else:
-                        self._add_token_of_length(TokenType.MINUS)
                 case TokenType.PAREN_CLOSE.value:
                     self._add_token_of_length(TokenType.PAREN_CLOSE)
                 case TokenType.PAREN_OPEN.value:
                     self._add_token_of_length(TokenType.PAREN_OPEN)
-                case TokenType.PLUS.value:
-                    if self._consume(TokenType.PLUS.value):
-                        self._add_token_of_length(TokenType.INCREMENT)
-                    else:
-                        self._add_token_of_length(TokenType.PLUS)
                 case TokenType.SEMICOLON.value:
                     self._add_token_of_length(TokenType.SEMICOLON)
                 case TokenType.TILDE.value:
@@ -109,20 +99,39 @@ class Tokenizer:
                         self._add_token_of_length(TokenType.LESS_EQUAL)
                     else:
                         self._add_token_of_length(TokenType.LESS)
+                case TokenType.MINUS.value:
+                    if self._consume(TokenType.MINUS.value):
+                        self._add_token_of_length(TokenType.DECREMENT)
+                    elif self._consume(TokenType.EQUAL.value):
+                        self._add_token_of_length(TokenType.MINUS_EQUAL)
+                    else:
+                        self._add_token_of_length(TokenType.MINUS)
                 case TokenType.NOT.value:
                     if self._consume(TokenType.EQUAL.value):
                         self._add_token_of_length(TokenType.NOT_EQUAL)
                     else:
                         self._add_token_of_length(TokenType.NOT)
+                case TokenType.PLUS.value:
+                    if self._consume(TokenType.PLUS.value):
+                        self._add_token_of_length(TokenType.INCREMENT)
+                    elif self._consume(TokenType.EQUAL.value):
+                        self._add_token_of_length(TokenType.PLUS_EQUAL)
+                    else:
+                        self._add_token_of_length(TokenType.PLUS)
                 case TokenType.SLASH.value:
                     if self._consume(TokenType.SLASH.value):
                         self._add_inline_comment()
                     elif self._consume(TokenType.STAR.value):
                         self._add_block_comment()
+                    elif self._consume(TokenType.EQUAL.value):
+                        self._add_token_of_length(TokenType.SLASH_EQUAL)
                     else:
                         self._add_token_of_length(TokenType.SLASH)
                 case TokenType.STAR.value:
-                    self._add_token_of_length(TokenType.STAR)
+                    if self._consume(TokenType.EQUAL.value):
+                        self._add_token_of_length(TokenType.STAR_EQUAL)
+                    else:
+                        self._add_token_of_length(TokenType.STAR)
                 case TokenType.AND.value:
                     if self._consume(TokenType.AND.value):
                         self._add_token_of_length(TokenType.AND_AND)
