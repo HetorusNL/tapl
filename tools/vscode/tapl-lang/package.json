@@ -1,0 +1,52 @@
+{
+  "name": "tapl-lang",
+  "displayName": "TAPL Lang",
+  "description": "Tim's Awesome Programming Language - TAPL Language Support",
+  "version": "0.0.1",
+  "author": {
+    "email": "tim@tapl-lang.com",
+    "name": "Tim Klein Nijenhuis",
+    "url": "https://tapl-lang.com"
+  },
+  "homepage": "https://tapl-lang.com",
+  "keywords": [
+    "tapl",
+    "tim",
+    ".tim",
+    "Tim's Awesome Programming Language",
+    "programming language",
+    "vscode extension"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HetorusNL/tapl"
+  },
+  "engines": {
+    "vscode": "^1.109.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tapl",
+        "aliases": [
+          "TAPL",
+          "tapl"
+        ],
+        "extensions": [
+          ".tim"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tapl",
+        "scopeName": "source.tim",
+        "path": "./syntaxes/tapl.tmLanguage.json"
+      }
+    ]
+  }
+}

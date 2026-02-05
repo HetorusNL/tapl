@@ -43,6 +43,14 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      "name": "TAPL Language Support Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/tools/vscode/tapl-lang"
+      ]
     }
   ]
 }

@@ -1,6 +1,7 @@
 # TAPL
 
 Repository with the compiler/examples/documentation of TAPL (Tim's Awesome Programming Language).
+The VSCode extension can be found [here](tools/vscode/tapl-lang/README.md) and language server [TODO]().
 
 ## Information
 
