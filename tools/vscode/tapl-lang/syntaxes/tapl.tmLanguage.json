@@ -6,10 +6,22 @@
       "include": "#comments"
     },
     {
+      "include": "#constants"
+    },
+    {
+      "include": "#types"
+    },
+    {
       "include": "#keywords"
     },
     {
       "include": "#strings"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#variables"
     }
   ],
   "repository": {
@@ -26,11 +38,39 @@
         }
       ]
     },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.numeric.tapl",
+          "match": "\\b(?:0x[0-9A-Fa-f]+|0b[01]+|0o[0-7]+|\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)\\b"
+        },
+        {
+          "name": "constant.language.boolean.tapl",
+          "match": "\\b(?:true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.tapl",
+          "match": "\\bnull\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.tapl",
+          "match": "\\b(?:bool|char|f(?:32|64)|[su](?:1|8|16|32|64)|string|void)\\b"
+        },
+        {
+          "name": "support.class.tapl",
+          "match": "\\b(?:hmap|list)\\b"
+        }
+      ]
+    },
     "keywords": {
       "patterns": [
         {
           "name": "keyword.control.tapl",
-          "match": "\\b(break|breakall|class|continue|else|false|for|if|list|null|print|println|return|super|this|true|while)\\b"
+          "match": "\\b(?:break|breakall|class|continue|else|false|for|if|null|return|super|this|true|while)\\b"
         }
       ]
     },
@@ -63,6 +103,32 @@
         },
         {
           "include": "#string-single"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.tapl",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\([^\\)]*\\)\\s*:)",
+          "captures": {
+            "1": { "name": "entity.name.function.tapl" }
+          }
+        },
+        {
+          "name": "meta.function.call.tapl",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.call.tapl" }
+          }
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.tapl",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*\\()"
         }
       ]
     }
