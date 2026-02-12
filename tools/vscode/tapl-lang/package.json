@@ -2,11 +2,17 @@
   "name": "tapl-lang",
   "displayName": "TAPL Lang",
   "description": "Tim's Awesome Programming Language - TAPL Language Support",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "publisher": "tapl-lang",
   "author": {
     "email": "tim@tapl-lang.com",
     "name": "Tim Klein Nijenhuis",
     "url": "https://tapl-lang.com"
+  },
+  "icon": "tapl-logo-128px.png",
+  "galleryBanner": {
+    "color": "#111111",
+    "theme": "dark"
   },
   "homepage": "https://tapl-lang.com",
   "keywords": [
@@ -17,12 +23,16 @@
     "programming language",
     "vscode extension"
   ],
+  "pricing": "Free",
+  "sponsor": {
+    "url": "https://github.com/sponsors/HetorusNL"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/HetorusNL/tapl"
   },
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.94.0"
   },
   "categories": [
     "Programming Languages"

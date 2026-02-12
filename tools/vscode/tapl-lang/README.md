@@ -6,9 +6,9 @@ This folder contains the TAPL Language Support Extension.
 
 Basic language support consisting of the following:
 
-- basic syntax highlighting
+- syntax highlighting
 - basic indentation handling on enter
-- recognition of .tim files
+- recognition of TAPL's .tim files
 
 ## Requirements
 
@@ -25,4 +25,4 @@ No known issues yet.
 
 ## Release Notes
 
-Release notes and changelog can be found [here](./CHANGELOG.md).
+Release notes and changelog can be found [here](/tools/vscode/tapl-lang/CHANGELOG.md).
